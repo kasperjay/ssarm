@@ -6,12 +6,24 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import:csv": "node scripts/import-leads-from-csv.js",
+    "backfill:enrich": "node scripts/backfill-enrich.js",
+    "ig:scrape": "node scripts/ig-profile-scraper.js",
+    "seed": "node prisma/seed.js",
+    "seed:reset": "node prisma/seed.js --reset"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "apify-client": "^2.15.1",
+    "csv-parse": "^5.6.0",
     "next": "16.1.6",
+    "pg": "^8.18.0",
+    "prisma": "^7.3.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

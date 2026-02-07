@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LeadStatus {
+  NEW
+  QUALIFIED
+  CONTACTED
+  FOLLOW_UP
+  WON
+  LOST
+}
+
+enum ActivityType {
+  MESSAGE_SENT
+  REPLY_RECEIVED
+  FOLLOW_UP_SET
+  STATUS_CHANGE
+  NOTE
+}
+
+model Artist {
+  id                  String          @id @default(cuid())
+  name                String
+  instagramHandle     String?         @unique
+  instagramProfileUrl String?
+  instagramProfileImageUrl String?
+  spotifyArtistId     String?         @unique
+  spotifyArtistUrl    String?
+  spotifyImageUrl     String?
+  spotifyAccent       String?
+  spotifyAccentStrong String?
+  spotifyHighlight    String?
+  officialSiteUrl     String?
+  location            String?
+  city                String?
+  state               String?
+  country             String?
+  genre               String?
+  tags                String[]        @default([])
+  bio                 String?
+  emails              String[]        @default([])
+  followerCount       Int?
+  lastPostAt          DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  leads          Lead[]
+  releases       Release[]
+  instagramPosts InstagramPost[]
+}
+
+model Lead {
+  id              String      @id @default(cuid())
+  artistId        String
+  status          LeadStatus  @default(NEW)
+  score           Float?
+  scoreRationale  String?
+  lastContactedAt DateTime?
+  nextActionAt    DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  artist     Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  messages   MessageDraft[]
+  activities Activity[]
+}
+
+model Release {
+  id             String   @id @default(cuid())
+  artistId       String
+  spotifyTrackId String?  @unique
+  spotifyReleaseId String? @unique
+  title          String
+  releaseDate    DateTime?
+  imageUrl       String?
+  url            String?
+  releaseType    String?
+  createdAt      DateTime @default(now())
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
+model InstagramPost {
+  id              String   @id @default(cuid())
+  artistId        String
+  instagramPostId String?  @unique
+  caption         String?
+  imageUrl        String?
+  postedAt        DateTime?
+  url             String?
+  createdAt       DateTime @default(now())
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
+model MessageDraft {
+  id        String   @id @default(cuid())
+  leadId    String
+  tone      String?
+  body      String
+  source    String?
+  selected  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id         String       @id @default(cuid())
+  leadId     String
+  type       ActivityType
+  note       String?
+  occurredAt DateTime     @default(now())
+  createdAt  DateTime     @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
