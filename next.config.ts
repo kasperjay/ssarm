@@ -19,7 +19,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "image-cdn.spotifycdn.com",
       },
+      { protocol: "https", hostname: "scontent.cdninstagram.com" },
+      { protocol: "https", hostname: "cdninstagram.com" },
+      { protocol: "https", hostname: "scontent.xx.fbcdn.net" },
+      { protocol: "https", hostname: "fbcdn.net" },
     ],
+    unoptimized: true,
   },
 };
 

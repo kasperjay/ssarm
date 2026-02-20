@@ -84,13 +84,13 @@ export const fetchSpotifyArtistProfile = async (
 
   const images = Array.isArray(data.images) ? data.images : [];
   const imageUrl =
-    images[0] && typeof images[0].url === "string" ? images[0].url : null;
+    images[0] && typeof images[0].url === "string" ? images[0].url : undefined;
   const genres = Array.isArray(data.genres) ? data.genres.filter(Boolean) : [];
   const url =
     data.external_urls &&
     typeof (data.external_urls as Record<string, unknown>).spotify === "string"
       ? ((data.external_urls as Record<string, unknown>).spotify as string)
-      : null;
+      : undefined;
 
   return {
     name: typeof data.name === "string" ? data.name : undefined,
@@ -106,7 +106,7 @@ export const fetchSpotifyReleases = async (
 ): Promise<SpotifyRelease[]> => {
   const target = Math.max(1, limit);
   const pageSize = Math.min(50, Math.max(target * 2, target + 4));
-  let path = `artists/${spotifyArtistId}/albums?${new URLSearchParams({
+  let path: string | null = `artists/${spotifyArtistId}/albums?${new URLSearchParams({
     include_groups: "album,single",
     limit: String(pageSize),
     market: "US",
@@ -146,7 +146,7 @@ export const fetchSpotifyReleases = async (
         imageUrl,
         url,
         releaseType:
-          typeof item.album_type === "string" ? (item.album_type as string) : null,
+          typeof item.album_type === "string" ? (item.album_type as string) : undefined,
       });
     }
 

@@ -144,7 +144,7 @@ export default async function LeadDetailPage({
       { imageUrl: { not: null } },
       { url: { not: null } },
     ],
-  } as const;
+  };
 
   const [releaseRows, postRows, releaseCount, postCount] = await Promise.all([
     prisma.release.findMany({
@@ -510,9 +510,10 @@ export default async function LeadDetailPage({
                           <iframe
                             src={featuredRelease.url.replace("open.spotify.com/", "open.spotify.com/embed/")}
                             width="100%"
-                            height="152"
-                            allow="encrypted-media; clipboard-write"
+                            height="232"
+                            allow="encrypted-media; clipboard-write; fullscreen; picture-in-picture"
                             className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)]"
+                            title="Spotify player"
                           />
                         ) : null}
                         <div className="flex w-full flex-col items-center gap-2 text-center">
@@ -543,14 +544,10 @@ export default async function LeadDetailPage({
                                 {lead.artist.genre}
                               </span>
                             ) : null}
-                            {lead.artist.spotifyArtistUrl ? (
-                              <Link
-                                href={lead.artist.spotifyArtistUrl}
-                                target="_blank"
-                                className="rounded-full border border-white/10 px-3 py-1 text-[color:var(--accent-strong)] hover:border-[color:var(--accent)]"
-                              >
-                                View Artist
-                              </Link>
+                            {lead.artist.name ? (
+                              <span className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-1">
+                                {lead.artist.name}
+                              </span>
                             ) : null}
                           </div>
                         </div>

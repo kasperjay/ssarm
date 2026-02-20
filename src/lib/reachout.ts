@@ -240,7 +240,7 @@ const extractJson = (resp: Record<string, unknown>) => {
     const content = Array.isArray((item as { content?: unknown }).content)
       ? (item as { content?: Array<Record<string, unknown>> }).content
       : [];
-    for (const chunk of content) {
+    for (const chunk of content ?? []) {
       if (chunk.type === "output_json" && chunk.json) return chunk.json as ReachoutOutput;
       if (chunk.type === "output_text" && typeof chunk.text === "string") {
         return JSON.parse(chunk.text) as ReachoutOutput;
