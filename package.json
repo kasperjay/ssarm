@@ -10,6 +10,7 @@
     "import:csv": "node scripts/import-leads-from-csv.js",
     "backfill:enrich": "node scripts/backfill-enrich.js",
     "ig:scrape": "node scripts/ig-profile-scraper.js",
+    "score": "node scripts/score-leads.js",
     "seed": "node prisma/seed.js",
     "seed:reset": "node prisma/seed.js --reset"
   },
