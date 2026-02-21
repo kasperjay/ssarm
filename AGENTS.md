@@ -119,6 +119,8 @@ npm run followup:remind -- --dry-run   # Preview changes
 | Data Enrichment & Staleness | ✅ Complete | `scripts/enrich-stale.js` | Done |
 | Event-Driven Scoring | ✅ Complete | `scripts/score-auto.js` | Done |
 | Follow-Up Reminder | ✅ Complete | `scripts/followup-remind.js` | Done |
+| Contact Intelligence | ✅ Complete | `scripts/discover-contacts.js` | Done |
+| Campaign Analytics | ✅ Complete | `scripts/report-campaign.js` | Done |
 
 ---
 
@@ -144,48 +146,65 @@ Integration points:
 
 ### 4. Contact Intelligence & Email Discovery
 
+**File:** `scripts/discover-contacts.js`
+
+**Status:** ✅ COMPLETE
+
 **Purpose:** Automatically discover and validate contact information for leads.
 
 **Features:**
-- Cross-reference band websites for booking contacts
-- Validate emails via real-time verification
-- Extract contact patterns from known good records
-- Score contact confidence (verified, inferred, uncertain)
-- Update Lead contact fields automatically
+- Crawl artist websites for booking/contact emails
+- Score contact confidence (verified/inferred/uncertain)
+- Email format validation and pattern matching
+- Prevents duplicate email entries
+- Logs discovery activities for audit trail
 
-**Expected Benefits:**
-- Reduce manual email hunting time
-- Maintain accurate contact database
-- Improve outreach success rate
+**Confidence Scoring:**
+- **Verified (85-95%)**: Official website contact pages
+- **Inferred (60-75%)**: Band website, social profiles
+- **Uncertain (40%)**: Pattern-matched emails
 
-**Planned CLI:**
+**CLI Usage:**
 ```bash
-npm run discover:contacts               # Find missing contacts
-npm run discover:contacts -- --verify   # Verify existing contacts
+npm run discover:contacts                # Discover contacts for all leads
+npm run discover:contacts -- --dry-run   # Preview without saving
+npm run discover:contacts -- --limit 20  # Process 20 leads
+npm run discover:contacts -- --missing   # Only process leads with no emails
 ```
 
 ---
 
 ### 5. Campaign Analytics & Reporting
 
+**File:** `scripts/report-campaign.js`
+
+**Status:** ✅ COMPLETE
+
 **Purpose:** Track and analyze campaign performance across all leads.
 
 **Features:**
-- Measure conversion funnel metrics
-- Analyze message effectiveness by tone/channel
-- Generate weekly campaign reports
-- Identify high-performer segments
-- Alert on underperforming campaigns
+- Calculate conversion funnel metrics
+- Score distribution analysis (excellent/strong/moderate/weak)
+- Tone effectiveness tracking
+- Channel performance analytics (email/Instagram/phone/in-person)
+- Segment identification:
+  - **High Performers**: score ≥70 + contacted
+  - **Underperformers**: score ≥60 but not yet contacted
+  - **At-Risk**: FOLLOW_UP status with no activity 14+ days
+- Generate detailed reports with optional deep dives
 
-**Expected Benefits:**
-- Data-driven outreach strategy
-- Real-time campaign visibility
-- Optimize messaging for better results
+**Report Metrics:**
+- Qualification rate, conversion rate
+- Funnel stages (Qualified → Contacted → Follow-up → Converted)
+- Score distribution breakdown
+- Tone and channel effectiveness
+- Actionable segment lists
 
-**Planned CLI:**
+**CLI Usage:**
 ```bash
-npm run report:campaign                 # Generate weekly report
-npm run report:campaign -- --segment    # Report by artist segment
+npm run report:campaign              # Generate 7-day report
+npm run report:campaign -- --days 30 # Generate 30-day report
+npm run report:campaign -- --details # Include artist lists
 ```
 
 ---
