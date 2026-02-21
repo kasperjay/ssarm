@@ -11,6 +11,9 @@
     "backfill:enrich": "node scripts/backfill-enrich.js",
     "ig:scrape": "node scripts/ig-profile-scraper.js",
     "score": "node scripts/score-leads.js",
+    "score:auto": "node scripts/score-auto.js",
+    "enrich:stale": "node scripts/enrich-stale.js",
+    "followup:remind": "node scripts/followup-remind.js",
     "seed": "node prisma/seed.js",
     "seed:reset": "node prisma/seed.js --reset"
   },

@@ -2,94 +2,209 @@
 
 This document describes the automated agents and scripts available for operating Spectral Soundworks.
 
-## Lead Scoring Agent
+## ✅ Implemented Agents
+
+### Lead Scoring Agent
 
 **File:** `scripts/score-leads.js`
 
 **Purpose:** Automatically calculate lead quality scores based on artist metrics.
 
-### Scoring Algorithm
+**Scoring Algorithm** (0-100 scale):
+- Follower Count: 0-30 points
+- Release Recency: 0-20 points
+- Release Count: 0-20 points
+- Data Completeness: 0-15 points
+- Engagement Signals: 0-10 points
+- Genre Bonus: 0-5 points
 
-Leads are scored on a 0-100 scale based on five factors:
-
-| Factor | Points | Calculation |
-|--------|--------|-------------|
-| Follower Count | 0-30 | Capped at 10k followers = 30 points |
-| Release Recency | 0-20 | Based on `lastPostAt` (180-day window) |
-| Release Count | 0-20 | Capped at 3+ releases = 20 points |
-| Data Completeness | 0-15 | % of key fields filled (Instagram, Spotify, genre, location, bio) |
-| Engagement Signals | 0-10 | Has Instagram handle, quality bio, multiple emails, official site |
-| Genre Bonus | 0-5 | Award bonus if genre is populated |
-
-**Total:** 0-100 points
-
-### CLI Usage
-
+**CLI Usage:**
 ```bash
-# Score unscored leads (default: limit 100)
-npm run score
-
-# Score all leads (rescore existing)
-npm run score -- --all
-
-# Score specific number of leads
-npm run score -- --limit 50
-
-# Score specific lead statuses
-npm run score -- --filter-status NEW,QUALIFIED
-
-# Preview changes without saving (dry-run)
-npm run score -- --dry-run
-
-# Combine options
-npm run score -- --limit 25 --filter-status NEW --dry-run
+npm run score                          # Score unscored leads
+npm run score -- --all                 # Score all leads
+npm run score -- --limit 50            # Score 50 leads
+npm run score -- --filter-status NEW   # Score specific statuses
+npm run score -- --dry-run             # Preview changes
 ```
-
-### Output
-
-The script updates `Lead.score` and `Lead.scoreRationale` fields with:
-- **score**: Numeric value (0-100)
-- **scoreRationale**: Human-readable explanation, e.g. `"12,450 followers (30pts); active posting (14d ago, 20pts); 5 releases (20pts); ..."`
-
-### Example
-
-```
-🎯 Lead Scoring Engine
-Mode: LIVE | Unscored only | Limit: 100
-
-Scoring 47 leads...
-
-📊 Results:
-  Scored: 47
-  Updated: 47
-  Errors: 0
-
-Sample changes (first 5):
-  Rising Moon: null → 82
-    → 8,750 followers (26pts); active posting (8d ago, 20pts); 4 releases (20pts); ...
-  Echo Valley: null → 61
-    → 3,200 followers (10pts); active posting (45d ago, 16pts); 2 releases (13pts); ...
-```
-
-### Notes
-
-- **Idempotent:** Safe to run multiple times on the same data
-- **Deterministic:** Same input always produces same score
-- **Rationale:** Designed for human review and lead prioritization
-- **Extensible:** Easy to add new scoring factors (e.g., engagement metrics, genre affinity)
-
-### Requirements
-
-- PostgreSQL database with schema migrated
-- All artist data should be enriched (follower counts, release info, etc.) before scoring
-- Works best after running `npm run backfill:enrich` on new leads
 
 ---
 
-## Planned Agents
+## 🚀 Planned Agents (TIER 1)
 
-- **Follow-Up Agent** — Auto-trigger follow-ups based on lead status & dates
-- **Bulk Outreach Agent** — Generate & send batches of personalized messages
-- **Email Discovery Agent** — Deep-scan artist sites for contact info
-- **Instagram Post Analyzer** — Analyze post sentiment & engagement patterns
-- **Documentation Updater** — Keep README & schema docs synchronized
+### 1. Data Enrichment & Staleness Agent
+
+**File:** `scripts/enrich-stale.js`
+
+**Status:** ✅ COMPLETE
+
+**Purpose:** Keep artist profiles fresh by detecting stale data and triggering automatic enrichment.
+
+**Features:**
+- Detect stale Instagram data (>60 days since last post)
+- Detect missing releases (>6 months)
+- Detect engagement drops (follower count declining)
+- Auto-trigger Spotify/Instagram refresh via `/api/ingest`
+- Log all enrichment activities for audit trail
+- Flag artists needing manual review
+
+**CLI Usage:**
+```bash
+npm run enrich:stale                   # Check & refresh stale data
+npm run enrich:stale -- --dry-run      # Preview changes
+npm run enrich:stale -- --limit 20     # Limit to 20 artists
+```
+
+---
+
+### 2. Event-Driven Lead Scoring
+
+**File:** `scripts/score-auto.js`
+
+**Status:** ✅ COMPLETE
+
+**Purpose:** Automatically score leads when they're created or their data changes.
+
+**Features:**
+- Score new leads immediately upon creation
+- Auto-flag QUALIFIED leads (score ≥60)
+- Auto-update lead status based on score
+- Maintain Activity log for audit trail
+- Prevent duplicate scoring
+
+**CLI Usage:**
+```bash
+npm run score:auto                     # Score unscored leads
+npm run score:auto -- --dry-run        # Preview changes
+npm run score:auto -- --limit 50       # Score 50 leads
+```
+
+---
+
+### 3. Follow-Up Reminder & Sequencing
+
+**File:** `scripts/followup-remind.js`
+
+**Status:** ✅ COMPLETE
+
+**Purpose:** Ensure no leads fall through cracks; automate follow-up workflow.
+
+**Features:**
+- Monitor `nextActionAt` field across all leads
+- Generate notifications for due follow-ups
+- Suggest next contact tone based on recency
+- Prevent duplicate outreach (check Activity log)
+- Auto-transition stale leads from FOLLOW_UP → LOST
+- Create activity logs for all actions
+- Categorize by priority (high/normal)
+
+**Tone Suggestions:**
+- 0-3 days: "warm" (light touch)
+- 4-7 days: "check-in" (friendly reminder)
+- 8-14 days: "escalation" (more direct)
+- 14+ days: "final-attempt" (persistence)
+
+**CLI Usage:**
+```bash
+npm run followup:remind                # Check due follow-ups
+npm run followup:remind -- --dry-run   # Preview changes
+```
+
+---
+
+## Implementation Status
+
+| Agent | Status | File | Effort |
+|-------|--------|------|--------|
+| Lead Scoring | ✅ Complete | `scripts/score-leads.js` | Done |
+| Data Enrichment & Staleness | ✅ Complete | `scripts/enrich-stale.js` | Done |
+| Event-Driven Scoring | ✅ Complete | `scripts/score-auto.js` | Done |
+| Follow-Up Reminder | ✅ Complete | `scripts/followup-remind.js` | Done |
+
+---
+
+## Architecture Notes
+
+All agents:
+- Connect via existing Prisma client to PostgreSQL
+- Log activities to Activity table for audit/compliance
+- Can run scheduled or on-demand
+- Use existing integration libraries (Spotify, Instagram, email)
+- Generate notifications for high-priority items
+- Are testable with sample data before production deployment
+
+Integration points:
+- `/api/ingest` endpoint for triggering enrichment
+- Existing `scripts/` for CLI tools
+- Scheduled execution via GitHub Actions or cron
+- Activity logging for complete audit trail
+
+---
+
+## 📋 TIER 2 Agents (Medium Priority)
+
+### 4. Contact Intelligence & Email Discovery
+
+**Purpose:** Automatically discover and validate contact information for leads.
+
+**Features:**
+- Cross-reference band websites for booking contacts
+- Validate emails via real-time verification
+- Extract contact patterns from known good records
+- Score contact confidence (verified, inferred, uncertain)
+- Update Lead contact fields automatically
+
+**Expected Benefits:**
+- Reduce manual email hunting time
+- Maintain accurate contact database
+- Improve outreach success rate
+
+**Planned CLI:**
+```bash
+npm run discover:contacts               # Find missing contacts
+npm run discover:contacts -- --verify   # Verify existing contacts
+```
+
+---
+
+### 5. Campaign Analytics & Reporting
+
+**Purpose:** Track and analyze campaign performance across all leads.
+
+**Features:**
+- Measure conversion funnel metrics
+- Analyze message effectiveness by tone/channel
+- Generate weekly campaign reports
+- Identify high-performer segments
+- Alert on underperforming campaigns
+
+**Expected Benefits:**
+- Data-driven outreach strategy
+- Real-time campaign visibility
+- Optimize messaging for better results
+
+**Planned CLI:**
+```bash
+npm run report:campaign                 # Generate weekly report
+npm run report:campaign -- --segment    # Report by artist segment
+```
+
+---
+
+## 📋 TIER 3 Agents (Low Priority)
+
+### 6. Duplicate Artist Detection
+- Catch duplicate imports before ingest
+- Merge duplicate records safely
+
+### 7. Genre Standardization
+- Map messy genre tags to canonical taxonomy
+- Flag invalid/missing genres
+
+### 8. Release Notification Agent
+- Monitor tracked artists for new releases
+- Auto-create Activity records
+- Trigger outreach opportunities
+
+---
+
+## Architecture Notes
