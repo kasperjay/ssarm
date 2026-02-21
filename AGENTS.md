@@ -121,6 +121,8 @@ npm run followup:remind -- --dry-run   # Preview changes
 | Follow-Up Reminder | ✅ Complete | `scripts/followup-remind.js` | Done |
 | Contact Intelligence | ✅ Complete | `scripts/discover-contacts.js` | Done |
 | Campaign Analytics | ✅ Complete | `scripts/report-campaign.js` | Done |
+| Duplicate Detection | ✅ Complete | `scripts/detect-duplicates.js` | Done |
+| Genre Standardization | ✅ Complete | `scripts/standardize-genres.js` | Done |
 
 ---
 
@@ -211,18 +213,61 @@ npm run report:campaign -- --details # Include artist lists
 
 ## 📋 TIER 3 Agents (Low Priority)
 
-### 6. Duplicate Artist Detection
-- Catch duplicate imports before ingest
-- Merge duplicate records safely
+### 6. Duplicate Artist Detection & Merging
+
+**File:** `scripts/detect-duplicates.js`
+
+**Status:** ✅ COMPLETE
+
+**Purpose:** Catch and safely merge duplicate artist records before they cause data quality issues.
+
+**Features:**
+- Levenshtein distance algorithm for name similarity detection
+- Spotify ID and Instagram handle matching
+- Confidence-based categorization (high/medium/low)
+- Safe merging strategy: consolidates data, preserves all leads and relationships
+- Prevents duplicate emails in merged records
+
+**Confidence Levels:**
+- **High**: Exact Spotify ID or Instagram match
+- **Medium**: 95%+ name similarity
+- **Low**: 85-94% name similarity
+
+**CLI Usage:**
+```bash
+npm run detect:duplicates              # Find potential duplicates
+npm run detect:duplicates -- --dry-run # Preview without changes
+npm run detect:duplicates -- --auto-merge # Auto-merge high confidence
+npm run detect:duplicates -- --threshold 0.90 # Adjust similarity threshold
+```
+
+---
 
 ### 7. Genre Standardization
-- Map messy genre tags to canonical taxonomy
-- Flag invalid/missing genres
 
-### 8. Release Notification Agent
-- Monitor tracked artists for new releases
-- Auto-create Activity records
-- Trigger outreach opportunities
+**File:** `scripts/standardize-genres.js`
+
+**Status:** ✅ COMPLETE
+
+**Purpose:** Normalize messy genre tags to a canonical taxonomy for consistent reporting.
+
+**Features:**
+- Canonical taxonomy with 12+ primary genres and 80+ aliases
+- Partial matching and alias detection
+- Categorizes genres: already standard, standardizable, invalid, missing
+- Shows data quality metrics
+- Logs fixes with rationale
+
+**Canonical Genres:**
+- electronic, hip-hop, rock, pop, r&b, country, jazz, classical, folk, metal, reggae, indie, experimental
+
+**CLI Usage:**
+```bash
+npm run standardize:genres              # Analyze genre issues
+npm run standardize:genres -- --dry-run # Preview without changes
+npm run standardize:genres -- --auto-fix # Apply standardizations
+npm run standardize:genres -- --taxonomy # Show canonical taxonomy
+```
 
 ---
 

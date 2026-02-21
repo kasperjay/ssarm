@@ -16,6 +16,8 @@
     "followup:remind": "node scripts/followup-remind.js",
     "discover:contacts": "node scripts/discover-contacts.js",
     "report:campaign": "node scripts/report-campaign.js",
+    "detect:duplicates": "node scripts/detect-duplicates.js",
+    "standardize:genres": "node scripts/standardize-genres.js",
     "seed": "node prisma/seed.js",
     "seed:reset": "node prisma/seed.js --reset"
   },
