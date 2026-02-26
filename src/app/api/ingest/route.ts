@@ -152,18 +152,53 @@ const createAccentPalette = (r: number, g: number, b: number) => {
 
 const extractAccentFromImage = async (imageUrl: string) => {
   try {
-    const response = await fetch(imageUrl);
+    const response = await fetch(imageUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      },
+    });
     if (!response.ok) return null;
     const buffer = Buffer.from(await response.arrayBuffer());
     const sharpModule = await import("sharp").catch(() => null);
     if (!sharpModule || !sharpModule.default) return null;
-    const { data } = await sharpModule.default(buffer)
-      .resize(1, 1, { fit: "cover" })
+
+    // Resize to a small grid to sample colors
+    const { data } = await (sharpModule.default as any)(buffer)
+      .resize(24, 24, { fit: "cover" })
       .removeAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
+
     if (!data || data.length < 3) return null;
-    return createAccentPalette(data[0], data[1], data[2]);
+
+    let bestPixel = { r: data[0], g: data[1], b: data[2], score: -1 };
+
+    for (let i = 0; i < data.length; i += 3) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const { s, l } = rgbToHsl(r, g, b);
+
+      // Favor saturated colors that are not too dark or too light
+      const score = s * (1 - Math.abs(l - 0.5) * 2);
+
+      if (score > bestPixel.score) {
+        bestPixel = { r, g, b, score };
+      }
+    }
+
+    // If no vibrant pixel found (all very gray), fallback to 1x1 average
+    if (bestPixel.score < 0.1) {
+      const { data: avgData } = await (sharpModule.default as any)(buffer)
+        .resize(1, 1, { fit: "cover" })
+        .removeAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      return createAccentPalette(avgData[0], avgData[1], avgData[2]);
+    }
+
+    return createAccentPalette(bestPixel.r, bestPixel.g, bestPixel.b);
   } catch {
     return null;
   }
@@ -403,16 +438,16 @@ export async function POST(request: Request) {
       ? await extractAccentFromImage(resolvedSpotifyImageUrl)
       : null;
     const resolvedSpotifyAccent =
-      spotifyAccent ?? existingArtist?.spotifyAccent ?? computedAccent?.accent ?? null;
+      spotifyAccent ?? computedAccent?.accent ?? existingArtist?.spotifyAccent ?? null;
     const resolvedSpotifyAccentStrong =
       spotifyAccentStrong ??
-      existingArtist?.spotifyAccentStrong ??
       computedAccent?.accentStrong ??
+      existingArtist?.spotifyAccentStrong ??
       resolvedSpotifyAccent;
     const resolvedSpotifyHighlight =
       spotifyHighlight ??
-      existingArtist?.spotifyHighlight ??
       computedAccent?.highlight ??
+      existingArtist?.spotifyHighlight ??
       resolvedSpotifyAccent;
     const derivedEmails = extractEmailsFromTextSafe(
       bio ?? scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? null
@@ -494,24 +529,28 @@ export async function POST(request: Request) {
         });
 
     const leadData = payload.lead;
-    const lead = leadData?.id
+    const existingLead = leadData?.id
+      ? await prisma.lead.findUnique({ where: { id: leadData.id } })
+      : await prisma.lead.findFirst({ where: { artistId: artist.id } });
+
+    const lead = existingLead
       ? await prisma.lead.update({
-          where: { id: leadData.id },
+          where: { id: existingLead.id },
           data: {
             artistId: artist.id,
-            status: leadData.status,
-            score: leadData.score ?? undefined,
-            scoreRationale: leadData.scoreRationale,
-            lastContactedAt: toDate(leadData.lastContactedAt),
-            nextActionAt: toDate(leadData.nextActionAt),
+            status: leadData?.status ?? undefined,
+            score: leadData?.score ?? undefined,
+            scoreRationale: leadData?.scoreRationale ?? undefined,
+            lastContactedAt: toDate(leadData?.lastContactedAt),
+            nextActionAt: toDate(leadData?.nextActionAt),
           },
         })
       : await prisma.lead.create({
           data: {
             artistId: artist.id,
-            status: leadData?.status,
+            status: leadData?.status ?? undefined,
             score: leadData?.score ?? undefined,
-            scoreRationale: leadData?.scoreRationale,
+            scoreRationale: leadData?.scoreRationale ?? undefined,
             lastContactedAt: toDate(leadData?.lastContactedAt),
             nextActionAt: toDate(leadData?.nextActionAt),
           },

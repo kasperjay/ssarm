@@ -11,6 +11,7 @@ import {
   markContacted,
   refreshLeadData,
   regenerateDraft,
+  updateArtistHandle,
   updateLeadStatus,
 } from "./actions";
 
@@ -48,6 +49,19 @@ const formatLocation = (
   if (location) return location;
   const parts = [city, state, country].filter(Boolean);
   return parts.length > 0 ? parts.join(", ") : "Unknown";
+};
+
+const proxiedHelper = (url: string | null) => {
+  if (!url) return undefined;
+  if (
+    url.includes("fbcdn.net") ||
+    url.includes("instagram.com") ||
+    url.includes("scdn.co") ||
+    url.includes("spotifycdn.com")
+  ) {
+    return `/api/proxy?url=${encodeURIComponent(url)}`;
+  }
+  return url;
 };
 
 const hexToRgb = (hex?: string | null) => {
@@ -166,13 +180,14 @@ export default async function LeadDetailPage({
   const postTotalPages = Math.max(1, Math.ceil(postCount / pageSize));
   const featuredRelease = releaseRows[0] ?? null;
   const featuredPost = postRows[0] ?? null;
-  const instagramAvatar =
-    lead.artist.instagramProfileImageUrl ?? featuredPost?.imageUrl ?? null;
+  const instagramAvatar = proxiedHelper(
+    lead.artist.instagramProfileImageUrl ?? featuredPost?.imageUrl ?? null
+  );
   const instagramBio = lead.artist.bio ?? "No bio yet.";
 
   return (
     <div
-      className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(35,211,255,0.18),_transparent_55%),radial-gradient(circle_at_20%_20%,_rgba(139,92,246,0.2),_transparent_45%),linear-gradient(180deg,_rgba(5,7,10,0.95),_rgba(5,7,10,1))]"
+      className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(35,211,255,0.18),transparent_55%),radial-gradient(circle_at_20%_20%,rgba(139,92,246,0.2),transparent_45%),linear-gradient(180deg,rgba(5,7,10,0.95),rgba(5,7,10,1))]"
       style={accentStyle}
     >
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-10">
@@ -384,10 +399,34 @@ export default async function LeadDetailPage({
                       )}
                     </div>
                     <div className="flex-1 min-w-[200px]">
-                      <p className="text-sm font-semibold text-[color:var(--foreground)]">
-                        @{lead.artist.instagramHandle ?? lead.artist.name}
-                      </p>
-                      <p className="text-xs text-[color:var(--muted)]">
+                      <form
+                        action={async (formData) => {
+                          "use server";
+                          const handle = formData.get("handle");
+                          if (typeof handle === "string") {
+                            await updateArtistHandle({
+                              leadId: lead.id,
+                              instagramHandle: handle,
+                            });
+                          }
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <span className="text-sm font-semibold text-[color:var(--muted)]">@</span>
+                        <input
+                          name="handle"
+                          defaultValue={lead.artist.instagramHandle ?? ""}
+                          placeholder="handle"
+                          className="w-full rounded-md border border-white/10 bg-transparent px-2 py-0.5 text-sm font-semibold text-[color:var(--foreground)] focus:border-(--accent) focus:outline-none"
+                        />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-white/5 bg-white/5 px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider text-(--muted) hover:bg-white/10 hover:text-foreground"
+                        >
+                          Save
+                        </button>
+                      </form>
+                      <p className="mt-1 text-xs text-[color:var(--muted)]">
                         {lead.artist.followerCount?.toLocaleString() ?? "Unknown"} followers ·
                         {" "}
                         {lead.artist.lastPostAt
@@ -420,7 +459,7 @@ export default async function LeadDetailPage({
                         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[color:var(--surface-strong)]">
                           {featuredPost.imageUrl ? (
                             <img
-                              src={featuredPost.imageUrl}
+                              src={proxiedHelper(featuredPost.imageUrl)}
                             alt="Instagram post"
                             className="h-full w-full object-cover"
                             loading="lazy"
@@ -495,7 +534,7 @@ export default async function LeadDetailPage({
                         <div className="h-48 w-48 overflow-hidden rounded-[32px] border border-white/10 bg-[color:var(--surface-strong)] sm:h-56 sm:w-56">
                           {featuredRelease.imageUrl ? (
                             <img
-                              src={featuredRelease.imageUrl}
+                              src={proxiedHelper(featuredRelease.imageUrl)}
                               alt={`${featuredRelease.title} cover`}
                               className="h-full w-full object-cover"
                               loading="lazy"

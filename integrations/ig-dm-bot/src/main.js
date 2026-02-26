@@ -356,16 +356,38 @@ async function sendDmToUsername(page, targetUsername, message) {
   console.log(`👤 Selecting exact-match recipient row [${pickIndex}]...`);
   await rows.nth(pickIndex).click({ timeout: 8000 });
 
-  await page.waitForTimeout(400);
+  // Wait briefly for Instagram to react — it may navigate directly to a thread
+  // if there's an existing conversation, or stay in the composer (needs Next).
+  await page.waitForTimeout(1200);
   await dismissModalPopupsAggressive(page, 1);
 
-  console.log("➡️ Clicking Next...");
-  const nextBtn = page.getByRole("button", { name: /Next/i }).first();
-  await nextBtn.waitFor({ timeout: 15000 });
-  await nextBtn.click();
+  const currentUrl = page.url();
+  const alreadyInThread = currentUrl.includes("/direct/t/");
 
-  await page.waitForTimeout(1000);
-  await dismissModalPopupsAggressive(page, 2);
+  if (alreadyInThread) {
+    console.log(`💬 Already in thread (${currentUrl}) — skipping Next button`);
+  } else {
+    console.log("➡️ Clicking Next...");
+    const nextBtn = page.getByRole("button", { name: /Next/i }).first();
+    try {
+      await nextBtn.waitFor({ timeout: 10000 });
+      await nextBtn.click();
+      await page.waitForTimeout(1000);
+      await dismissModalPopupsAggressive(page, 2);
+    } catch {
+      // One more check: maybe it navigated to the thread while we waited
+      const urlAfterWait = page.url();
+      if (!urlAfterWait.includes("/direct/t/")) {
+        const shot = `${CONFIG.logsDir}/next-btn-timeout-${Date.now()}.png`;
+        await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
+        throw new Error(`Next button not found and not in thread. Screenshot: ${shot}`);
+      }
+      console.log(`💬 Navigated to thread during Next wait — continuing`);
+    }
+  }
+
+  await page.waitForTimeout(600);
+  await dismissModalPopupsAggressive(page, 1);
 
   console.log("✍️ Typing message...");
   const dmComposer = page

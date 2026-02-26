@@ -9,6 +9,7 @@
     "lint": "eslint",
     "import:csv": "node scripts/import-leads-from-csv.js",
     "backfill:enrich": "node scripts/backfill-enrich.js",
+    "backfill:ig-images": "node scripts/backfill-ig-images.js",
     "ig:scrape": "node scripts/ig-profile-scraper.js",
     "score": "node scripts/score-leads.js",
     "score:auto": "node scripts/score-auto.js",
@@ -18,6 +19,7 @@
     "report:campaign": "node scripts/report-campaign.js",
     "detect:duplicates": "node scripts/detect-duplicates.js",
     "standardize:genres": "node scripts/standardize-genres.js",
+    "send:messages": "node scripts/send-messages.js",
     "seed": "node prisma/seed.js",
     "seed:reset": "node prisma/seed.js --reset"
   },

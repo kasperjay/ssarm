@@ -417,6 +417,7 @@ export async function refreshLeadData(formData: FormData) {
   const ingestUrl = process.env.INGEST_URL || "http://localhost:3000/api/ingest";
 
   const payload = {
+    lead: { id: leadId, status: lead.status },
     artist: {
       name: lead.artist.name,
       instagramHandle: lead.artist.instagramHandle ?? undefined,
@@ -462,4 +463,36 @@ export async function refreshLeadData(formData: FormData) {
       },
     });
   }
+
+  revalidatePath(`/leads/${leadId}`);
+}
+
+export async function updateArtistHandle(state: {
+  leadId: string;
+  instagramHandle: string;
+}) {
+  const lead = await prisma.lead.findUnique({
+    where: { id: state.leadId },
+    include: { artist: true },
+  });
+
+  if (!lead) return;
+
+  const normalized = state.instagramHandle.trim().replace("@", "");
+  if (!normalized) return;
+
+  await prisma.artist.update({
+    where: { id: lead.artist.id },
+    data: { instagramHandle: normalized },
+  });
+
+  await prisma.activity.create({
+    data: {
+      leadId: lead.id,
+      type: "STATUS_CHANGE",
+      note: `Instagram handle updated to @${normalized}`,
+    },
+  });
+
+  revalidatePath(`/leads/${lead.id}`);
 }
