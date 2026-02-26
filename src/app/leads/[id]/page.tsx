@@ -120,7 +120,8 @@ export default async function LeadDetailPage({
   }
 
   const hasReachoutDraft = lead.messages.some((message) => message.source === "reachout");
-  if (!hasReachoutDraft) {
+  const canGenerateDrafts = lead.status === "NEW" || lead.status === "QUALIFIED";
+  if (!hasReachoutDraft && canGenerateDrafts) {
     await generateDraftsForLead(lead.id);
     lead = await prisma.lead.findUnique({
       where: { id },
@@ -153,9 +154,9 @@ export default async function LeadDetailPage({
 
   const postWhere = {
     artistId: lead.artist.id,
+    imageUrl: { not: null },
     OR: [
       { caption: { not: null } },
-      { imageUrl: { not: null } },
       { url: { not: null } },
     ],
   };
@@ -192,7 +193,7 @@ export default async function LeadDetailPage({
     >
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-10">
         <header
-          className="relative flex flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-[color:var(--surface)] bg-cover bg-center p-8 shadow-[0_30px_80px_-60px_rgba(35,211,255,0.35)]"
+          className="relative flex flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-(--surface) bg-cover bg-center p-8 shadow-[0_30px_80px_-60px_rgba(35,211,255,0.35)]"
           style={headerStyle}
         >
           {spotifyImageUrl ? (
@@ -208,17 +209,17 @@ export default async function LeadDetailPage({
             </div>
           ) : null}
           <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-            <div className="rounded-2xl border border-white/15 bg-[color:var(--surface-glass)] p-4 shadow-[0_20px_60px_-45px_rgba(5,7,10,0.8)] backdrop-blur-lg">
+            <div className="rounded-2xl border border-white/15 bg-(--surface-glass) p-4 shadow-[0_20px_60px_-45px_rgba(5,7,10,0.8)] backdrop-blur-lg">
               <Link
                 href="/"
-                className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]"
+                className="text-xs uppercase tracking-[0.35em] text-(--muted)"
               >
                 Back to Lead Desk
               </Link>
-              <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl leading-tight text-[color:var(--foreground)] md:text-5xl">
+              <h1 className="mt-3 font-display text-4xl leading-tight text-foreground md:text-5xl">
                 {lead.artist.name}
               </h1>
-              <p className="text-sm text-[color:var(--muted)]">
+              <p className="text-sm text-(--muted)">
                 {formatLocation(
                   lead.artist.location,
                   lead.artist.city,
@@ -228,7 +229,7 @@ export default async function LeadDetailPage({
                 {lead.artist.genre ? ` · ${lead.artist.genre}` : ""}
               </p>
             </div>
-            <div className="flex flex-1 flex-col gap-3 rounded-2xl border border-white/15 bg-[color:var(--surface-glass-strong)] p-4 shadow-[0_20px_60px_-45px_rgba(5,7,10,0.8)] backdrop-blur-lg">
+            <div className="flex flex-1 flex-col gap-3 rounded-2xl border border-white/15 bg-(--surface-glass-strong) p-4 shadow-[0_20px_60px_-45px_rgba(5,7,10,0.8)] backdrop-blur-lg">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <form
                   action={async (formData) => {
@@ -240,13 +241,13 @@ export default async function LeadDetailPage({
                   }}
                   className="flex flex-wrap items-center gap-2"
                 >
-                  <label className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                  <label className="text-xs uppercase tracking-[0.2em] text-(--muted)">
                     Status
                   </label>
                   <select
                     name="status"
                     defaultValue={lead.status}
-                    className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-2 text-xs font-semibold text-[color:var(--foreground)]"
+                    className="rounded-full border border-white/10 bg-(--surface-strong) px-3 py-2 text-xs font-semibold text-foreground"
                   >
                     {statusOptions.map((status) => (
                       <option key={status} value={status}>
@@ -256,7 +257,7 @@ export default async function LeadDetailPage({
                   </select>
                   <button
                     type="submit"
-                    className="rounded-full bg-[color:var(--foreground)] px-4 py-2 text-xs font-semibold text-[color:var(--surface)] transition hover:bg-white/80"
+                    className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-(--surface) transition hover:bg-white/80"
                   >
                     Update
                   </button>
@@ -265,7 +266,7 @@ export default async function LeadDetailPage({
                   <input type="hidden" name="leadId" value={lead.id} />
                   <button
                     type="submit"
-                    className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent-strong)]"
+                    className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-(--muted) transition hover:border-(--accent) hover:text-(--accent-strong)"
                   >
                     Refresh data
                   </button>
@@ -297,7 +298,7 @@ export default async function LeadDetailPage({
                   >
                     <button
                       type="submit"
-                      className="rounded-full border border-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent-strong)]"
+                      className="rounded-full border border-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-(--muted) transition hover:border-(--accent) hover:text-(--accent-strong)"
                     >
                       +{days} days
                     </button>
@@ -314,36 +315,36 @@ export default async function LeadDetailPage({
           </div>
           <div className="relative z-20 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+              <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
                 Latest release
               </p>
               {featuredRelease?.url ? (
                 <Link
                   href={featuredRelease.url}
                   target="_blank"
-                  className="mt-2 inline-flex text-lg font-semibold text-[color:var(--foreground)] transition hover:text-[color:var(--accent)]"
+                  className="mt-2 inline-flex text-lg font-semibold text-foreground transition hover:text-(--accent)"
                 >
                   {featuredRelease.title}
                 </Link>
               ) : (
-                <p className="mt-2 text-lg font-semibold text-[color:var(--foreground)]">
+                <p className="mt-2 text-lg font-semibold text-foreground">
                   {featuredRelease?.title ?? "No release data"}
                 </p>
               )}
-              <p className="text-xs text-[color:var(--muted)]">
+              <p className="text-xs text-(--muted)">
                 {featuredRelease?.releaseDate
                   ? formatRelativeDate(featuredRelease.releaseDate)
                   : "Unknown"}
               </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+              <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
                 Instagram
               </p>
-              <p className="mt-2 text-lg font-semibold text-[color:var(--foreground)]">
+              <p className="mt-2 text-lg font-semibold text-foreground">
                 {lead.artist.followerCount?.toLocaleString() ?? "Unknown"} followers
               </p>
-              <p className="text-xs text-[color:var(--muted)]">
+              <p className="text-xs text-(--muted)">
                 {lead.artist.lastPostAt
                   ? `Last post ${formatRelativeDate(lead.artist.lastPostAt)}`
                   : "No recent post"}
@@ -351,19 +352,19 @@ export default async function LeadDetailPage({
             </div>
             <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
                   Lead notes
                 </p>
-                <div className="rounded-xl border border-white/10 bg-[color:var(--surface)] px-3 py-2 text-center">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                <div className="rounded-xl border border-white/10 bg-(--surface) px-3 py-2 text-center">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-(--muted)">
                     Lead Score
                   </p>
-                  <p className="text-lg font-semibold text-[color:var(--foreground)]">
+                  <p className="text-lg font-semibold text-foreground">
                     {lead.score?.toFixed(0) ?? "-"}
                   </p>
                 </div>
               </div>
-              <p className="mt-3 text-sm text-[color:var(--foreground)]">
+              <p className="mt-3 text-sm text-foreground">
                 {lead.scoreRationale ?? "No rationale added yet."}
               </p>
             </div>
@@ -372,19 +373,19 @@ export default async function LeadDetailPage({
 
         <main className="flex flex-col gap-8">
           <section className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-3xl border border-white/10 bg-[color:var(--surface-strong)] p-6 shadow-[0_40px_90px_-70px_rgba(35,211,255,0.3)]">
+            <div className="rounded-3xl border border-white/10 bg-(--surface-strong) p-6 shadow-[0_40px_90px_-70px_rgba(35,211,255,0.3)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-[color:var(--foreground)]">
+                <h2 className="text-xl font-semibold text-foreground">
                   Instagram Posts
                 </h2>
-                <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                <span className="text-xs uppercase tracking-[0.3em] text-(--muted)">
                   {postCount} total
                 </span>
               </div>
               <div className="mt-4 flex flex-col gap-4">
-                <div className="rounded-2xl border border-white/10 bg-[color:var(--surface)] p-4">
+                <div className="rounded-2xl border border-white/10 bg-(--surface) p-4">
                   <div className="flex flex-wrap items-center gap-4">
-                    <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-[color:var(--surface-strong)]">
+                    <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-(--surface-strong)">
                       {instagramAvatar ? (
                         <img
                           src={instagramAvatar}
@@ -393,7 +394,7 @@ export default async function LeadDetailPage({
                           loading="lazy"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                        <div className="flex i h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-(--muted)">
                           IG
                         </div>
                       )}
@@ -412,12 +413,12 @@ export default async function LeadDetailPage({
                         }}
                         className="flex items-center gap-2"
                       >
-                        <span className="text-sm font-semibold text-[color:var(--muted)]">@</span>
+                        <span className="text-sm font-semibold text-(--muted)">@</span>
                         <input
                           name="handle"
                           defaultValue={lead.artist.instagramHandle ?? ""}
                           placeholder="handle"
-                          className="w-full rounded-md border border-white/10 bg-transparent px-2 py-0.5 text-sm font-semibold text-[color:var(--foreground)] focus:border-(--accent) focus:outline-none"
+                          className="w-full rounded-md border border-white/10 bg-transparent px-2 py-0.5 text-sm font-semibold text-foreground focus:border-(--accent) focus:outline-none"
                         />
                         <button
                           type="submit"
@@ -426,7 +427,7 @@ export default async function LeadDetailPage({
                           Save
                         </button>
                       </form>
-                      <p className="mt-1 text-xs text-[color:var(--muted)]">
+                      <p className="mt-1 text-xs text-(--muted)">
                         {lead.artist.followerCount?.toLocaleString() ?? "Unknown"} followers ·
                         {" "}
                         {lead.artist.lastPostAt
@@ -435,20 +436,20 @@ export default async function LeadDetailPage({
                       </p>
                     </div>
                   </div>
-                  <div className="mt-3 max-h-28 overflow-y-auto text-sm text-[color:var(--foreground)] pr-1">
+                  <div className="mt-3 max-h-28 overflow-y-auto text-sm text-foreground pr-1">
                     {instagramBio}
                   </div>
                 </div>
                 {featuredPost ? (
-                  <div className="rounded-2xl border border-white/10 bg-[color:var(--surface)] p-4">
+                  <div className="rounded-2xl border border-white/10 bg-(--surface) p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="text-xs uppercase tracking-[0.25em] text-[color:var(--muted)]">
+                      <p className="text-xs uppercase tracking-[0.25em] text-(--muted)">
                         {formatRelativeDate(featuredPost.postedAt ?? featuredPost.createdAt)}
                         </p>
                       {featuredPost.url ? (
                         <Link
                           href={featuredPost.url}
-                          className="text-xs text-[color:var(--accent-strong)]"
+                          className="text-xs text-(--accent-strong)"
                           target="_blank"
                         >
                           Open post
@@ -456,7 +457,7 @@ export default async function LeadDetailPage({
                       ) : null}
                     </div>
                       <div className="mt-4 grid gap-4 lg:grid-cols-[0.45fr_0.55fr]">
-                        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[color:var(--surface-strong)]">
+                        <div className="overflow-hidden rounded-2xl border border-white/10 bg-(--surface-strong)">
                           {featuredPost.imageUrl ? (
                             <img
                               src={proxiedHelper(featuredPost.imageUrl)}
@@ -465,19 +466,19 @@ export default async function LeadDetailPage({
                             loading="lazy"
                           />
                           ) : (
-                              <div className="flex h-full min-h-[160px] items-center justify-center text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                              <div className="flex h-full min-h-[160px] items-center justify-center text-xs uppercase tracking-[0.3em] text-(--muted)">
                                 No image
                               </div>
                             )}
                           </div>
                           <div className="flex flex-col justify-between gap-3">
-                            <div className="text-sm text-[color:var(--foreground)] max-h-40 overflow-y-auto pr-1">
+                            <div className="text-sm text-foreground max-h-40 overflow-y-auto pr-1">
                               {featuredPost.caption ?? "No caption."}
                             </div>
                             {featuredPost.url ? (
                               <Link
                                 href={featuredPost.url}
-                                className="inline-flex items-center text-xs font-semibold text-[color:var(--accent)]"
+                                className="inline-flex items-center text-xs font-semibold text-(--accent)"
                                 target="_blank"
                               >
                                 View on Instagram
@@ -487,16 +488,16 @@ export default async function LeadDetailPage({
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface)] p-6 text-sm text-[color:var(--muted)]">
+                    <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface) p-6 text-sm text-(--muted)">
                       No Instagram posts yet.
                   </div>
                 )}
               </div>
-              <div className="mt-4 flex items-center justify-between text-xs text-[color:var(--muted)]">
+              <div className="mt-4 flex items-center justify-between text-xs text-(--muted)">
                 <Link
                   href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.max(1, postPage - 1)}`}
                   className={`rounded-full border border-white/10 px-3 py-1 ${
-                    postPage === 1 ? "pointer-events-none opacity-50" : "hover:border-[color:var(--accent)]"
+                    postPage === 1 ? "pointer-events-none opacity-50" : "hover:border-(--accent)"
                   }`}
                 >
                   Previous
@@ -509,7 +510,7 @@ export default async function LeadDetailPage({
                   className={`rounded-full border border-white/10 px-3 py-1 ${
                     postPage === postTotalPages
                       ? "pointer-events-none opacity-50"
-                      : "hover:border-[color:var(--accent)]"
+                      : "hover:border-(--accent)"
                   }`}
                 >
                   Next
@@ -517,21 +518,21 @@ export default async function LeadDetailPage({
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-[color:var(--surface-strong)] p-6">
+            <div className="rounded-3xl border border-white/10 bg-(--surface-strong) p-6">
               <div className="grid h-full grid-rows-[auto_1fr_auto] gap-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-[color:var(--foreground)]">
+                  <h2 className="text-xl font-semibold text-foreground">
                     Recent Releases
                   </h2>
-                  <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                  <span className="text-xs uppercase tracking-[0.3em] text-(--muted)">
                     {releaseCount} total
                   </span>
                 </div>
                 <div className="flex flex-col gap-4">
                   {featuredRelease ? (
-                    <div className="rounded-2xl border border-white/10 bg-[color:var(--surface)] p-5 sm:p-6">
+                    <div className="rounded-2xl border border-white/10 bg-(--surface) p-5 sm:p-6">
                       <div className="flex flex-col items-center gap-4">
-                        <div className="h-48 w-48 overflow-hidden rounded-[32px] border border-white/10 bg-[color:var(--surface-strong)] sm:h-56 sm:w-56">
+                        <div className="h-48 w-48 overflow-hidden rounded-[32px] border border-white/10 bg-(--surface-strong) sm:h-56 sm:w-56">
                           {featuredRelease.imageUrl ? (
                             <img
                               src={proxiedHelper(featuredRelease.imageUrl)}
@@ -540,7 +541,7 @@ export default async function LeadDetailPage({
                               loading="lazy"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                            <div className="flex i h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-(--muted)">
                               Art
                             </div>
                           )}
@@ -551,7 +552,7 @@ export default async function LeadDetailPage({
                             width="100%"
                             height="232"
                             allow="encrypted-media; clipboard-write; fullscreen; picture-in-picture"
-                            className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)]"
+                            className="rounded-2xl border border-white/10 bg-(--surface-strong)"
                             title="Spotify player"
                           />
                         ) : null}
@@ -560,31 +561,31 @@ export default async function LeadDetailPage({
                             <Link
                               href={featuredRelease.url}
                               target="_blank"
-                              className="text-xl font-semibold text-[color:var(--foreground)] underline decoration-[color:var(--accent)] decoration-2 underline-offset-4"
+                              className="text-xl font-semibold text-foreground underline decoration-(--accent) decoration-2 underline-offset-4"
                             >
                               {featuredRelease.title}
                             </Link>
                           ) : (
-                            <p className="text-xl font-semibold text-[color:var(--foreground)]">
+                            <p className="text-xl font-semibold text-foreground">
                               {featuredRelease.title}
                             </p>
                           )}
-                          <p className="text-sm text-[color:var(--muted)]">
+                          <p className="text-sm text-(--muted)">
                             {formatRelativeDate(featuredRelease.releaseDate ?? featuredRelease.createdAt)}
                           </p>
-                          <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs text-[color:var(--muted)]">
+                          <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs text-(--muted)">
                             {featuredRelease.releaseType ? (
-                              <span className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-1">
+                              <span className="rounded-full border border-white/10 bg-(--surface-strong) px-3 py-1">
                                 {featuredRelease.releaseType}
                               </span>
                             ) : null}
                             {lead.artist.genre ? (
-                              <span className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-1">
+                              <span className="rounded-full border border-white/10 bg-(--surface-strong) px-3 py-1">
                                 {lead.artist.genre}
                               </span>
                             ) : null}
                             {lead.artist.name ? (
-                              <span className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-1">
+                              <span className="rounded-full border border-white/10 bg-(--surface-strong) px-3 py-1">
                                 {lead.artist.name}
                               </span>
                             ) : null}
@@ -593,16 +594,16 @@ export default async function LeadDetailPage({
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface)] p-6 text-sm text-[color:var(--muted)]">
+                    <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface) p-6 text-sm text-(--muted)">
                       No releases yet.
                     </div>
                   )}
                 </div>
-                <div className="flex items-center justify-between text-xs text-[color:var(--muted)]">
+                <div className="flex items-center justify-between text-xs text-(--muted)">
                   <Link
                     href={`/leads/${lead.id}?rPage=${Math.max(1, releasePage - 1)}&pPage=${postPage}`}
                     className={`rounded-full border border-white/10 px-3 py-1 ${
-                      releasePage === 1 ? "pointer-events-none opacity-50" : "hover:border-[color:var(--accent)]"
+                      releasePage === 1 ? "pointer-events-none opacity-50" : "hover:border-(--accent)"
                     }`}
                   >
                     Previous
@@ -615,7 +616,7 @@ export default async function LeadDetailPage({
                     className={`rounded-full border border-white/10 px-3 py-1 ${
                       releasePage === releaseTotalPages
                         ? "pointer-events-none opacity-50"
-                        : "hover:border-[color:var(--accent)]"
+                        : "hover:border-(--accent)"
                     }`}
                   >
                     Next
@@ -625,43 +626,45 @@ export default async function LeadDetailPage({
             </div>
           </section>
 
-          <section className="rounded-3xl border border-white/10 bg-[color:var(--surface-strong)] p-6">
+          <section className="rounded-3xl border border-white/10 bg-(--surface-strong) p-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-[color:var(--foreground)]">
+              <h2 className="text-xl font-semibold text-foreground">
                 Outreach Drafts
               </h2>
               <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
-                {lead.messages.length} drafts
+                {lead.messages.filter(m => !m.selected).length} drafts
               </span>
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {lead.messages.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface)] p-6 text-sm text-[color:var(--muted)] sm:col-span-2 xl:col-span-3">
+              {lead.messages.filter(m => !m.selected).length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface) p-6 text-sm text-(--muted) sm:col-span-2 xl:col-span-3">
                   No drafts yet.
                 </div>
               ) : (
-                lead.messages.map((message) => (
+                lead.messages
+                  .filter((m) => !m.selected)
+                  .map((message) => (
                   <div
                     key={message.id}
-                    className="group relative flex flex-col gap-3 rounded-2xl border border-white/10 bg-[color:var(--surface)] p-4"
+                    className="group relative flex flex-col gap-3 rounded-2xl border border-white/10 bg-(--surface) p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <p className="text-xs uppercase tracking-[0.25em] text-[color:var(--muted)]">
+                      <p className="text-xs uppercase tracking-[0.25em] text-(--muted)">
                         {message.tone ?? "Draft"}
                       </p>
                       <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
                         <DraftCopy text={message.body} />
                         <details className="relative">
-                          <summary className="list-none rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--accent)] cursor-pointer">
+                          <summary className="list-none rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-(--muted) transition hover:border-(--accent) cursor-pointer">
                             Edit
                           </summary>
-                          <div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-2 shadow-[0_20px_40px_-30px_rgba(0,0,0,0.5)]">
+                          <div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-white/10 bg-(--surface-strong) p-2 shadow-[0_20px_40px_-30px_rgba(0,0,0,0.5)]">
                             <form action={regenerateDraft}>
                               <input type="hidden" name="leadId" value={lead.id} />
                               <input type="hidden" name="draftId" value={message.id} />
                               <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
                               <input type="hidden" name="styleHint" value="more professional" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
                                 More professional
                               </button>
                             </form>
@@ -670,7 +673,7 @@ export default async function LeadDetailPage({
                               <input type="hidden" name="draftId" value={message.id} />
                               <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
                               <input type="hidden" name="styleHint" value="more casual" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
                                 More casual
                               </button>
                             </form>
@@ -679,7 +682,7 @@ export default async function LeadDetailPage({
                               <input type="hidden" name="draftId" value={message.id} />
                               <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
                               <input type="hidden" name="styleHint" value="more fun" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
                                 More fun
                               </button>
                             </form>
@@ -688,7 +691,7 @@ export default async function LeadDetailPage({
                               <input type="hidden" name="draftId" value={message.id} />
                               <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
                               <input type="hidden" name="styleHint" value="more boring" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
                                 More boring
                               </button>
                             </form>
@@ -697,7 +700,7 @@ export default async function LeadDetailPage({
                               <input type="hidden" name="draftId" value={message.id} />
                               <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
                               <input type="hidden" name="styleHint" value="random" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
                                 Random
                               </button>
                             </form>
@@ -720,43 +723,43 @@ export default async function LeadDetailPage({
                         />
                       </div>
                     </div>
-                    <p className="text-sm text-[color:var(--foreground)]">{message.body}</p>
+                    <p className="text-sm text-foreground">{message.body}</p>
                   </div>
                 ))
               )}
             </div>
           </section>
 
-          <section className="rounded-3xl border border-white/10 bg-[color:var(--surface)] p-5">
+          <section className="rounded-3xl border border-white/10 bg-(--surface) p-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-[color:var(--foreground)]">
+              <h2 className="text-base font-semibold text-foreground">
                 Activity Timeline
               </h2>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+              <span className="text-[10px] uppercase tracking-[0.3em] text-(--muted)">
                 {lead.activities.length} events
               </span>
             </div>
             <div className="mt-4 flex flex-col gap-3">
               {lead.activities.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface-strong)] p-4 text-xs text-[color:var(--muted)]">
+                <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface-strong) p-4 text-xs text-(--muted)">
                   No activity yet.
                 </div>
               ) : (
                 lead.activities.map((activity) => (
                   <div
                     key={activity.id}
-                    className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-3"
+                    className="rounded-2xl border border-white/10 bg-(--surface-strong) p-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-[color:var(--muted)]">
+                      <p className="text-[10px] uppercase tracking-[0.25em] text-(--muted)">
                         {formatStatus(activity.type)}
                       </p>
-                      <p className="text-[10px] text-[color:var(--muted)]">
+                      <p className="text-[10px] text-(--muted)">
                         {formatRelativeDate(activity.occurredAt)}
                       </p>
                     </div>
                     {activity.note ? (
-                      <p className="mt-2 text-xs text-[color:var(--foreground)]">
+                      <p className="mt-2 text-xs text-foreground">
                         {activity.note}
                       </p>
                     ) : null}

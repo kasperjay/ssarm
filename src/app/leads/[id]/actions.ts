@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { LeadStatus } from "@/generated/prisma";
 import { generateReachoutDrafts } from "@/lib/reachout";
+import { scoreLead } from "@/lib/scoring";
 
 type UpdateStatusState = {
   leadId: string;
@@ -192,6 +193,15 @@ export async function sendMessage(state: SendMessageState) {
       selected: true,
     },
   });
+
+  await prisma.messageDraft.deleteMany({
+    where: {
+      leadId: lead.id,
+      source: "reachout",
+    },
+  });
+
+  revalidatePath(`/leads/${lead.id}`);
 }
 
 export async function generateDraftsForLead(leadId: string, styleHint?: string | null) {
@@ -464,6 +474,7 @@ export async function refreshLeadData(formData: FormData) {
     });
   }
 
+  await scoreLead(leadId);
   revalidatePath(`/leads/${leadId}`);
 }
 

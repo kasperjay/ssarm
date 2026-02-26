@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { discoverEmailsFromUrls, extractEmailsFromTextSafe, mergeEmails } from "@/lib/email";
 import { fetchInstagramPosts, fetchInstagramProfile } from "@/lib/instagram";
 import { fetchSpotifyArtistProfile, fetchSpotifyReleases } from "@/lib/spotify";
+import { scoreLead } from "@/lib/scoring";
 
 type LeadStatus =
   | "NEW"
@@ -693,6 +694,8 @@ export async function POST(request: Request) {
         })),
       });
     }
+
+    await scoreLead(lead.id);
 
     return NextResponse.json({
       artistId: artist.id,
