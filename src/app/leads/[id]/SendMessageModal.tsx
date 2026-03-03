@@ -20,24 +20,31 @@ export default function SendMessageModal({
 }: SendMessageModalProps) {
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState(defaultBody);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const openModal = () => {
     setBody(defaultBody);
+    setError(null);
     setOpen(true);
   };
 
   const handleSubmit = () => {
+    setError(null);
     startTransition(async () => {
-      await sendMessage({ leadId, body, source });
-      setOpen(false);
+      const result = await sendMessage({ leadId, body, source });
+      if (result?.ok) {
+        setOpen(false);
+      } else {
+        setError(result?.error || "An unexpected error occurred.");
+      }
     });
   };
 
   const buttonClassName =
     variant === "primary"
-      ? "rounded-full bg-[color:var(--accent)] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[color:var(--accent-strong)]"
-      : "rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--accent)]";
+      ? "rounded-full bg-(--accent) px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-(--accent-strong)"
+      : "rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-(--muted) transition hover:border-(--accent)";
 
   return (
     <>
@@ -62,6 +69,11 @@ export default function SendMessageModal({
             <p className="mt-2 text-sm text-(--muted)">
               Edit the message before sending. This will log a MESSAGE_SENT activity.
             </p>
+            {error ? (
+              <div className="mt-4 rounded-xl bg-red-500/10 p-3 text-xs text-red-500 border border-red-500/20">
+                <strong>Send Failed:</strong> {error}
+              </div>
+            ) : null}
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value)}

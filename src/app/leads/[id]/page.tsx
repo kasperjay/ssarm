@@ -56,6 +56,8 @@ const proxiedHelper = (url: string | null) => {
   if (
     url.includes("fbcdn.net") ||
     url.includes("instagram.com") ||
+    url.includes("fbsbx.com") ||
+    url.includes("cdninstagram.com") ||
     url.includes("scdn.co") ||
     url.includes("spotifycdn.com")
   ) {
@@ -122,7 +124,7 @@ export default async function LeadDetailPage({
   const hasReachoutDraft = lead.messages.some((message) => message.source === "reachout");
   const canGenerateDrafts = lead.status === "NEW" || lead.status === "QUALIFIED";
   if (!hasReachoutDraft && canGenerateDrafts) {
-    await generateDraftsForLead(lead.id);
+    await generateDraftsForLead(lead.id, { shouldRevalidate: false });
     lead = await prisma.lead.findUnique({
       where: { id },
       include: {
@@ -137,10 +139,10 @@ export default async function LeadDetailPage({
   const spotifyImageUrl = lead.artist.spotifyImageUrl;
   const accentStyle = lead.artist.spotifyAccent
     ? ({
-        "--accent": lead.artist.spotifyAccent,
-        "--accent-strong": lead.artist.spotifyAccentStrong ?? lead.artist.spotifyAccent,
-        "--highlight": lead.artist.spotifyHighlight ?? lead.artist.spotifyAccent,
-      } as CSSProperties)
+      "--accent": lead.artist.spotifyAccent,
+      "--accent-strong": lead.artist.spotifyAccentStrong ?? lead.artist.spotifyAccent,
+      "--highlight": lead.artist.spotifyHighlight ?? lead.artist.spotifyAccent,
+    } as CSSProperties)
     : undefined;
   const accentRgb = hexToRgb(lead.artist.spotifyAccent);
   const accentOverlay = accentRgb
@@ -149,8 +151,8 @@ export default async function LeadDetailPage({
   const headerStyle = spotifyImageUrl
     ? undefined
     : {
-        backgroundImage: `${accentOverlay}, radial-gradient(circle_at_20%_20%, rgba(139,92,246,0.22), transparent 45%), linear-gradient(180deg, rgba(5,7,10,0.95), rgba(5,7,10,1))`,
-      };
+      backgroundImage: `${accentOverlay}, radial-gradient(circle_at_20%_20%, rgba(139,92,246,0.22), transparent 45%), linear-gradient(180deg, rgba(5,7,10,0.95), rgba(5,7,10,1))`,
+    };
 
   const postWhere = {
     artistId: lead.artist.id,
@@ -314,7 +316,7 @@ export default async function LeadDetailPage({
             </div>
           </div>
           <div className="relative z-20 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
+            <div className="rounded-2xl border border-white/10 bg-(--surface-strong) p-4">
               <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
                 Latest release
               </p>
@@ -445,7 +447,7 @@ export default async function LeadDetailPage({
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-xs uppercase tracking-[0.25em] text-(--muted)">
                         {formatRelativeDate(featuredPost.postedAt ?? featuredPost.createdAt)}
-                        </p>
+                      </p>
                       {featuredPost.url ? (
                         <Link
                           href={featuredPost.url}
@@ -456,49 +458,48 @@ export default async function LeadDetailPage({
                         </Link>
                       ) : null}
                     </div>
-                      <div className="mt-4 grid gap-4 lg:grid-cols-[0.45fr_0.55fr]">
-                        <div className="overflow-hidden rounded-2xl border border-white/10 bg-(--surface-strong)">
-                          {featuredPost.imageUrl ? (
-                            <img
-                              src={proxiedHelper(featuredPost.imageUrl)}
+                    <div className="mt-4 grid gap-4 lg:grid-cols-[0.45fr_0.55fr]">
+                      <div className="overflow-hidden rounded-2xl border border-white/10 bg-(--surface-strong)">
+                        {featuredPost.imageUrl ? (
+                          <img
+                            src={proxiedHelper(featuredPost.imageUrl)}
                             alt="Instagram post"
                             className="h-full w-full object-cover"
                             loading="lazy"
                           />
-                          ) : (
-                              <div className="flex h-full min-h-[160px] items-center justify-center text-xs uppercase tracking-[0.3em] text-(--muted)">
-                                No image
-                              </div>
-                            )}
+                        ) : (
+                          <div className="flex h-full min-h-[160px] items-center justify-center text-xs uppercase tracking-[0.3em] text-(--muted)">
+                            No image
                           </div>
-                          <div className="flex flex-col justify-between gap-3">
-                            <div className="text-sm text-foreground max-h-40 overflow-y-auto pr-1">
-                              {featuredPost.caption ?? "No caption."}
-                            </div>
-                            {featuredPost.url ? (
-                              <Link
-                                href={featuredPost.url}
-                                className="inline-flex items-center text-xs font-semibold text-(--accent)"
-                                target="_blank"
-                              >
-                                View on Instagram
-                              </Link>
-                            ) : null}
-                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col justify-between gap-3">
+                        <div className="text-sm text-foreground max-h-40 overflow-y-auto pr-1">
+                          {featuredPost.caption ?? "No caption."}
+                        </div>
+                        {featuredPost.url ? (
+                          <Link
+                            href={featuredPost.url}
+                            className="inline-flex items-center text-xs font-semibold text-(--accent)"
+                            target="_blank"
+                          >
+                            View on Instagram
+                          </Link>
+                        ) : null}
                       </div>
                     </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface) p-6 text-sm text-(--muted)">
-                      No Instagram posts yet.
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface) p-6 text-sm text-(--muted)">
+                    No Instagram posts yet.
                   </div>
                 )}
               </div>
               <div className="mt-4 flex items-center justify-between text-xs text-(--muted)">
                 <Link
                   href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.max(1, postPage - 1)}`}
-                  className={`rounded-full border border-white/10 px-3 py-1 ${
-                    postPage === 1 ? "pointer-events-none opacity-50" : "hover:border-(--accent)"
-                  }`}
+                  className={`rounded-full border border-white/10 px-3 py-1 ${postPage === 1 ? "pointer-events-none opacity-50" : "hover:border-(--accent)"
+                    }`}
                 >
                   Previous
                 </Link>
@@ -507,11 +508,10 @@ export default async function LeadDetailPage({
                 </span>
                 <Link
                   href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.min(postTotalPages, postPage + 1)}`}
-                  className={`rounded-full border border-white/10 px-3 py-1 ${
-                    postPage === postTotalPages
-                      ? "pointer-events-none opacity-50"
-                      : "hover:border-(--accent)"
-                  }`}
+                  className={`rounded-full border border-white/10 px-3 py-1 ${postPage === postTotalPages
+                    ? "pointer-events-none opacity-50"
+                    : "hover:border-(--accent)"
+                    }`}
                 >
                   Next
                 </Link>
@@ -548,14 +548,22 @@ export default async function LeadDetailPage({
                         </div>
                         {featuredRelease.url ? (
                           <iframe
-                            src={featuredRelease.url.replace("open.spotify.com/", "open.spotify.com/embed/")}
+                            key={featuredRelease.url}
+                            src={featuredRelease.url.includes("/embed/")
+                              ? featuredRelease.url
+                              : featuredRelease.url.replace("open.spotify.com/", "open.spotify.com/embed/")}
                             width="100%"
                             height="232"
                             allow="encrypted-media; clipboard-write; fullscreen; picture-in-picture"
                             className="rounded-2xl border border-white/10 bg-(--surface-strong)"
                             title="Spotify player"
                           />
-                        ) : null}
+                        ) : (
+                          <div className="flex h-[232px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-(--surface-strong) text-center p-6">
+                            <p className="text-sm font-medium text-foreground">Spotify player unavailable</p>
+                            <p className="mt-1 text-xs text-(--muted)">No URL found for this release.</p>
+                          </div>
+                        )}
                         <div className="flex w-full flex-col items-center gap-2 text-center">
                           {featuredRelease.url ? (
                             <Link
@@ -602,9 +610,8 @@ export default async function LeadDetailPage({
                 <div className="flex items-center justify-between text-xs text-(--muted)">
                   <Link
                     href={`/leads/${lead.id}?rPage=${Math.max(1, releasePage - 1)}&pPage=${postPage}`}
-                    className={`rounded-full border border-white/10 px-3 py-1 ${
-                      releasePage === 1 ? "pointer-events-none opacity-50" : "hover:border-(--accent)"
-                    }`}
+                    className={`rounded-full border border-white/10 px-3 py-1 ${releasePage === 1 ? "pointer-events-none opacity-50" : "hover:border-(--accent)"
+                      }`}
                   >
                     Previous
                   </Link>
@@ -613,11 +620,10 @@ export default async function LeadDetailPage({
                   </span>
                   <Link
                     href={`/leads/${lead.id}?rPage=${Math.min(releaseTotalPages, releasePage + 1)}&pPage=${postPage}`}
-                    className={`rounded-full border border-white/10 px-3 py-1 ${
-                      releasePage === releaseTotalPages
-                        ? "pointer-events-none opacity-50"
-                        : "hover:border-(--accent)"
-                    }`}
+                    className={`rounded-full border border-white/10 px-3 py-1 ${releasePage === releaseTotalPages
+                      ? "pointer-events-none opacity-50"
+                      : "hover:border-(--accent)"
+                      }`}
                   >
                     Next
                   </Link>
@@ -631,7 +637,7 @@ export default async function LeadDetailPage({
               <h2 className="text-xl font-semibold text-foreground">
                 Outreach Drafts
               </h2>
-              <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+              <span className="text-xs uppercase tracking-[0.3em] text-(--muted)">
                 {lead.messages.filter(m => !m.selected).length} drafts
               </span>
             </div>
@@ -644,88 +650,88 @@ export default async function LeadDetailPage({
                 lead.messages
                   .filter((m) => !m.selected)
                   .map((message) => (
-                  <div
-                    key={message.id}
-                    className="group relative flex flex-col gap-3 rounded-2xl border border-white/10 bg-(--surface) p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-xs uppercase tracking-[0.25em] text-(--muted)">
-                        {message.tone ?? "Draft"}
-                      </p>
-                      <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
-                        <DraftCopy text={message.body} />
-                        <details className="relative">
-                          <summary className="list-none rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-(--muted) transition hover:border-(--accent) cursor-pointer">
-                            Edit
-                          </summary>
-                          <div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-white/10 bg-(--surface-strong) p-2 shadow-[0_20px_40px_-30px_rgba(0,0,0,0.5)]">
-                            <form action={regenerateDraft}>
-                              <input type="hidden" name="leadId" value={lead.id} />
-                              <input type="hidden" name="draftId" value={message.id} />
-                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                              <input type="hidden" name="styleHint" value="more professional" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                More professional
-                              </button>
-                            </form>
-                            <form action={regenerateDraft}>
-                              <input type="hidden" name="leadId" value={lead.id} />
-                              <input type="hidden" name="draftId" value={message.id} />
-                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                              <input type="hidden" name="styleHint" value="more casual" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                More casual
-                              </button>
-                            </form>
-                            <form action={regenerateDraft}>
-                              <input type="hidden" name="leadId" value={lead.id} />
-                              <input type="hidden" name="draftId" value={message.id} />
-                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                              <input type="hidden" name="styleHint" value="more fun" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                More fun
-                              </button>
-                            </form>
-                            <form action={regenerateDraft}>
-                              <input type="hidden" name="leadId" value={lead.id} />
-                              <input type="hidden" name="draftId" value={message.id} />
-                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                              <input type="hidden" name="styleHint" value="more boring" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                More boring
-                              </button>
-                            </form>
-                            <form action={regenerateDraft}>
-                              <input type="hidden" name="leadId" value={lead.id} />
-                              <input type="hidden" name="draftId" value={message.id} />
-                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                              <input type="hidden" name="styleHint" value="random" />
-                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                Random
-                              </button>
-                            </form>
-                            <div className="mt-1 border-t border-white/10 pt-1">
-                              <SendMessageModal
-                                leadId={lead.id}
-                                label="Customize"
-                                defaultBody={message.body}
-                                source="draft-edit"
-                              />
+                    <div
+                      key={message.id}
+                      className="group relative flex flex-col gap-3 rounded-2xl border border-white/10 bg-(--surface) p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-xs uppercase tracking-[0.25em] text-(--muted)">
+                          {message.tone ?? "Draft"}
+                        </p>
+                        <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                          <DraftCopy text={message.body} />
+                          <details className="relative">
+                            <summary className="list-none rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-(--muted) transition hover:border-(--accent) cursor-pointer">
+                              Edit
+                            </summary>
+                            <div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-white/10 bg-(--surface-strong) p-2 shadow-[0_20px_40px_-30px_rgba(0,0,0,0.5)]">
+                              <form action={regenerateDraft}>
+                                <input type="hidden" name="leadId" value={lead.id} />
+                                <input type="hidden" name="draftId" value={message.id} />
+                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                                <input type="hidden" name="styleHint" value="more professional" />
+                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
+                                  More professional
+                                </button>
+                              </form>
+                              <form action={regenerateDraft}>
+                                <input type="hidden" name="leadId" value={lead.id} />
+                                <input type="hidden" name="draftId" value={message.id} />
+                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                                <input type="hidden" name="styleHint" value="more casual" />
+                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
+                                  More casual
+                                </button>
+                              </form>
+                              <form action={regenerateDraft}>
+                                <input type="hidden" name="leadId" value={lead.id} />
+                                <input type="hidden" name="draftId" value={message.id} />
+                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                                <input type="hidden" name="styleHint" value="more fun" />
+                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
+                                  More fun
+                                </button>
+                              </form>
+                              <form action={regenerateDraft}>
+                                <input type="hidden" name="leadId" value={lead.id} />
+                                <input type="hidden" name="draftId" value={message.id} />
+                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                                <input type="hidden" name="styleHint" value="more boring" />
+                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
+                                  More boring
+                                </button>
+                              </form>
+                              <form action={regenerateDraft}>
+                                <input type="hidden" name="leadId" value={lead.id} />
+                                <input type="hidden" name="draftId" value={message.id} />
+                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                                <input type="hidden" name="styleHint" value="random" />
+                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
+                                  Random
+                                </button>
+                              </form>
+                              <div className="mt-1 border-t border-white/10 pt-1">
+                                <SendMessageModal
+                                  leadId={lead.id}
+                                  label="Customize"
+                                  defaultBody={message.body}
+                                  source="draft-edit"
+                                />
+                              </div>
                             </div>
-                          </div>
-                        </details>
-                        <SendMessageModal
-                          leadId={lead.id}
-                          label="Send"
-                          defaultBody={message.body}
-                          source="draft"
-                          variant="primary"
-                        />
+                          </details>
+                          <SendMessageModal
+                            leadId={lead.id}
+                            label="Send"
+                            defaultBody={message.body}
+                            source="draft"
+                            variant="primary"
+                          />
+                        </div>
                       </div>
+                      <p className="text-sm text-foreground">{message.body}</p>
                     </div>
-                    <p className="text-sm text-foreground">{message.body}</p>
-                  </div>
-                ))
+                  ))
               )}
             </div>
           </section>

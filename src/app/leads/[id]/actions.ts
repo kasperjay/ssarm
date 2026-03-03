@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { LeadStatus } from "@/generated/prisma";
 import { generateReachoutDrafts } from "@/lib/reachout";
 import { scoreLead } from "@/lib/scoring";
+import { ensureBotRunning } from "@/lib/instagram-bot";
 
 type UpdateStatusState = {
   leadId: string;
@@ -101,19 +102,24 @@ export async function markContacted(state: LeadActionState) {
 
 export async function sendMessage(state: SendMessageState) {
   const trimmed = state.body.trim();
-  if (!trimmed) return;
+  if (!trimmed) return { ok: false, error: "Message body is empty." };
 
   const lead = await prisma.lead.findUnique({
     where: { id: state.leadId },
     include: { artist: true },
   });
 
-  if (!lead) return;
+  if (!lead) return { ok: false, error: "Lead not found." };
 
   const nextActionAt = getFollowUpDate();
   const webhookUrl = process.env.IG_DM_WEBHOOK_URL;
   let sendOk = !webhookUrl;
+  let errorMessage: string | undefined;
+
   if (webhookUrl) {
+    // Ensure the bot is running before attempting to send
+    await ensureBotRunning();
+
     try {
       const response = await fetch(webhookUrl, {
         method: "POST",
@@ -139,11 +145,14 @@ export async function sendMessage(state: SendMessageState) {
       });
       sendOk = response.ok;
       if (!response.ok) {
-        console.error("IG DM webhook failed", response.status, await response.text());
+        const text = await response.text().catch(() => "No response body");
+        console.error("IG DM webhook failed", response.status, text);
+        errorMessage = `Bot server error (${response.status}): ${text.slice(0, 100)}`;
       }
     } catch (error) {
       console.error("Failed to call IG DM webhook", error);
       sendOk = false;
+      errorMessage = error instanceof Error ? error.message : "Network error calling bot server";
     }
   }
 
@@ -153,7 +162,7 @@ export async function sendMessage(state: SendMessageState) {
         leadId: lead.id,
         body: trimmed,
         source: state.source ?? "failed",
-        selected: false,
+        selected: true, // Mark as selected so the background agent can retry it
       },
     });
 
@@ -161,11 +170,11 @@ export async function sendMessage(state: SendMessageState) {
       data: {
         leadId: lead.id,
         type: "NOTE",
-        note: "Send failed via IG webhook.",
+        note: `Send failed via IG webhook: ${errorMessage}`,
       },
     });
 
-    return;
+    return { ok: false, error: errorMessage ?? "Failed to send via IG webhook." };
   }
 
   await prisma.lead.update({
@@ -179,7 +188,7 @@ export async function sendMessage(state: SendMessageState) {
 
   await prisma.activity.create({
     data: {
-      leadId: state.leadId,
+      leadId: lead.id,
       type: "MESSAGE_SENT",
       note: trimmed,
     },
@@ -204,8 +213,12 @@ export async function sendMessage(state: SendMessageState) {
   revalidatePath(`/leads/${lead.id}`);
 }
 
-export async function generateDraftsForLead(leadId: string, styleHint?: string | null) {
+export async function generateDraftsForLead(
+  leadId: string,
+  options?: { styleHint?: string | null; shouldRevalidate?: boolean }
+) {
   if (!leadId) return;
+  const { styleHint, shouldRevalidate = true } = options ?? {};
 
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
@@ -300,15 +313,17 @@ export async function generateDraftsForLead(leadId: string, styleHint?: string |
     },
   });
 
-  revalidatePath(`/leads/${lead.id}`);
+  if (shouldRevalidate) {
+    revalidatePath(`/leads/${lead.id}`);
+  }
 }
 
 export async function generateDrafts(formData: FormData) {
   const leadId = formData.get("leadId");
   if (typeof leadId !== "string" || !leadId.trim()) return;
-  const styleHintRaw = formData.get("styleHint");
+  const styleHintRaw = formData.get("status") || formData.get("styleHint");
   const styleHint = typeof styleHintRaw === "string" ? styleHintRaw : undefined;
-  await generateDraftsForLead(leadId, styleHint);
+  await generateDraftsForLead(leadId, { styleHint });
 }
 
 type DraftKey = "IG_A" | "IG_B" | "EMAIL_A" | "EMAIL_B";

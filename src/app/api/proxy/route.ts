@@ -9,10 +9,19 @@ export async function GET(request: NextRequest) {
   }
 
   // Only allow proxying images from trusted CDNs to prevent SSRF
-  const allowedDomains = ["fbcdn.net", "instagram.com", "scdn.co", "spotifycdn.com"];
+  const allowedDomains = [
+    "fbcdn.net",
+    "instagram.com",
+    "fbsbx.com",
+    "cdninstagram.com",
+    "scdn.co",
+    "spotifycdn.com",
+    "spotify.com"
+  ];
   const isAllowed = allowedDomains.some(domain => url.includes(domain));
 
   if (!isAllowed) {
+    console.warn(`[Proxy] Rejected domain: ${url}`);
     return new NextResponse("Forbidden domain", { status: 403 });
   }
 
@@ -25,15 +34,13 @@ export async function GET(request: NextRequest) {
         "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Referer": "https://www.instagram.com/",
-        "Sec-Fetch-Dest": "image",
-        "Sec-Fetch-Mode": "no-cors",
-        "Sec-Fetch-Site": "cross-site",
       },
       next: { revalidate: 3600 } // Cache for 1 hour
     });
 
     if (!response.ok) {
-      console.error(`[Proxy] Failed to fetch ${url}: ${response.status}`);
+      const errorText = await response.text().catch(() => "No error body");
+      console.error(`[Proxy] Failed to fetch ${url}: ${response.status} - ${errorText.slice(0, 100)}`);
       return new NextResponse(`Failed to fetch image: ${response.status}`, { status: response.status });
     }
 

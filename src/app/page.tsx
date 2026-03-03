@@ -81,32 +81,35 @@ export default async function Home() {
               </h1>
             </div>
             <div className="flex flex-wrap gap-3">
-              <button className="rounded-full border border-(--accent) px-5 py-2 text-sm font-semibold text-(--accent-strong) transition hover:bg-(--accent) hover:text-white">
-                Import Fresh Leads
-              </button>
+              <Link
+                href="/leads/discover"
+                className="rounded-full border border-(--accent) px-5 py-2 text-sm font-semibold text-(--accent-strong) transition hover:bg-(--accent) hover:text-white"
+              >
+                Discover Leads
+              </Link>
               <button className="rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-(--surface) transition hover:bg-white/80">
                 New Outreach Note
               </button>
             </div>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-              {[
-                {
-                  label: "New leads",
-                  value: String(newCount),
-                  detail: "Newest arrivals",
-                },
-                {
-                  label: "Messages queued",
-                  value: String(draftCount),
-                  detail: "Drafts ready",
-                },
-                {
-                  label: "Follow-ups due",
-                  value: String(followUpCount),
-                  detail: "Needs a nudge",
-                },
-              ].map((stat) => (
+            {[
+              {
+                label: "New leads",
+                value: String(newCount),
+                detail: "Newest arrivals",
+              },
+              {
+                label: "Messages queued",
+                value: String(draftCount),
+                detail: "Drafts ready",
+              },
+              {
+                label: "Follow-ups due",
+                value: String(followUpCount),
+                detail: "Needs a nudge",
+              },
+            ].map((stat) => (
               <div
                 key={stat.label}
                 className="rounded-2xl border border-white/10 bg-(--surface-strong) p-4"
@@ -164,14 +167,14 @@ export default async function Home() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                      <h3 className="text-lg font-semibold text-foreground">
-                        <Link
-                          href={`/leads/${lead.id}`}
-                          className="transition hover:text-(--accent-strong)"
-                        >
-                          {lead.name}
-                        </Link>
-                      </h3>
+                        <h3 className="text-lg font-semibold text-foreground">
+                          <Link
+                            href={`/leads/${lead.id}`}
+                            className="transition hover:text-(--accent-strong)"
+                          >
+                            {lead.name}
+                          </Link>
+                        </h3>
                         <p className="text-sm text-(--muted)">
                           {lead.location} · {lead.genre}
                         </p>
