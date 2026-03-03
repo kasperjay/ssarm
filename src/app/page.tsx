@@ -109,22 +109,41 @@ export default async function Home() {
                 value: String(followUpCount),
                 detail: "Needs a nudge",
               },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-2xl border border-white/10 bg-(--surface-strong) p-4"
-              >
-                <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
-                  {stat.label}
-                </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-3xl font-semibold text-foreground">
-                    {stat.value}
-                  </span>
-                  <span className="text-sm text-(--muted)">{stat.detail}</span>
+            ].map((stat) => {
+              const isDrafts = stat.label === "Messages queued";
+              return isDrafts ? (
+                <Link
+                  key={stat.label}
+                  href="/leads/drafts"
+                  className="block rounded-2xl border border-white/10 bg-(--surface-strong) p-4 transition hover:-translate-y-1 hover:shadow-[0_20px_50px_-30px_rgba(35,211,255,0.35)]"
+                >
+                  <p className="text-xs uppercase tracking-[0.3em] text-(--muted) group-hover:text-(--accent-strong) transition">
+                    {stat.label} <span className="text-(--accent-strong)">→</span>
+                  </p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-3xl font-semibold text-foreground">
+                      {stat.value}
+                    </span>
+                    <span className="text-sm text-(--muted)">{stat.detail}</span>
+                  </div>
+                </Link>
+              ) : (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-white/10 bg-(--surface-strong) p-4"
+                >
+                  <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
+                    {stat.label}
+                  </p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-3xl font-semibold text-foreground">
+                      {stat.value}
+                    </span>
+                    <span className="text-sm text-(--muted)">{stat.detail}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </header>
 
