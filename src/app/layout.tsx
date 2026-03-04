@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Space_Grotesk } from "next/font/google";
+import { Space_Grotesk, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -7,14 +7,14 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-const fraunces = Fraunces({
+const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-display",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Spectral Soundworks Lead Desk",
-  description: "Lead workflow for artist outreach and tracking.",
+  title: "Spectral Soundworks | Terminal",
+  description: "Advanced lead workflow and artist intelligence.",
 };
 
 export default function RootLayout({
@@ -23,11 +23,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
-        className={`${spaceGrotesk.variable} ${fraunces.variable} antialiased`}
+        className={`${spaceGrotesk.variable} ${plusJakarta.variable} antialiased bg-background text-foreground min-h-screen relative`}
       >
-        {children}
+        {/* Persistent Global Background Effects */}
+        <div className="fixed inset-0 bg-grid opacity-10 pointer-events-none z-[-1]" />
+        <div className="fixed inset-0 scanlines opacity-20 pointer-events-none z-[-1]" />
+        <div className="fixed -top-[20%] -left-[10%] w-[60%] h-[60%] bg-accent/5 blur-[120px] rounded-full pointer-events-none z-[-1]" />
+
+        <div className="relative z-0">
+          {children}
+        </div>
       </body>
     </html>
   );

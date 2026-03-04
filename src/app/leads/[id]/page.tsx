@@ -6,6 +6,9 @@ import { prisma } from "@/lib/prisma";
 import { LeadStatus } from "@/generated/prisma";
 import DraftCopy from "./DraftCopy";
 import SendMessageModal from "./SendMessageModal";
+import { GlassCard } from "@/components/GlassCard";
+import { NeonButton } from "@/components/NeonButton";
+import { StatusPill } from "@/components/StatusPill";
 import {
   generateDraftsForLead,
   markContacted,
@@ -33,7 +36,7 @@ const formatRelativeDate = (date: Date | null | undefined) => {
   return formatter.format(diffMonths, "month");
 };
 
-const formatStatus = (status: string) =>
+const formatStatusLabel = (status: string) =>
   status
     .toLowerCase()
     .split("_")
@@ -47,8 +50,8 @@ const formatLocation = (
   country: string | null
 ) => {
   if (location) return location;
-  const parts = [city, state, country].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "Unknown";
+  const parts = [city, country].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "Remote Record";
 };
 
 const proxiedHelper = (url: string | null) => {
@@ -139,20 +142,11 @@ export default async function LeadDetailPage({
   const spotifyImageUrl = lead.artist.spotifyImageUrl;
   const accentStyle = lead.artist.spotifyAccent
     ? ({
-      "--accent": lead.artist.spotifyAccent,
+      "--accent": lead.artist.spotifyAccent || "#23d3ff",
       "--accent-strong": lead.artist.spotifyAccentStrong ?? lead.artist.spotifyAccent,
       "--highlight": lead.artist.spotifyHighlight ?? lead.artist.spotifyAccent,
     } as CSSProperties)
     : undefined;
-  const accentRgb = hexToRgb(lead.artist.spotifyAccent);
-  const accentOverlay = accentRgb
-    ? `radial-gradient(circle_at_top, rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.25), transparent 60%)`
-    : "radial-gradient(circle_at_top, rgba(35,211,255,0.2), transparent 60%)";
-  const headerStyle = spotifyImageUrl
-    ? undefined
-    : {
-      backgroundImage: `${accentOverlay}, radial-gradient(circle_at_20%_20%, rgba(139,92,246,0.22), transparent 45%), linear-gradient(180deg, rgba(5,7,10,0.95), rgba(5,7,10,1))`,
-    };
 
   const postWhere = {
     artistId: lead.artist.id,
@@ -186,108 +180,99 @@ export default async function LeadDetailPage({
   const instagramAvatar = proxiedHelper(
     lead.artist.instagramProfileImageUrl ?? featuredPost?.imageUrl ?? null
   );
-  const instagramBio = lead.artist.bio ?? "No bio yet.";
+  const instagramBio = lead.artist.bio ?? "No telemetry found.";
 
   return (
     <div
-      className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(35,211,255,0.18),transparent_55%),radial-gradient(circle_at_20%_20%,rgba(139,92,246,0.2),transparent_45%),linear-gradient(180deg,rgba(5,7,10,0.95),rgba(5,7,10,1))]"
+      className="relative min-h-screen pb-20"
       style={accentStyle}
     >
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-10">
-        <header
-          className="relative flex flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-(--surface) bg-cover bg-center p-8 shadow-[0_30px_80px_-60px_rgba(35,211,255,0.35)]"
-          style={headerStyle}
-        >
-          {spotifyImageUrl ? (
-            <div className="pointer-events-none absolute inset-0 z-0">
-              <Image
-                src={spotifyImageUrl}
-                alt={`${lead.artist.name} banner`}
-                fill
-                priority
-                sizes="(min-width: 1024px) 1024px, 100vw"
-                className="object-cover"
-              />
-            </div>
-          ) : null}
-          <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-            <div className="rounded-2xl border border-white/15 bg-(--surface-glass) p-4 shadow-[0_20px_60px_-45px_rgba(5,7,10,0.8)] backdrop-blur-lg">
-              <Link
-                href="/"
-                className="text-xs uppercase tracking-[0.35em] text-(--muted)"
-              >
-                Back to Lead Desk
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12">
+        <header className="relative w-full">
+          <div className="flex flex-wrap items-end justify-between gap-8 pb-8 border-b border-white/10">
+            <div className="space-y-4">
+              <Link href="/" className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors">
+                <span className="transition-transform group-hover:-translate-x-1">←</span> Lead Desk
               </Link>
-              <h1 className="mt-3 font-display text-4xl leading-tight text-foreground md:text-5xl">
-                {lead.artist.name}
-              </h1>
-              <p className="text-sm text-(--muted)">
-                {formatLocation(
-                  lead.artist.location,
-                  lead.artist.city,
-                  lead.artist.state,
-                  lead.artist.country
-                )}
-                {lead.artist.genre ? ` · ${lead.artist.genre}` : ""}
-              </p>
-            </div>
-            <div className="flex flex-1 flex-col gap-3 rounded-2xl border border-white/15 bg-(--surface-glass-strong) p-4 shadow-[0_20px_60px_-45px_rgba(5,7,10,0.8)] backdrop-blur-lg">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <form
-                  action={async (formData) => {
-                    "use server";
-                    const status = formData.get("status");
-                    if (typeof status === "string" && statusOptions.includes(status as LeadStatus)) {
-                      await updateLeadStatus({ leadId: lead.id, status: status as LeadStatus });
-                    }
-                  }}
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  <label className="text-xs uppercase tracking-[0.2em] text-(--muted)">
-                    Status
-                  </label>
-                  <select
-                    name="status"
-                    defaultValue={lead.status}
-                    className="rounded-full border border-white/10 bg-(--surface-strong) px-3 py-2 text-xs font-semibold text-foreground"
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status} value={status}>
-                        {formatStatus(status)}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="submit"
-                    className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-(--surface) transition hover:bg-white/80"
-                  >
-                    Update
-                  </button>
-                </form>
-                <form action={refreshLeadData} className="flex justify-end">
-                  <input type="hidden" name="leadId" value={lead.id} />
-                  <button
-                    type="submit"
-                    className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-(--muted) transition hover:border-(--accent) hover:text-(--accent-strong)"
-                  >
-                    Refresh data
-                  </button>
-                </form>
+              <div className="flex items-center gap-6">
+                <div className="h-20 w-20 overflow-hidden rounded-2xl border border-white/10 bg-white/5 relative shadow-2xl">
+                  {spotifyImageUrl ? (
+                    <Image
+                      src={spotifyImageUrl}
+                      alt={lead.artist.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-muted uppercase tracking-[0.2em]">ART</div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+                    {lead.artist.name}
+                  </h1>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted flex items-center gap-2">
+                    <span className="h-px w-4 bg-accent/40" />
+                    {formatLocation(lead.artist.location, lead.artist.city, lead.artist.state, lead.artist.country)}
+                    <span className="text-accent/30">//</span>
+                    {lead.artist.genre || "Universal Sound"}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <form
-                  action={async () => {
-                    "use server";
-                    await markContacted({ leadId: lead.id });
-                  }}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4">
+              <GlassCard className="p-4! border-accent/20">
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-bold uppercase tracking-widest text-muted mb-1">Status</span>
+                    <StatusPill status={lead.status} />
+                  </div>
+                  <div className="h-8 w-px bg-white/10" />
+                  <div className="flex flex-col items-end">
+                    <span className="text-[8px] font-bold uppercase tracking-widest text-muted mb-1">Index Score</span>
+                    <span className="text-2xl font-mono text-accent">{lead.score?.toFixed(0) || "0"}</span>
+                  </div>
+                </div>
+              </GlassCard>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-6 bg-white/5 rounded-2xl p-4 border border-white/5 backdrop-blur-sm">
+            <div className="flex flex-wrap items-center gap-3">
+              <form
+                action={async (formData) => {
+                  "use server";
+                  const status = formData.get("status");
+                  if (typeof status === "string" && statusOptions.includes(status as LeadStatus)) {
+                    await updateLeadStatus({ leadId: lead.id, status: status as LeadStatus });
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <select
+                  name="status"
+                  defaultValue={lead.status}
+                  className="rounded-xl border border-white/10 bg-surface px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground focus:border-accent focus:outline-none appearance-none cursor-pointer"
                 >
-                  <button
-                    type="submit"
-                    className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-2 text-xs font-semibold text-[color:var(--foreground)] transition hover:border-[color:var(--accent)]"
-                  >
-                    Mark contacted
-                  </button>
-                </form>
+                  {statusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {formatStatusLabel(status)}
+                    </option>
+                  ))}
+                </select>
+                <NeonButton variant="outline" size="sm" type="submit">Update</NeonButton>
+              </form>
+              <div className="h-6 w-px bg-white/10 mx-2" />
+              <form
+                action={async () => {
+                  "use server";
+                  await markContacted({ leadId: lead.id });
+                }}
+              >
+                <NeonButton type="submit" variant="outline" size="sm">Mark Contacted</NeonButton>
+              </form>
+              <div className="flex items-center gap-1">
                 {[3, 7, 14].map((days) => (
                   <form
                     key={days}
@@ -300,252 +285,237 @@ export default async function LeadDetailPage({
                   >
                     <button
                       type="submit"
-                      className="rounded-full border border-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-(--muted) transition hover:border-(--accent) hover:text-(--accent-strong)"
+                      className="rounded-lg border border-white/5 px-2 py-1.5 text-[8px] font-bold uppercase tracking-widest text-muted transition hover:bg-white/10 hover:text-accent"
                     >
-                      +{days} days
+                      +{days}d
                     </button>
                   </form>
                 ))}
-                <SendMessageModal
-                  leadId={lead.id}
-                  label="Send custom"
-                  source="custom"
-                  variant="primary"
-                />
               </div>
             </div>
-          </div>
-          <div className="relative z-20 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-(--surface-strong) p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
-                Latest release
-              </p>
-              {featuredRelease?.url ? (
-                <Link
-                  href={featuredRelease.url}
-                  target="_blank"
-                  className="mt-2 inline-flex text-lg font-semibold text-foreground transition hover:text-(--accent)"
+            <div className="flex items-center gap-4">
+              <SendMessageModal
+                leadId={lead.id}
+                label="Compose Direct"
+                source="custom"
+                variant="primary"
+              />
+              <form action={refreshLeadData}>
+                <input type="hidden" name="leadId" value={lead.id} />
+                <button
+                  type="submit"
+                  className="group flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-muted hover:text-accent hover:border-accent transition-all"
+                  title="Refresh Intelligence"
                 >
-                  {featuredRelease.title}
-                </Link>
-              ) : (
-                <p className="mt-2 text-lg font-semibold text-foreground">
-                  {featuredRelease?.title ?? "No release data"}
-                </p>
-              )}
-              <p className="text-xs text-(--muted)">
-                {featuredRelease?.releaseDate
-                  ? formatRelativeDate(featuredRelease.releaseDate)
-                  : "Unknown"}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
-                Instagram
-              </p>
-              <p className="mt-2 text-lg font-semibold text-foreground">
-                {lead.artist.followerCount?.toLocaleString() ?? "Unknown"} followers
-              </p>
-              <p className="text-xs text-(--muted)">
-                {lead.artist.lastPostAt
-                  ? `Last post ${formatRelativeDate(lead.artist.lastPostAt)}`
-                  : "No recent post"}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs uppercase tracking-[0.3em] text-(--muted)">
-                  Lead notes
-                </p>
-                <div className="rounded-xl border border-white/10 bg-(--surface) px-3 py-2 text-center">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-(--muted)">
-                    Lead Score
-                  </p>
-                  <p className="text-lg font-semibold text-foreground">
-                    {lead.score?.toFixed(0) ?? "-"}
-                  </p>
-                </div>
-              </div>
-              <p className="mt-3 text-sm text-foreground">
-                {lead.scoreRationale ?? "No rationale added yet."}
-              </p>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-180 transition-transform duration-500"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
+                </button>
+              </form>
             </div>
           </div>
         </header>
 
-        <main className="flex flex-col gap-8">
-          <section className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-3xl border border-white/10 bg-(--surface-strong) p-6 shadow-[0_40px_90px_-70px_rgba(35,211,255,0.3)]">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-foreground">
-                  Instagram Posts
-                </h2>
-                <span className="text-xs uppercase tracking-[0.3em] text-(--muted)">
-                  {postCount} total
-                </span>
+        <main className="grid gap-10">
+          <section className="grid gap-10 lg:grid-cols-3">
+            <GlassCard className="justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted mb-4">Latest Transmission</p>
+                {featuredRelease?.url ? (
+                  <Link
+                    href={featuredRelease.url}
+                    target="_blank"
+                    className="text-xl font-bold text-foreground transition hover:text-accent block truncate"
+                  >
+                    {featuredRelease.title}
+                  </Link>
+                ) : (
+                  <p className="text-xl font-bold text-foreground truncate">
+                    {featuredRelease?.title ?? "Offline"}
+                  </p>
+                )}
+                <p className="mt-1 text-[10px] font-mono text-muted uppercase">
+                  {featuredRelease?.releaseDate
+                    ? formatRelativeDate(featuredRelease.releaseDate)
+                    : "Date Unknown"}
+                </p>
               </div>
-              <div className="mt-4 flex flex-col gap-4">
-                <div className="rounded-2xl border border-white/10 bg-(--surface) p-4">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-(--surface-strong)">
-                      {instagramAvatar ? (
-                        <img
-                          src={instagramAvatar}
-                          alt={`${lead.artist.name} avatar`}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex i h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-(--muted)">
-                          IG
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-[200px]">
-                      <form
-                        action={async (formData) => {
-                          "use server";
-                          const handle = formData.get("handle");
-                          if (typeof handle === "string") {
-                            await updateArtistHandle({
-                              leadId: lead.id,
-                              instagramHandle: handle,
-                            });
-                          }
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <span className="text-sm font-semibold text-(--muted)">@</span>
-                        <input
-                          name="handle"
-                          defaultValue={lead.artist.instagramHandle ?? ""}
-                          placeholder="handle"
-                          className="w-full rounded-md border border-white/10 bg-transparent px-2 py-0.5 text-sm font-semibold text-foreground focus:border-(--accent) focus:outline-none"
-                        />
-                        <button
-                          type="submit"
-                          className="rounded-lg border border-white/5 bg-white/5 px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider text-(--muted) hover:bg-white/10 hover:text-foreground"
-                        >
-                          Save
-                        </button>
-                      </form>
-                      <p className="mt-1 text-xs text-(--muted)">
-                        {lead.artist.followerCount?.toLocaleString() ?? "Unknown"} followers ·
-                        {" "}
-                        {lead.artist.lastPostAt
-                          ? `Last post ${formatRelativeDate(lead.artist.lastPostAt)}`
-                          : "No recent post"}
-                      </p>
-                    </div>
+              <div className="mt-8 pt-6 border-t border-white/5">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-accent neon-glow" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted font-mono">Signal Active</span>
+                </div>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted mb-4">Social Momentum</p>
+                <p className="text-3xl font-mono font-bold text-foreground">
+                  {lead.artist.followerCount?.toLocaleString() ?? "0"}
+                </p>
+                <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted">
+                  {lead.artist.lastPostAt
+                    ? `Last Pulse: ${formatRelativeDate(lead.artist.lastPostAt)}`
+                    : "Activity Void"}
+                </p>
+              </div>
+              <div className="mt-8 pt-6 border-t border-white/5">
+                <Link href={lead.artist.instagramProfileUrl || "#"} target="_blank" className="text-[10px] font-bold uppercase tracking-widest text-accent hover:text-highlight transition-colors flex items-center gap-2">
+                  Open Instagram Interface <span className="translate-y-px">→</span>
+                </Link>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="justify-between border-accent/20" variant="strong">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent">Analysis</p>
+                  <div className="h-1 lg:h-px flex-1 mx-4 bg-accent/20" />
+                </div>
+                <p className="text-sm text-foreground/80 leading-relaxed italic">
+                  "{lead.scoreRationale ?? "Analysis pending verification."}"
+                </p>
+              </div>
+              <div className="mt-8 pt-6 border-t border-white/5">
+                <span className="text-[8px] font-bold uppercase tracking-tighter text-muted">AIG-SYSTEM // THREAT_LEVEL_LOW</span>
+              </div>
+            </GlassCard>
+          </section>
+
+          <section className="grid gap-10 lg:grid-cols-2">
+            <GlassCard className="space-y-6">
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <h2 className="text-lg font-bold tracking-tight text-foreground">Instagram Intelligence</h2>
+                <span className="text-[10px] font-mono text-muted uppercase tracking-widest">{postCount} NODES</span>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <div className="h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-surface relative shadow-xl">
+                    {instagramAvatar ? (
+                      <img
+                        src={instagramAvatar}
+                        alt={lead.artist.name}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[8px] font-bold text-muted uppercase tracking-widest">IG</div>
+                    )}
                   </div>
-                  <div className="mt-3 max-h-28 overflow-y-auto text-sm text-foreground pr-1">
-                    {instagramBio}
+                  <div className="flex-1">
+                    <form
+                      action={async (formData) => {
+                        "use server";
+                        const handle = formData.get("handle");
+                        if (typeof handle === "string") {
+                          await updateArtistHandle({
+                            leadId: lead.id,
+                            instagramHandle: handle,
+                          });
+                        }
+                      }}
+                      className="flex items-center gap-2 group"
+                    >
+                      <span className="text-sm font-mono text-accent">@</span>
+                      <input
+                        name="handle"
+                        defaultValue={lead.artist.instagramHandle || ""}
+                        placeholder="handle_id"
+                        className="w-full bg-transparent border-b border-white/5 focus:border-accent text-sm font-bold tracking-tight text-foreground outline-none transition-colors"
+                      />
+                      <button type="submit" className="text-[8px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors">SAVE</button>
+                    </form>
+                    <p className="mt-1 text-[10px] text-muted font-mono leading-none">
+                      SYNC_INTERVAL: {lead.artist.lastPostAt ? formatRelativeDate(lead.artist.lastPostAt) : "N/A"}
+                    </p>
                   </div>
                 </div>
+
+                <div className="text-xs text-foreground/70 leading-relaxed font-serif italic max-h-24 overflow-y-auto pr-2 scrollbar-hide">
+                  {instagramBio}
+                </div>
+
                 {featuredPost ? (
-                  <div className="rounded-2xl border border-white/10 bg-(--surface) p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="text-xs uppercase tracking-[0.25em] text-(--muted)">
-                        {formatRelativeDate(featuredPost.postedAt ?? featuredPost.createdAt)}
-                      </p>
-                      {featuredPost.url ? (
-                        <Link
-                          href={featuredPost.url}
-                          className="text-xs text-(--accent-strong)"
-                          target="_blank"
-                        >
-                          Open post
-                        </Link>
-                      ) : null}
+                  <div className="space-y-4 pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted">Latest Deployment</span>
+                      <Link href={featuredPost.url || "#"} target="_blank" className="text-[10px] font-bold uppercase tracking-widest text-accent hover:underline">EXTERNAL_UPLINK</Link>
                     </div>
-                    <div className="mt-4 grid gap-4 lg:grid-cols-[0.45fr_0.55fr]">
-                      <div className="overflow-hidden rounded-2xl border border-white/10 bg-(--surface-strong)">
+                    <div className="grid gap-4 sm:grid-cols-[0.4fr_0.6fr]">
+                      <div className="aspect-square overflow-hidden rounded-xl border border-white/10 relative group">
                         {featuredPost.imageUrl ? (
                           <img
                             src={proxiedHelper(featuredPost.imageUrl)}
-                            alt="Instagram post"
-                            className="h-full w-full object-cover"
+                            alt="Deployment Media"
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                             loading="lazy"
                           />
                         ) : (
-                          <div className="flex h-full min-h-[160px] items-center justify-center text-xs uppercase tracking-[0.3em] text-(--muted)">
-                            No image
-                          </div>
+                          <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-muted uppercase tracking-widest">MEDIA_MISSING</div>
                         )}
+                        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex flex-col justify-between gap-3">
-                        <div className="text-sm text-foreground max-h-40 overflow-y-auto pr-1">
-                          {featuredPost.caption ?? "No caption."}
-                        </div>
-                        {featuredPost.url ? (
-                          <Link
-                            href={featuredPost.url}
-                            className="inline-flex items-center text-xs font-semibold text-(--accent)"
-                            target="_blank"
-                          >
-                            View on Instagram
-                          </Link>
-                        ) : null}
+                      <div className="flex flex-col justify-between py-1">
+                        <p className="text-xs text-foreground/80 leading-relaxed line-clamp-6">
+                          {featuredPost.caption || "Metadata body empty."}
+                        </p>
+                        <p className="text-[8px] font-mono text-muted uppercase mt-4">
+                          TIMESTAMP: {formatRelativeDate(featuredPost.postedAt || featuredPost.createdAt)}
+                        </p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface) p-6 text-sm text-(--muted)">
-                    No Instagram posts yet.
+                  <div className="p-8 rounded-2xl border border-dashed border-white/10 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No media logs found.</p>
                   </div>
                 )}
               </div>
-              <div className="mt-4 flex items-center justify-between text-xs text-(--muted)">
+
+              <div className="flex items-center justify-between pt-6 border-t border-white/5">
                 <Link
                   href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.max(1, postPage - 1)}`}
-                  className={`rounded-full border border-white/10 px-3 py-1 ${postPage === 1 ? "pointer-events-none opacity-50" : "hover:border-(--accent)"
-                    }`}
+                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${postPage === 1 ? "pointer-events-none opacity-20" : "text-muted hover:text-accent"}`}
                 >
-                  Previous
+                  PREV_NODE
                 </Link>
-                <span>
-                  Page {postPage} of {postTotalPages}
-                </span>
+                <span className="text-[10px] font-mono text-accent/50">{postPage} / {postTotalPages}</span>
                 <Link
                   href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.min(postTotalPages, postPage + 1)}`}
-                  className={`rounded-full border border-white/10 px-3 py-1 ${postPage === postTotalPages
-                    ? "pointer-events-none opacity-50"
-                    : "hover:border-(--accent)"
-                    }`}
+                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${postPage === postTotalPages ? "pointer-events-none opacity-20" : "text-muted hover:text-accent"}`}
                 >
-                  Next
+                  NEXT_NODE
                 </Link>
               </div>
-            </div>
+            </GlassCard>
 
-            <div className="rounded-3xl border border-white/10 bg-(--surface-strong) p-6">
-              <div className="grid h-full grid-rows-[auto_1fr_auto] gap-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-foreground">
-                    Recent Releases
-                  </h2>
-                  <span className="text-xs uppercase tracking-[0.3em] text-(--muted)">
-                    {releaseCount} total
-                  </span>
-                </div>
-                <div className="flex flex-col gap-4">
-                  {featuredRelease ? (
-                    <div className="rounded-2xl border border-white/10 bg-(--surface) p-5 sm:p-6">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="h-48 w-48 overflow-hidden rounded-[32px] border border-white/10 bg-(--surface-strong) sm:h-56 sm:w-56">
+            <GlassCard className="space-y-6">
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <h2 className="text-lg font-bold tracking-tight text-foreground">Acoustic Inventory</h2>
+                <span className="text-[10px] font-mono text-muted uppercase tracking-widest">{releaseCount} DATA_POINTS</span>
+              </div>
+
+              <div className="space-y-6">
+                {featuredRelease ? (
+                  <div className="space-y-6">
+                    <div className="flex flex-col items-center gap-6">
+                      <div className="relative h-44 w-44 sm:h-52 sm:w-52 group">
+                        <div className="absolute -inset-4 bg-accent/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="relative h-full w-full overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
                           {featuredRelease.imageUrl ? (
                             <img
                               src={proxiedHelper(featuredRelease.imageUrl)}
-                              alt={`${featuredRelease.title} cover`}
+                              alt={featuredRelease.title}
                               className="h-full w-full object-cover"
                               loading="lazy"
                             />
                           ) : (
-                            <div className="flex i h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-(--muted)">
-                              Art
-                            </div>
+                            <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-muted uppercase tracking-widest">DATA_ENV_VOID</div>
                           )}
                         </div>
+                      </div>
+
+                      <div className="w-full space-y-4">
                         {featuredRelease.url ? (
                           <iframe
                             key={featuredRelease.url}
@@ -553,226 +523,220 @@ export default async function LeadDetailPage({
                               ? featuredRelease.url
                               : featuredRelease.url.replace("open.spotify.com/", "open.spotify.com/embed/")}
                             width="100%"
-                            height="232"
+                            height="152"
                             allow="encrypted-media; clipboard-write; fullscreen; picture-in-picture"
-                            className="rounded-2xl border border-white/10 bg-(--surface-strong)"
-                            title="Spotify player"
+                            className="rounded-2xl border border-white/10 bg-black/40 shadow-inner"
+                            title="Acoustic Player"
                           />
                         ) : (
-                          <div className="flex h-[232px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-(--surface-strong) text-center p-6">
-                            <p className="text-sm font-medium text-foreground">Spotify player unavailable</p>
-                            <p className="mt-1 text-xs text-(--muted)">No URL found for this release.</p>
+                          <div className="h-32 w-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 text-center p-6">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted text-center">Acoustic payload missing</p>
                           </div>
                         )}
-                        <div className="flex w-full flex-col items-center gap-2 text-center">
-                          {featuredRelease.url ? (
-                            <Link
-                              href={featuredRelease.url}
-                              target="_blank"
-                              className="text-xl font-semibold text-foreground underline decoration-(--accent) decoration-2 underline-offset-4"
-                            >
-                              {featuredRelease.title}
-                            </Link>
-                          ) : (
-                            <p className="text-xl font-semibold text-foreground">
-                              {featuredRelease.title}
-                            </p>
-                          )}
-                          <p className="text-sm text-(--muted)">
-                            {formatRelativeDate(featuredRelease.releaseDate ?? featuredRelease.createdAt)}
+
+                        <div className="text-center space-y-2">
+                          <h3 className="text-xl font-bold tracking-tight text-foreground">{featuredRelease.title}</h3>
+                          <p className="text-[10px] font-mono text-muted uppercase tracking-[0.2em]">
+                            TIMESTAMP: {formatRelativeDate(featuredRelease.releaseDate || featuredRelease.createdAt)}
                           </p>
-                          <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs text-(--muted)">
-                            {featuredRelease.releaseType ? (
-                              <span className="rounded-full border border-white/10 bg-(--surface-strong) px-3 py-1">
-                                {featuredRelease.releaseType}
-                              </span>
-                            ) : null}
-                            {lead.artist.genre ? (
-                              <span className="rounded-full border border-white/10 bg-(--surface-strong) px-3 py-1">
-                                {lead.artist.genre}
-                              </span>
-                            ) : null}
-                            {lead.artist.name ? (
-                              <span className="rounded-full border border-white/10 bg-(--surface-strong) px-3 py-1">
-                                {lead.artist.name}
-                              </span>
-                            ) : null}
+                          <div className="flex flex-wrap justify-center gap-2 pt-2">
+                            {featuredRelease.releaseType && (
+                              <span className="rounded-lg bg-white/5 border border-white/5 px-2 py-1 text-[8px] font-bold text-muted uppercase tracking-widest">{featuredRelease.releaseType}</span>
+                            )}
+                            <StatusPill status="IDENTIFIED" className="bg-white/5! border-white/5! text-muted!" />
                           </div>
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface) p-6 text-sm text-(--muted)">
-                      No releases yet.
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between text-xs text-(--muted)">
-                  <Link
-                    href={`/leads/${lead.id}?rPage=${Math.max(1, releasePage - 1)}&pPage=${postPage}`}
-                    className={`rounded-full border border-white/10 px-3 py-1 ${releasePage === 1 ? "pointer-events-none opacity-50" : "hover:border-(--accent)"
-                      }`}
-                  >
-                    Previous
-                  </Link>
-                  <span>
-                    Page {releasePage} of {releaseTotalPages}
-                  </span>
-                  <Link
-                    href={`/leads/${lead.id}?rPage=${Math.min(releaseTotalPages, releasePage + 1)}&pPage=${postPage}`}
-                    className={`rounded-full border border-white/10 px-3 py-1 ${releasePage === releaseTotalPages
-                      ? "pointer-events-none opacity-50"
-                      : "hover:border-(--accent)"
-                      }`}
-                  >
-                    Next
-                  </Link>
-                </div>
+                  </div>
+                ) : (
+                  <div className="p-12 rounded-2xl border border-dashed border-white/10 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No acoustic assets detected.</p>
+                  </div>
+                )}
               </div>
-            </div>
+
+              <div className="flex items-center justify-between pt-6 border-t border-white/5 mt-auto">
+                <Link
+                  href={`/leads/${lead.id}?rPage=${Math.max(1, releasePage - 1)}&pPage=${postPage}`}
+                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${releasePage === 1 ? "pointer-events-none opacity-20" : "text-muted hover:text-accent"}`}
+                >
+                  PREV_POINT
+                </Link>
+                <span className="text-[10px] font-mono text-accent/50">{releasePage} / {releaseTotalPages}</span>
+                <Link
+                  href={`/leads/${lead.id}?rPage=${Math.min(releaseTotalPages, releasePage + 1)}&pPage=${postPage}`}
+                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${releasePage === releaseTotalPages ? "pointer-events-none opacity-20" : "text-muted hover:text-accent"}`}
+                >
+                  NEXT_POINT
+                </Link>
+              </div>
+            </GlassCard>
           </section>
 
-          <section className="rounded-3xl border border-white/10 bg-(--surface-strong) p-6">
+          <section className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-foreground">
-                Outreach Drafts
-              </h2>
-              <span className="text-xs uppercase tracking-[0.3em] text-(--muted)">
-                {lead.messages.filter(m => !m.selected).length} drafts
+              <div className="flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-accent neon-glow" />
+                <h2 className="text-xl font-bold tracking-tight text-foreground">Strategic Outreach Drafts</h2>
+              </div>
+              <span className="text-[10px] font-mono text-muted uppercase tracking-[0.3em]">
+                {lead.messages.filter(m => !m.selected).length} PREVIEW_NODES
               </span>
             </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {lead.messages.filter(m => !m.selected).length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface) p-6 text-sm text-(--muted) sm:col-span-2 xl:col-span-3">
-                  No drafts yet.
+                <div className="col-span-full py-12 rounded-3xl border border-dashed border-white/10 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No neural drafts generated.</p>
                 </div>
               ) : (
                 lead.messages
                   .filter((m) => !m.selected)
                   .map((message) => (
-                    <div
+                    <GlassCard
                       key={message.id}
-                      className="group relative flex flex-col gap-3 rounded-2xl border border-white/10 bg-(--surface) p-4"
+                      className="group flex flex-col justify-between p-6!"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs uppercase tracking-[0.25em] text-(--muted)">
-                          {message.tone ?? "Draft"}
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-accent/60">
+                            MODE_{message.tone || "GENERAL"}
+                          </span>
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DraftCopy text={message.body} />
+                          </div>
+                        </div>
+                        <p className="text-sm text-foreground/80 leading-relaxed font-serif italic">
+                          "{message.body}"
                         </p>
-                        <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
-                          <DraftCopy text={message.body} />
-                          <details className="relative">
-                            <summary className="list-none rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-(--muted) transition hover:border-(--accent) cursor-pointer">
-                              Edit
-                            </summary>
-                            <div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-white/10 bg-(--surface-strong) p-2 shadow-[0_20px_40px_-30px_rgba(0,0,0,0.5)]">
-                              <form action={regenerateDraft}>
-                                <input type="hidden" name="leadId" value={lead.id} />
-                                <input type="hidden" name="draftId" value={message.id} />
-                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                                <input type="hidden" name="styleHint" value="more professional" />
-                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                  More professional
-                                </button>
-                              </form>
-                              <form action={regenerateDraft}>
-                                <input type="hidden" name="leadId" value={lead.id} />
-                                <input type="hidden" name="draftId" value={message.id} />
-                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                                <input type="hidden" name="styleHint" value="more casual" />
-                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                  More casual
-                                </button>
-                              </form>
-                              <form action={regenerateDraft}>
-                                <input type="hidden" name="leadId" value={lead.id} />
-                                <input type="hidden" name="draftId" value={message.id} />
-                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                                <input type="hidden" name="styleHint" value="more fun" />
-                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                  More fun
-                                </button>
-                              </form>
-                              <form action={regenerateDraft}>
-                                <input type="hidden" name="leadId" value={lead.id} />
-                                <input type="hidden" name="draftId" value={message.id} />
-                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                                <input type="hidden" name="styleHint" value="more boring" />
-                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                  More boring
-                                </button>
-                              </form>
-                              <form action={regenerateDraft}>
-                                <input type="hidden" name="leadId" value={lead.id} />
-                                <input type="hidden" name="draftId" value={message.id} />
-                                <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
-                                <input type="hidden" name="styleHint" value="random" />
-                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-foreground transition hover:bg-white/5">
-                                  Random
-                                </button>
-                              </form>
-                              <div className="mt-1 border-t border-white/10 pt-1">
-                                <SendMessageModal
-                                  leadId={lead.id}
-                                  label="Customize"
-                                  defaultBody={message.body}
-                                  source="draft-edit"
-                                />
+                      </div>
+
+                      <div className="mt-6 flex items-center justify-between pt-4 border-t border-white/5">
+                        <details className="relative group/details">
+                          <summary className="list-none cursor-pointer flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-foreground transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6 6-6" /></svg>
+                            TUNE_VARIANT
+                          </summary>
+                          <div className="absolute left-0 bottom-full mb-4 z-20 w-48 rounded-2xl border border-white/10 bg-surface-strong p-2 shadow-2xl backdrop-blur-xl">
+                            <div className="group/tone relative">
+                              <div className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors cursor-default">
+                                Change Tone
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                              </div>
+                              <div className="hidden group-hover/tone:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-surface-strong p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-left-2 transition-all">
+                                {["professional", "casual"].map((hint) => (
+                                  <form key={hint} action={regenerateDraft}>
+                                    <input type="hidden" name="leadId" value={lead.id} />
+                                    <input type="hidden" name="draftId" value={message.id} />
+                                    <input type="hidden" name="tone" value={message.tone || "Draft"} />
+                                    <input type="hidden" name="styleHint" value={`more ${hint}`} />
+                                    <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors">
+                                      more {hint}
+                                    </button>
+                                  </form>
+                                ))}
                               </div>
                             </div>
-                          </details>
-                          <SendMessageModal
-                            leadId={lead.id}
-                            label="Send"
-                            defaultBody={message.body}
-                            source="draft"
-                            variant="primary"
-                          />
-                        </div>
+
+                            <div className="group/style relative mt-1">
+                              <div className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors cursor-default">
+                                Change Style
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                              </div>
+                              <div className="hidden group-hover/style:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-surface-strong p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-left-2 transition-all">
+                                {["boring", "fun"].map((hint) => (
+                                  <form key={hint} action={regenerateDraft}>
+                                    <input type="hidden" name="leadId" value={lead.id} />
+                                    <input type="hidden" name="draftId" value={message.id} />
+                                    <input type="hidden" name="tone" value={message.tone || "Draft"} />
+                                    <input type="hidden" name="styleHint" value={`more ${hint}`} />
+                                    <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors">
+                                      more {hint}
+                                    </button>
+                                  </form>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="mt-1 border-t border-white/10 pt-1">
+                              <form action={regenerateDraft}>
+                                <input type="hidden" name="leadId" value={lead.id} />
+                                <input type="hidden" name="draftId" value={message.id} />
+                                <input type="hidden" name="tone" value={message.tone || "Draft"} />
+                                <input type="hidden" name="styleHint" value="more random" />
+                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors">
+                                  randomize
+                                </button>
+                              </form>
+                              <SendMessageModal
+                                leadId={lead.id}
+                                label="CUSTOM_OVERRIDE"
+                                defaultBody={message.body}
+                                source="draft-edit"
+                              />
+                            </div>
+                          </div>
+                        </details>
+
+                        <SendMessageModal
+                          leadId={lead.id}
+                          label="EXECUTE_UPLINK"
+                          defaultBody={message.body}
+                          source="draft"
+                          variant="primary"
+                        />
                       </div>
-                      <p className="text-sm text-foreground">{message.body}</p>
-                    </div>
+                    </GlassCard>
                   ))
               )}
             </div>
           </section>
 
-          <section className="rounded-3xl border border-white/10 bg-(--surface) p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-foreground">
-                Activity Timeline
-              </h2>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-(--muted)">
-                {lead.activities.length} events
-              </span>
-            </div>
-            <div className="mt-4 flex flex-col gap-3">
-              {lead.activities.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/20 bg-(--surface-strong) p-4 text-xs text-(--muted)">
-                  No activity yet.
-                </div>
-              ) : (
-                lead.activities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="rounded-2xl border border-white/10 bg-(--surface-strong) p-3"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-(--muted)">
-                        {formatStatus(activity.type)}
-                      </p>
-                      <p className="text-[10px] text-(--muted)">
-                        {formatRelativeDate(activity.occurredAt)}
-                      </p>
-                    </div>
-                    {activity.note ? (
-                      <p className="mt-2 text-xs text-foreground">
-                        {activity.note}
-                      </p>
-                    ) : null}
+          <section className="mt-10">
+            <GlassCard className="p-8!">
+              <div className="flex items-center justify-between border-b border-white/10 pb-6 mb-8">
+                <h2 className="text-xl font-bold tracking-tight text-foreground">Operational History Timeline</h2>
+                <span className="text-[10px] font-mono text-muted uppercase tracking-[0.3em]">
+                  {lead.activities.length} EVENTS_LOGGED
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {lead.activities.length === 0 ? (
+                  <div className="py-8 text-center rounded-2xl border border-dashed border-white/10">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No historical data recorded.</p>
                   </div>
-                ))
-              )}
-            </div>
+                ) : (
+                  lead.activities.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex gap-4 group"
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="h-3 w-3 rounded-full border-2 border-accent bg-background z-10" />
+                        <div className="w-px flex-1 bg-white/10" />
+                      </div>
+                      <div className="flex-1 pb-8 group-last:pb-2">
+                        <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-accent">
+                            {formatStatusLabel(activity.type)}
+                          </p>
+                          <p className="text-[8px] font-mono text-muted uppercase">
+                            {formatRelativeDate(activity.occurredAt)}
+                          </p>
+                        </div>
+                        {activity.note && (
+                          <p className="text-xs text-foreground/70 font-serif italic max-w-2xl leading-relaxed">
+                            "{activity.note}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </GlassCard>
           </section>
         </main>
       </div>

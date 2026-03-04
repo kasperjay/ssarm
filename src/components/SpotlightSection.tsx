@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { getRandomLead } from "@/app/actions";
 import { formatRelativeDate, formatLocation } from "@/lib/utils";
+import { GlassCard } from "./GlassCard";
+import { NeonButton } from "./NeonButton";
 
 interface SpotlightSectionProps {
   initialLead: any;
@@ -28,134 +30,141 @@ export function SpotlightSection({ initialLead }: SpotlightSectionProps) {
 
   if (!lead) {
     return (
-      <section className="flex flex-col gap-6">
-        <div className="rounded-3xl border border-white/10 bg-(--surface-strong) p-6">
-          <h2 className="text-xl font-semibold text-foreground">Spotlight Lead</h2>
-          <p className="text-sm text-(--muted)">No leads available.</p>
-        </div>
-      </section>
+      <aside className="space-y-8">
+        <GlassCard variant="strong">
+          <h2 className="text-xl font-bold tracking-tight uppercase">Spotlight</h2>
+          <p className="mt-4 text-xs text-muted/60 uppercase tracking-widest font-bold">[ No Signal Detected ]</p>
+        </GlassCard>
+      </aside>
     );
   }
 
-  const spotlightRelease = lead.artist.releases[0];
+  const spotlightRelease = lead.artist?.releases?.[0];
   const spotlightCaption =
-    lead.artist.instagramPosts[0]?.caption ??
-    lead.artist.bio ??
-    "No recent post data yet.";
+    lead.artist?.instagramPosts?.[0]?.caption ??
+    lead.artist?.bio ??
+    "No telemetry data available for this entity.";
 
-  const messageCount = lead.messages.length;
+  const messageCount = lead.messages?.length ?? 0;
   const messages = messageCount
     ? lead.messages.map((m: any) => ({
-        id: m.id,
-        tone: m.tone ?? "Draft",
-        body: m.body,
-      }))
+      id: m.id,
+      tone: m.tone ?? "Draft",
+      body: m.body,
+    }))
     : [
-        {
-          id: "empty",
-          tone: "Draft",
-          body: "No outreach drafts yet. Run the LLM generator to create personalized intros.",
-        },
-      ];
+      {
+        id: "empty",
+        tone: "Pending",
+        body: "Awaiting outreach sequence initialization. Run generator to proceed.",
+      },
+    ];
 
   return (
-    <section className="flex flex-col gap-6">
-      <div className="relative rounded-3xl border border-white/10 bg-(--surface-strong) p-6">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-semibold text-foreground">Spotlight Lead</h2>
+    <aside className="space-y-10">
+      {/* Spotlight Profile */}
+      <GlassCard variant="strong" className="relative group overflow-hidden border-t-accent/20 border-t">
+        <div className="absolute top-0 right-0 p-4">
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className={`p-2 rounded-full hover:bg-white/10 transition-colors ${loading ? "animate-spin" : ""}`}
-            title="Refresh Spotlight"
+            className={`p-2 rounded-lg bg-white/5 border border-white/10 text-muted hover:text-accent hover:border-accent/40 transition-all ${loading ? "animate-spin" : ""}`}
+            title="Refresh Uplink"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-(--muted) hover:text-foreground transition-colors"
             >
               <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
               <path d="M21 3v5h-5" />
             </svg>
           </button>
         </div>
-        <p className="text-sm text-(--muted)">
-          {`${lead.artist.name} · ${lead.artist.genre ?? "Unknown"} · ${formatLocation(
-            lead.artist.location,
-            lead.artist.city,
-            lead.artist.state,
-            lead.artist.country
-          )}`}
-        </p>
-        <div className="mt-4 grid gap-4 rounded-2xl border border-white/10 bg-(--surface) p-4 text-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-(--muted)">Latest release</span>
-            <span className="font-semibold text-foreground text-right ml-2">
-              {spotlightRelease
-                ? `${spotlightRelease.title} - ${formatRelativeDate(
-                    spotlightRelease.releaseDate ?? spotlightRelease.createdAt
-                  )}`
-                : "No release data"}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-(--muted)">Instagram activity</span>
-            <span className="font-semibold text-foreground text-right ml-2">
-              {lead.artist.lastPostAt
-                ? `Last post ${formatRelativeDate(lead.artist.lastPostAt)}`
-                : "No recent post"}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-(--muted)">Followers</span>
-            <span className="font-semibold text-foreground text-right ml-2">
-              {lead.artist.followerCount?.toLocaleString() ?? "Unknown"}
-            </span>
-          </div>
-        </div>
-        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-foreground">
-          {spotlightCaption}
-        </div>
-      </div>
 
-      <div className="rounded-3xl border border-white/10 bg-(--surface-strong) p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">Outreach Drafts</h2>
-          <span className="text-xs uppercase tracking-[0.3em] text-(--muted)">
-            {messageCount} drafts
-          </span>
+        <div>
+          <h2 className="text-xl font-bold tracking-tight uppercase flex items-center gap-2">
+            Spotlight <span className="text-[10px] text-accent/40 font-mono tracking-widest">ID:{lead.id.slice(-6).toUpperCase()}</span>
+          </h2>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent/80">
+            {lead.artist.name} <span className="mx-2 text-white/10">//</span> {formatLocation(
+              lead.artist.location,
+              lead.artist.city,
+              lead.artist.state,
+              lead.artist.country
+            )}
+          </p>
         </div>
-        <div className="mt-4 flex flex-col gap-4">
-          {messages.map((message: any) => (
-            <div
-              key={message.id}
-              className="rounded-2xl border border-white/10 bg-(--surface) p-4"
-            >
-              <p className="text-xs uppercase tracking-[0.25em] text-(--muted)">
-                {message.tone}
-              </p>
-              <p className="mt-2 text-sm text-foreground">
-                {message.body}
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button className="rounded-full bg-(--accent) px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-(--accent-strong)">
-                  Use Draft
-                </button>
-                <button className="rounded-full border border-white/10 px-4 py-1.5 text-xs font-semibold text-(--muted) transition hover:border-(--accent) hover:text-(--accent-strong)">
-                  Edit
-                </button>
+
+        <div className="mt-8 space-y-3">
+          {[
+            { label: "Recent Release", value: spotlightRelease ? spotlightRelease.title : "None", meta: spotlightRelease ? formatRelativeDate(spotlightRelease.releaseDate ?? spotlightRelease.createdAt) : "" },
+            { label: "Social Momentum", value: lead.artist.followerCount?.toLocaleString() ?? "N/A", meta: "Followers" },
+            { label: "Last Transmission", value: lead.artist.lastPostAt ? formatRelativeDate(lead.artist.lastPostAt) : "Unknown", meta: "Sync Signal" }
+          ].map((item) => (
+            <div key={item.label} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+              <span className="text-[10px] uppercase tracking-widest text-muted font-bold">{item.label}</span>
+              <div className="flex flex-col items-end">
+                <span className="text-xs font-bold text-foreground tracking-tight">{item.value}</span>
+                {item.meta && <span className="text-[8px] uppercase tracking-tighter text-muted/60">{item.meta}</span>}
               </div>
             </div>
           ))}
         </div>
+
+        <div className="mt-8 relative">
+          <div className="absolute -left-3 top-0 bottom-0 w-[2px] bg-accent/20" />
+          <p className="text-xs text-foreground/70 leading-relaxed italic pl-3 line-clamp-4">
+            "{spotlightCaption}"
+          </p>
+        </div>
+      </GlassCard>
+
+      {/* Drafts Section */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-2 w-2 bg-accent-secondary neon-glow-purple rounded-full" />
+            <h3 className="text-lg font-bold tracking-tight uppercase">Outreach Drafts</h3>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted/60">
+            {messageCount} Active
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          {messages.map((message: any) => (
+            <GlassCard
+              key={message.id}
+              className="group relative border-l border-l-white/10 hover:border-l-accent-secondary transition-colors"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent-secondary">
+                  [{message.tone}]
+                </span>
+                <div className="h-1 w-8 bg-white/5 rounded-full" />
+              </div>
+              <p className="text-xs text-foreground/80 leading-relaxed">
+                {message.body}
+              </p>
+              <div className="mt-6 flex gap-3">
+                <NeonButton variant="purple" size="sm" className="flex-1">
+                  Deploy
+                </NeonButton>
+                <NeonButton variant="outline" size="sm">
+                  Refine
+                </NeonButton>
+              </div>
+            </GlassCard>
+          ))}
+        </div>
       </div>
-    </section>
+    </aside>
   );
 }

@@ -2,7 +2,9 @@ import { getProjectById, deleteFileFromProject } from "../actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import FileUploadArea from "../components/FileUploadArea";
-import { formatDistanceToNow } from "date-fns";
+import CopyButton from "../components/CopyButton";
+import VisibilityToggle from "../components/VisibilityToggle";
+import ResolveButton from "../components/ResolveButton";
 
 export default async function ProjectDetailPage({
   params,
@@ -15,8 +17,9 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
-  // Assuming Dev Server for now; in prod replace with actual origin
-  const portalUrl = `http://localhost:3000/portal/${project.portalToken}`;
+  // Dynamic Origin check via ENV or fallback
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const portalUrl = `${appUrl}/portal/${project.portalToken}`;
 
   const workingFiles = project.files.filter((f) => f.type === "WORKING");
   const deliverables = project.files.filter((f) => f.type === "DELIVERABLE");
@@ -32,6 +35,7 @@ export default async function ProjectDetailPage({
               <Link
                 href="/projects"
                 className="text-sm text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors"
+                prefetch={false}
               >
                 &larr; All Projects
               </Link>
@@ -49,24 +53,27 @@ export default async function ProjectDetailPage({
           </div>
 
           <div className="bg-[var(--surface)] border border-[var(--primary)]/30 rounded-lg p-4 w-full md:w-auto shadow-[0_0_15px_rgba(var(--primary-rgb),0.05)]">
-            <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-2 uppercase tracking-wider">
-              Client Portal Access
-            </h3>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-medium text-[var(--foreground-muted)] uppercase tracking-wider">
+                Client Portal Access
+              </h3>
+              <CopyButton text={portalUrl} />
+            </div>
             <div className="flex gap-2 items-center">
-              <code className="text-sm bg-[var(--background)] px-3 py-2 rounded border border-[var(--border)] text-[var(--primary)] break-all flex-1">
+              <code className="text-xs bg-[var(--background)] px-3 py-2 rounded border border-[var(--border)] text-[var(--primary)] break-all flex-1 min-w-[200px]">
                 {portalUrl}
               </code>
               <a
                 href={portalUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="bg-[var(--primary)] text-[var(--background)] px-4 py-2 rounded text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                className="bg-[var(--primary)] text-[var(--background)] px-3 py-2 rounded text-xs font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
               >
-                Open &nearr;
+                OPEN &nearr;
               </a>
             </div>
-            <p className="text-xs text-[var(--foreground-muted)] mt-2">
-              Share this secure link with the client. No login required.
+            <p className="text-[10px] text-[var(--foreground-muted)] mt-2 italic shadow-inner">
+              Clients only see files marked as "Public"
             </p>
           </div>
         </div>
@@ -88,14 +95,17 @@ export default async function ProjectDetailPage({
               <div className="space-y-2 mt-4">
                 {workingFiles.map((file) => (
                   <div key={file.id} className="flex items-center justify-between p-3 bg-[var(--surface)] border border-[var(--border)] rounded-md hover:border-[var(--primary)]/50 transition-colors">
-                    <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="flex items-center gap-3 overflow-hidden flex-1">
                       <div className="w-8 h-8 rounded bg-[var(--surface-strong)] flex items-center justify-center text-[var(--primary)] shrink-0">
                         🎵
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{file.name}</p>
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="font-medium text-sm truncate">{file.name}</p>
+                          <VisibilityToggle fileId={file.id} isPublic={file.isPublic} projectId={project.id} />
+                        </div>
                         <p className="text-xs text-[var(--foreground-muted)]">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB &bull; Uploaded {formatDistanceToNow(new Date(file.createdAt))} ago
+                          {(file.size / 1024 / 1024).toFixed(2)} MB &bull; Uploaded {new Date(file.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -122,14 +132,17 @@ export default async function ProjectDetailPage({
               <div className="space-y-2 mt-4">
                 {deliverables.map((file) => (
                   <div key={file.id} className="flex items-center justify-between p-3 bg-[var(--surface)] border border-[var(--border)] rounded-md hover:border-[var(--accent)]/50 transition-colors">
-                    <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="flex items-center gap-3 overflow-hidden flex-1">
                       <div className="w-8 h-8 rounded bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)] shrink-0">
                         ⭐
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{file.name}</p>
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="font-medium text-sm truncate">{file.name}</p>
+                          <VisibilityToggle fileId={file.id} isPublic={file.isPublic} projectId={project.id} />
+                        </div>
                         <p className="text-xs text-[var(--foreground-muted)]">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB &bull; Uploaded {formatDistanceToNow(new Date(file.createdAt))} ago
+                          {(file.size / 1024 / 1024).toFixed(2)} MB &bull; Uploaded {new Date(file.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -163,14 +176,17 @@ export default async function ProjectDetailPage({
               ) : (
                 <div className="space-y-4">
                   {project.feedbacks.map((fb) => (
-                    <div key={fb.id} className={`p-4 rounded-lg border ${fb.resolved ? 'bg-[var(--background)] border-[var(--border)] opacity-60' : 'bg-[var(--surface-strong)] border-[var(--primary)]/30'}`}>
+                    <div key={fb.id} className={`p-4 rounded-lg border transition-all ${fb.resolved ? 'bg-[var(--background)] border-[var(--border)] opacity-60' : 'bg-[var(--surface-strong)] border-[var(--primary)]/30'}`}>
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-xs text-[var(--foreground-muted)]">
-                          {formatDistanceToNow(new Date(fb.createdAt))} ago
+                          {new Date(fb.createdAt).toLocaleDateString()}
                         </span>
-                        {!fb.resolved && <span className="w-2 h-2 rounded-full bg-[var(--error)]"></span>}
+                        {!fb.resolved && <ResolveButton feedbackId={fb.id} projectId={project.id} />}
                       </div>
                       <p className="text-sm whitespace-pre-wrap">{fb.content}</p>
+                      {fb.resolved && (
+                        <p className="text-[10px] mt-3 uppercase tracking-wider text-[var(--accent)] font-bold">Resolved</p>
+                      )}
                     </div>
                   ))}
                 </div>

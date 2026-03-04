@@ -43,12 +43,12 @@ const hasFlag = (name) => process.argv.includes(name);
 // Scoring weights & thresholds (total = 100)
 const SCORING_CONFIG = {
   WEIGHTS: {
-    followerCount: 30,    // 0-30: scaled by 10k followers
-    recency: 20,          // 0-20: based on lastPostAt
-    releaseCount: 20,     // 0-20: count of releases
+    followerCount: 20,    // 0-20: scaled by 10k followers
+    recency: 15,          // 0-15: based on lastPostAt
+    releaseCount: 15,     // 0-15: count of releases
     dataCompleteness: 15, // 0-15: profile fields filled
     engagement: 10,       // 0-10: post count, profile bio quality
-    genreBonus: 5,        // 0-5: if genre present & valid
+    genreBonus: 25,       // 0-25: prioritized by genre type
   },
   FOLLOWER_THRESHOLD: 10000, // 10k followers = max points
   RECENCY_DAYS: 180,         // Posts within 180 days = full points
@@ -91,40 +91,45 @@ function calculateDataCompletenessScore(artist) {
 
 function calculateEngagementScore(artist) {
   let engagementPoints = 0;
-  
+
   // Has Instagram presence
   if (artist.instagramHandle) engagementPoints += 3;
-  
+
   // Has quality bio (> 50 chars, likely contains useful info)
   if (artist.bio && artist.bio.length > 50) engagementPoints += 3;
-  
+
   // Has multiple emails (suggests accessible/professional)
   if (artist.emails && artist.emails.length > 1) engagementPoints += 2;
-  
+
   // Has official site
   if (artist.officialSiteUrl) engagementPoints += 2;
-  
+
   return Math.min(engagementPoints, SCORING_CONFIG.WEIGHTS.engagement);
 }
 
 function calculateGenreBonus(artist) {
   if (!artist.genre) return 0;
-  // Award bonus if genre is present and looks populated
-  const genreStr = artist.genre.toLowerCase();
-  if (genreStr.length > 2 && genreStr !== 'unknown') {
+  const genreStr = artist.genre.toLowerCase().trim();
+  if (genreStr.length < 2 || genreStr === "unknown") return 0;
+
+  // Priority genres get full bonus
+  const PRIORITY_GENRES = /hip.?hop|rap|trap|metal|deathcore|prog.?rock|alt.?rock|hardcore|metalcore/i;
+  if (PRIORITY_GENRES.test(genreStr)) {
     return SCORING_CONFIG.WEIGHTS.genreBonus;
   }
-  return 0;
+
+  // Standard valid genres get a baseline (10 pts)
+  return 10;
 }
 
 async function calculateLeadScore(lead) {
   const artist = lead.artist;
-  
+
   // Get release count
   const releaseCount = await prisma.release.count({
     where: { artistId: artist.id },
   });
-  
+
   // Calculate components
   const followerScore = calculateFollowerScore(artist.followerCount);
   const recencyScore = calculateRecencyScore(artist.lastPostAt);
@@ -132,9 +137,9 @@ async function calculateLeadScore(lead) {
   const completenessScore = calculateDataCompletenessScore(artist);
   const engagementScore = calculateEngagementScore(artist);
   const genreBonus = calculateGenreBonus(artist);
-  
+
   const totalScore = followerScore + recencyScore + releaseScore + completenessScore + engagementScore + genreBonus;
-  
+
   // Generate human-readable rationale
   const rationales = [];
   if (followerScore > 0) {
@@ -156,11 +161,11 @@ async function calculateLeadScore(lead) {
   if (genreBonus > 0) {
     rationales.push(`genre "${artist.genre}" (${genreBonus}pts)`);
   }
-  
-  const scoreRationale = rationales.length > 0 
+
+  const scoreRationale = rationales.length > 0
     ? rationales.join("; ")
     : "No scoring data available";
-  
+
   return {
     score: totalScore,
     scoreRationale,
@@ -177,20 +182,20 @@ async function calculateLeadScore(lead) {
 
 async function getLeadsToScore(options) {
   const { all, limit = 100, filterStatus } = options;
-  
+
   const where = {};
-  
+
   // Only score unscored leads unless --all flag
   if (!all) {
     where.score = null;
   }
-  
+
   // Filter by status if provided
   if (filterStatus) {
     const statuses = filterStatus.split(",").map(s => s.trim().toUpperCase());
     where.status = { in: statuses };
   }
-  
+
   return prisma.lead.findMany({
     where,
     include: {
@@ -209,15 +214,15 @@ async function scoreLeads(leads, dryRun = false) {
     error: 0,
     changes: [],
   };
-  
+
   for (const lead of leads) {
     try {
       const { score, scoreRationale } = await calculateLeadScore(lead);
-      
+
       const hadScore = lead.score !== null;
       const scoreChanged = hadScore && lead.score !== score;
       const rationaleChanged = lead.scoreRationale !== scoreRationale;
-      
+
       results.changes.push({
         leadId: lead.id,
         artistName: lead.artist.name,
@@ -226,7 +231,7 @@ async function scoreLeads(leads, dryRun = false) {
         oldRationale: lead.scoreRationale,
         newRationale: scoreRationale,
       });
-      
+
       if (!dryRun) {
         await prisma.lead.update({
           where: { id: lead.id },
@@ -237,14 +242,14 @@ async function scoreLeads(leads, dryRun = false) {
         });
         results.updated++;
       }
-      
+
       results.scored++;
     } catch (error) {
       console.error(`Error scoring lead ${lead.id}:`, error.message);
       results.error++;
     }
   }
-  
+
   return results;
 }
 
@@ -253,45 +258,45 @@ async function main() {
   const dryRun = hasFlag("--dry-run");
   const limitArg = getArg("--limit");
   const filterStatus = getArg("--filter-status");
-  
+
   const limit = limitArg ? parseInt(limitArg, 10) : 100;
-  
+
   console.log("🎯 Lead Scoring Engine");
   console.log(
     `Mode: ${dryRun ? "DRY RUN" : "LIVE"}`,
     allFlag ? "| All leads" : "| Unscored only",
     `| Limit: ${limit}`
   );
-  
+
   if (filterStatus) {
     console.log(`Filter: status in [${filterStatus}]`);
   }
-  
+
   console.log();
-  
+
   const leads = await getLeadsToScore({
     all: allFlag,
     limit,
     filterStatus,
   });
-  
+
   if (leads.length === 0) {
     console.log("✓ No leads to score");
     await prisma.$disconnect();
     process.exit(0);
   }
-  
+
   console.log(`Scoring ${leads.length} leads...`);
-  
+
   const results = await scoreLeads(leads, dryRun);
-  
+
   // Summary
   console.log();
   console.log("📊 Results:");
   console.log(`  Scored: ${results.scored}`);
   console.log(`  Updated: ${results.updated}`);
   console.log(`  Errors: ${results.error}`);
-  
+
   // Show sample changes
   if (results.changes.length > 0) {
     console.log();
@@ -303,12 +308,12 @@ async function main() {
       }
     });
   }
-  
+
   if (dryRun) {
     console.log();
     console.log("⚠️  DRY RUN: No changes saved to database");
   }
-  
+
   await prisma.$disconnect();
   process.exit(results.error > 0 ? 1 : 0);
 }

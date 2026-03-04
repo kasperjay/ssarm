@@ -21,7 +21,10 @@
     "standardize:genres": "node scripts/standardize-genres.js",
     "send:messages": "node scripts/send-messages.js",
     "seed": "node prisma/seed.js",
-    "seed:reset": "node prisma/seed.js --reset"
+    "seed:reset": "node prisma/seed.js --reset",
+    "launch": "bash scripts/launch.sh",
+    "db:backup": "docker exec spectral-postgres pg_dump -U postgres spectral > backup_$(date +%Y%m%d_%H%M%S).sql",
+    "db:migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",

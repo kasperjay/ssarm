@@ -1,6 +1,48 @@
 const fs = require("fs");
 const path = require("path");
-const { parse } = require("csv-parse/sync");
+
+const parseCSV = (data) => {
+  const rows = [];
+  let currentRow = [];
+  let currentVal = "";
+  let inQuotes = false;
+  for (let i = 0; i < data.length; i++) {
+    const char = data[i];
+    const nextChar = data[i + 1];
+    if (char === "\"" && inQuotes && nextChar === "\"") {
+      currentVal += "\"";
+      i++;
+    } else if (char === "\"") {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      currentRow.push(currentVal);
+      currentVal = "";
+    } else if ((char === "\r" || char === "\n") && !inQuotes) {
+      if (currentVal !== "" || currentRow.length > 0) {
+        currentRow.push(currentVal);
+        rows.push(currentRow);
+      }
+      currentRow = [];
+      currentVal = "";
+      if (char === "\r" && nextChar === "\n") i++;
+    } else {
+      currentVal += char;
+    }
+  }
+  if (currentVal !== "" || currentRow.length > 0) {
+    currentRow.push(currentVal);
+    rows.push(currentRow);
+  }
+
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1).map((row) => {
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = row[i];
+    });
+    return obj;
+  });
+};
 
 const getArg = (name) => {
   const index = process.argv.indexOf(name);
@@ -73,8 +115,8 @@ const statusFromText = (value) => {
   if (lower.includes("lost")) return "LOST";
   if (lower.includes("follow")) return "FOLLOW_UP";
   if (lower.includes("contact")) return "CONTACTED";
-  if (lower.includes("qual")) return "QUALIFIED";
-  if (lower.includes("new")) return "NEW";
+  if (lower.includes("qual") || lower.includes("ready")) return "QUALIFIED";
+  if (lower.includes("new") || lower.includes("needs")) return "NEW";
   return null;
 };
 
@@ -105,12 +147,22 @@ const buildPayload = (row) => {
   const instagramHandle = normalizeHandle(
     row["Instagram Username"] || row["Instagram"]
   );
-  const instagramUrl = normalizeUrl(row["Instagram"]);
-  const spotifyUrl = row["Spotify"] ? normalizeUrl(row["Spotify"]) : null;
+
+  // Only normalize as URL if it looks like a domain/path, otherwise treat as handle
+  const rawIg = row["Instagram"]?.trim();
+  const instagramUrl = (rawIg && (rawIg.includes("/") || rawIg.includes(".")))
+    ? normalizeUrl(rawIg)
+    : null;
+
+  const rawSpotify = row["Spotify"]?.trim();
+  const spotifyUrl = (rawSpotify && (rawSpotify.includes("/") || rawSpotify.includes(".")))
+    ? normalizeUrl(rawSpotify)
+    : null;
+
   const spotifyIds = extractSpotifyIds(spotifyUrl);
   const { location, city, state, country } = parseLocation(row["Location"]);
   const emails = extractEmails(row["Email(s)"]);
-  const leadStatus = statusFromText(row["DM/Email Status"]);
+  const leadStatus = statusFromText(row["DM/Email Status"] || row["Pipeline Stage"]);
   const lastPostDate = toDate(row["Last Post Date"]);
   const releaseDate = toDate(row["Last Release Date"]);
 
@@ -144,22 +196,37 @@ const buildPayload = (row) => {
 
   const releases = row["Latest Release Title"]
     ? [
-        {
-          title: row["Latest Release Title"].trim(),
-          releaseDate: releaseDate ?? undefined,
-          spotifyTrackId: spotifyIds.trackId || undefined,
-        },
-      ]
+      {
+        title: row["Latest Release Title"].trim(),
+        releaseDate: releaseDate ?? undefined,
+        spotifyTrackId: spotifyIds.trackId || undefined,
+      },
+    ]
     : undefined;
 
   const instagramPosts = row["Last Post"]
     ? [
-        {
-          caption: row["Last Post"],
-          postedAt: lastPostDate ?? undefined,
-        },
-      ]
+      {
+        caption: row["Last Post"],
+        postedAt: lastPostDate ?? undefined,
+      },
+    ]
     : undefined;
+
+  const messageDrafts = [];
+  if (row["IG Reachout A"]) messageDrafts.push({ tone: "Personalized (IG A)", body: row["IG Reachout A"], source: "csv_import" });
+  if (row["IG Reachout B"]) messageDrafts.push({ tone: "Personalized (IG B)", body: row["IG Reachout B"], source: "csv_import" });
+  if (row["Email Reachout A"]) messageDrafts.push({ tone: "Personalized (Email A)", body: row["Email Reachout A"], source: "csv_import" });
+  if (row["Email Reachout B"]) messageDrafts.push({ tone: "Personalized (Email B)", body: row["Email Reachout B"], source: "csv_import" });
+
+  if (row["Selected Msg"]) {
+    messageDrafts.push({
+      tone: "Selected Message",
+      body: row["Selected Msg"],
+      source: "csv_import",
+      selected: true
+    });
+  }
 
   const activities = [];
   const event = row["Event"]?.trim();
@@ -175,10 +242,12 @@ const buildPayload = (row) => {
   }
 
   return {
+    isDiscoveryImport: true,
     artist,
     lead,
     releases,
     instagramPosts,
+    messageDrafts: messageDrafts.length ? messageDrafts : undefined,
     activities: activities.length ? activities : undefined,
   };
 };
@@ -203,13 +272,7 @@ const main = async () => {
 
   const absolutePath = path.resolve(csvPath);
   const csvData = fs.readFileSync(absolutePath, "utf8");
-  const rows = parse(csvData, {
-    columns: true,
-    skip_empty_lines: true,
-    relax_quotes: true,
-    relax_column_count: true,
-    trim: true,
-  });
+  const rows = parseCSV(csvData);
 
   const slice = rows.slice(offset, limit ? offset + limit : undefined);
   console.log(`Loaded ${rows.length} rows. Processing ${slice.length}.`);

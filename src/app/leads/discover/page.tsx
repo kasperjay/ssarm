@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { GlassCard } from "@/components/GlassCard";
+import { NeonButton } from "@/components/NeonButton";
 
 const ACTOR_VENUES = [
     { id: "spectral-soundworks/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
@@ -54,7 +56,6 @@ export default function DiscoverPage() {
                 throw new Error("Invalid JSON input format. Please check syntax.");
             }
 
-            // Estimate the progress bar total
             const limit = parsedInput.resultsLimit || parsedInput.maxItems || 100;
             setExpectedResults(limit);
 
@@ -72,7 +73,6 @@ export default function DiscoverPage() {
             const data = await res.json();
             const { runId, datasetId } = data;
 
-            // Start polling
             setPolling(true);
             pollStatusLoop(runId, datasetId);
 
@@ -109,7 +109,6 @@ export default function DiscoverPage() {
                     setError(`Actor run ended with status: ${data.status}`);
                 }
             } else {
-                // Keep polling every 3 seconds
                 setTimeout(() => {
                     pollStatusLoop(runId, datasetId);
                 }, 3000);
@@ -186,7 +185,6 @@ export default function DiscoverPage() {
 
             let count = 0;
             for (const item of selectedItems) {
-                // Heuristic to extract details from an arbitrary Apify result object
                 const artistName = item.fullName || item.username || item.title || item.name || item.artistName;
                 if (!artistName) continue;
 
@@ -224,7 +222,6 @@ export default function DiscoverPage() {
                 setImportProgress(count);
             }
 
-            // Navigate cleanly back to home or lead list after import
             router.push("/");
         } catch (err: any) {
             setError(err.message);
@@ -233,193 +230,205 @@ export default function DiscoverPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(35,211,255,0.18),transparent_55%),radial-gradient(circle_at_20%_20%,rgba(139,92,246,0.2),transparent_45%),linear-gradient(180deg,rgba(5,7,10,0.95),rgba(5,7,10,1))] text-foreground p-6 md:p-10">
-            <div className="mx-auto max-w-5xl space-y-8">
-                <header className="flex flex-col gap-6 rounded-3xl border border-white/10 bg-(--surface) p-8 shadow-[0_30px_80px_-60px_rgba(35,211,255,0.35)]">
-                    <div className="flex flex-wrap items-center justify-between gap-6">
-                        <div>
-                            <p className="text-xs uppercase tracking-[0.35em] text-(--muted)">
-                                CalendarCrawlers
-                            </p>
-                            <h1 className="font-display text-4xl leading-tight text-foreground md:text-5xl">
-                                Discover Leads
-                            </h1>
-                        </div>
-                        <div className="flex flex-wrap gap-3">
-                            <Link
-                                href="/"
-                                className="rounded-full border border-(--accent) px-5 py-2 text-sm font-semibold text-(--accent-strong) transition hover:bg-(--accent) hover:text-white"
-                            >
-                                Back to Dashboard
+        <div className="relative min-h-screen pb-20">
+            <div className="mx-auto max-w-6xl space-y-10 px-6 py-12">
+                <header className="flex flex-col gap-6">
+                    <div className="flex flex-wrap items-end justify-between gap-6 pb-6 border-b border-white/10">
+                        <div className="space-y-2">
+                            <Link href="/" className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors">
+                                <span className="transition-transform group-hover:-translate-x-1">←</span> Terminal
                             </Link>
+                            <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+                                Data <span className="text-accent italic">Harvest</span>
+                            </h1>
                         </div>
                     </div>
                 </header>
 
-                <main className="space-y-6">
-                    <section className="rounded-3xl border border-white/10 bg-(--surface) p-6 shadow-md">
-                        <h2 className="text-xl font-semibold mb-4">Discovery Configuration</h2>
+                <main className="space-y-10">
+                    <GlassCard variant="strong">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="h-2 w-2 bg-accent neon-glow rounded-full" />
+                            <h2 className="text-xl font-bold tracking-tight uppercase">Configuration</h2>
+                        </div>
 
                         {error && (
-                            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
-                                {error}
+                            <div className="mb-6 rounded-xl border border-error/20 bg-error/10 p-4 text-xs font-bold text-error uppercase tracking-widest">
+                                [ Error ]: {error}
                             </div>
                         )}
 
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-(--muted) mb-1">Select Venue Actor</label>
-                                <select
-                                    value={actorId}
-                                    onChange={(e) => {
-                                        const newActorId = e.target.value;
-                                        setActorId(newActorId);
-                                        const venue = ACTOR_VENUES.find(v => v.id === newActorId);
-                                        if (venue) {
-                                            setInputJson(JSON.stringify({ url: venue.url }, null, 2));
-                                        }
-                                    }}
-                                    className="w-full rounded-xl border border-white/10 bg-(--surface-strong) p-3 text-sm focus:border-(--accent) focus:outline-none text-white appearance-none"
-                                >
-                                    {ACTOR_VENUES.map(actor => (
-                                        <option key={actor.id} value={actor.id}>{actor.id.replace('spectral-soundworks/', '')}</option>
-                                    ))}
-                                    <option value="custom">-- Custom Actor --</option>
-                                </select>
-                                {actorId === "custom" && (
-                                    <input
-                                        type="text"
-                                        placeholder="Enter custom actor ID..."
-                                        className="mt-2 w-full rounded-xl border border-white/10 bg-(--surface-strong) p-3 text-sm focus:border-(--accent) focus:outline-none"
-                                        onChange={(e) => setActorId(e.target.value)}
-                                    />
-                                )}
+                        <div className="grid gap-8 lg:grid-cols-2">
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-[10px] uppercase font-bold tracking-widest text-muted mb-2">Venue Protocol</label>
+                                    <select
+                                        value={actorId}
+                                        onChange={(e) => {
+                                            const newActorId = e.target.value;
+                                            setActorId(newActorId);
+                                            const venue = ACTOR_VENUES.find(v => v.id === newActorId);
+                                            if (venue) {
+                                                setInputJson(JSON.stringify({ url: venue.url }, null, 2));
+                                            }
+                                        }}
+                                        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-sm focus:border-accent focus:outline-none text-white appearance-none transition-all cursor-pointer hover:bg-white/10"
+                                    >
+                                        {ACTOR_VENUES.map(actor => (
+                                            <option key={actor.id} value={actor.id} className="bg-surface">{actor.id.replace('spectral-soundworks/', '')}</option>
+                                        ))}
+                                        <option value="custom" className="bg-surface">-- Custom Protocol --</option>
+                                    </select>
+                                    {actorId === "custom" && (
+                                        <input
+                                            type="text"
+                                            placeholder="Enter actor handle..."
+                                            className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 p-3 text-sm focus:border-accent focus:outline-none"
+                                            onChange={(e) => setActorId(e.target.value)}
+                                        />
+                                    )}
+                                </div>
+                                <div className="flex justify-start">
+                                    <NeonButton
+                                        onClick={handleDiscover}
+                                        disabled={loading}
+                                        variant="cyan"
+                                        size="lg"
+                                        className="w-full sm:w-auto"
+                                    >
+                                        {loading ? "Initializing..." : "Execute Scan"}
+                                    </NeonButton>
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-(--muted) mb-1">Input Defaults (JSON)</label>
+                                <label className="block text-[10px] uppercase font-bold tracking-widest text-muted mb-2">Parameters (JSON)</label>
                                 <textarea
                                     value={inputJson}
                                     onChange={(e) => setInputJson(e.target.value)}
-                                    className="h-32 w-full rounded-xl border border-white/10 bg-(--surface-strong) p-3 text-sm font-mono focus:border-(--accent) focus:outline-none"
+                                    className="h-[148px] w-full rounded-xl border border-white/10 bg-white/5 p-4 text-xs font-mono focus:border-accent focus:outline-none resize-none scrollbar-hide"
                                     placeholder='{ "url": "..." }'
                                 />
                             </div>
-
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={handleDiscover}
-                                    disabled={loading}
-                                    className="rounded-full bg-(--accent) px-6 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-strong) disabled:opacity-50"
-                                >
-                                    {loading ? "Discovering..." : "Run Discovery"}
-                                </button>
-                            </div>
                         </div>
-                    </section>
+                    </GlassCard>
 
                     {polling && (
-                        <section className="rounded-3xl border border-white/10 bg-(--surface) p-6 shadow-md space-y-4">
-                            <div className="flex justify-between text-sm font-medium mb-2">
-                                <span className="text-white">Actor Execution Status: <span className="text-(--accent)">{pollStatus}</span></span>
-                                <span className="text-(--muted)">Found {pollItemCount} items</span>
+                        <GlassCard className="space-y-6 border-accent/20">
+                            <div className="flex justify-between items-end">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Active Transmission</p>
+                                    <h3 className="text-lg font-bold">Status: {pollStatus}</h3>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-2xl font-mono text-foreground">{pollItemCount}</span>
+                                    <span className="text-[8px] uppercase tracking-tighter text-muted">Objects Cached</span>
+                                </div>
                             </div>
-                            <div className="w-full bg-black/50 overflow-hidden h-3 rounded-full">
+                            <div className="relative w-full bg-white/5 overflow-hidden h-2 rounded-full border border-white/5">
                                 <div
-                                    className="bg-(--accent) h-full rounded-full transition-all duration-500 ease-out"
+                                    className="bg-accent h-full rounded-full transition-all duration-500 ease-out neon-glow"
                                     style={{ width: `${Math.min(100, (pollItemCount / expectedResults) * 100)}%` }}
                                 ></div>
                             </div>
-                            <p className="text-xs text-(--muted) text-center animate-pulse">
-                                Scraping live data from the internet. This usually takes between 1-3 minutes depending on the target.
-                                Please wait...
+                            <p className="text-[10px] text-muted text-center italic tracking-widest uppercase">
+                                Syncing with remote data streams... encryption in progress...
                             </p>
-                        </section>
+                        </GlassCard>
                     )}
 
                     {!polling && results.length > 0 && (
-                        <section className="rounded-3xl border border-white/10 bg-(--surface) p-6 shadow-md space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold">Discovery Results ({results.length})</h2>
-                                <div className="flex gap-2">
-                                    <button
+                        <section className="space-y-6">
+                            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-2 w-2 bg-accent neon-glow rounded-full" />
+                                    <h2 className="text-xl font-bold tracking-tight uppercase">
+                                        Scan Output ({results.length})
+                                    </h2>
+                                </div>
+                                <div className="flex gap-4">
+                                    <NeonButton
                                         onClick={handleSift}
                                         disabled={sifting}
-                                        className="rounded-full bg-(--accent) px-5 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-strong) disabled:opacity-50"
+                                        variant="outline"
+                                        size="sm"
                                     >
-                                        {sifting ? "Sifting..." : "Auto-select Artists (AI)"}
-                                    </button>
-                                    <button
+                                        {sifting ? "Processing..." : "AI Sift"}
+                                    </NeonButton>
+                                    <NeonButton
                                         onClick={handleImport}
                                         disabled={selectedIndices.size === 0 || importing}
-                                        className="rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-500 disabled:opacity-50"
+                                        variant="cyan"
+                                        size="sm"
                                     >
-                                        {importing ? `Importing & Enriching (${importProgress}/${selectedIndices.size})...` : `Import & Enrich Selected (${selectedIndices.size})`}
-                                    </button>
+                                        {importing ? `Importing [${importProgress}/${selectedIndices.size}]` : `Ingest Selected (${selectedIndices.size})`}
+                                    </NeonButton>
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto rounded-xl border border-white/10">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-(--surface-strong) text-xs uppercase text-(--muted)">
-                                        <tr>
-                                            <th className="px-4 py-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedIndices.size === results.length}
-                                                    onChange={toggleAll}
-                                                    className="rounded border-white/20 bg-transparent"
-                                                />
-                                            </th>
-                                            <th className="px-4 py-3">Raw Name / Handle</th>
-                                            <th className="px-4 py-3">Followers</th>
-                                            <th className="px-4 py-3">Bio snippet</th>
-                                            <th className="px-4 py-3">URL</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/10">
-                                        {results.map((item, i) => {
-                                            const name = item.fullName || item.title || item.name || item.artist || item.musician || item.band || item.artistName;
-                                            const isUnknown = !name;
-                                            const displayName = name || "Unknown";
-                                            const handle = item.username || item.handle || "-";
-                                            const bioSnipppet = (item.biography || item.bio || item.description || "").substring(0, 50);
-                                            const url = item.url || item.eventURL || "-";
+                            <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-xs">
+                                        <thead className="bg-white/5 text-[10px] uppercase font-bold tracking-widest text-muted">
+                                            <tr>
+                                                <th className="px-6 py-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedIndices.size === results.length}
+                                                        onChange={toggleAll}
+                                                        className="rounded border-white/20 bg-transparent cursor-pointer"
+                                                    />
+                                                </th>
+                                                <th className="px-6 py-4 text-accent/60">Entity / Identity</th>
+                                                <th className="px-6 py-4">Momentum</th>
+                                                <th className="px-6 py-4">Intelligence Snippet</th>
+                                                <th className="px-6 py-4">Source</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {results.map((item, i) => {
+                                                const name = item.fullName || item.title || item.name || item.artist || item.musician || item.band || item.artistName;
+                                                const isUnknown = !name;
+                                                const displayName = name || "Unknown Entity";
+                                                const handle = item.username || item.handle || "-";
+                                                const bioSnipppet = (item.biography || item.bio || item.description || "").substring(0, 80);
+                                                const url = item.url || item.eventURL || "-";
 
-                                            return (
-                                                <tr
-                                                    key={i}
-                                                    className={`transition ${selectedIndices.has(i) ? "bg-(--accent)/10" : "hover:bg-white/5"}`}
-                                                >
-                                                    <td className="px-4 py-3">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedIndices.has(i)}
-                                                            onChange={() => toggleSelection(i)}
-                                                            className="rounded border-white/20 bg-transparent text-(--accent)"
-                                                        />
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="font-semibold text-white">{displayName}</div>
-                                                        <div className="text-xs text-(--muted)">{handle}</div>
-                                                    </td>
-                                                    <td className="px-4 py-3">{item.followersCount || "-"}</td>
-                                                    <td className="px-4 py-3 text-xs text-(--muted)">
-                                                        {bioSnipppet}{bioSnipppet.length === 50 && "..."}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-xs text-(--accent)">
-                                                        {isUnknown ? (
-                                                            <pre className="max-w-xs overflow-x-auto text-[10px] text-(--muted) bg-black/50 p-2 rounded">
-                                                                {JSON.stringify(item, null, 2)}
-                                                            </pre>
-                                                        ) : (
-                                                            url !== "-" ? <a href={url} target="_blank" rel="noreferrer">Link</a> : "-"
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                                                return (
+                                                    <tr
+                                                        key={i}
+                                                        className={`transition-colors ${selectedIndices.has(i) ? "bg-accent/5" : "hover:bg-white/5"}`}
+                                                    >
+                                                        <td className="px-6 py-4">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedIndices.has(i)}
+                                                                onChange={() => toggleSelection(i)}
+                                                                className="rounded border-white/20 bg-transparent text-accent cursor-pointer"
+                                                            />
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-bold text-foreground text-sm tracking-tight">{displayName}</div>
+                                                            <div className="text-[10px] font-mono text-muted/60">{handle}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-mono text-accent/80">{item.followersCount?.toLocaleString() || "-"}</td>
+                                                        <td className="px-6 py-4 text-muted max-w-xs truncate italic">
+                                                            {bioSnipppet}{bioSnipppet.length >= 80 && "..."}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {isUnknown ? (
+                                                                <button className="text-[9px] uppercase font-bold tracking-tighter text-muted hover:text-foreground">Inspect Data</button>
+                                                            ) : (
+                                                                url !== "-" ? (
+                                                                    <a href={url} target="_blank" rel="noreferrer" className="text-accent hover:text-highlight underline underline-offset-4 decoration-accent/30 font-bold uppercase tracking-widest text-[9px]">Uplink</a>
+                                                                ) : <span className="text-muted/40 font-mono">-</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </section>
                     )}

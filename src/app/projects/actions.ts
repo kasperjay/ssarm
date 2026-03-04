@@ -57,3 +57,19 @@ export async function deleteFileFromProject(fileId: string, projectId: string) {
     });
     revalidatePath(`/projects/${projectId}`);
 }
+
+export async function resolveFeedback(feedbackId: string, projectId: string) {
+    await prisma.projectFeedback.update({
+        where: { id: feedbackId },
+        data: { resolved: true },
+    });
+    revalidatePath(`/projects/${projectId}`);
+}
+
+export async function updateFileVisibility(fileId: string, isPublic: boolean, projectId: string) {
+    await prisma.projectFile.update({
+        where: { id: fileId },
+        data: { isPublic },
+    });
+    revalidatePath(`/projects/${projectId}`);
+}

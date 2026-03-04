@@ -31,12 +31,12 @@ const prisma = new PrismaClient({ adapter });
 // Scoring algorithm (from score-leads.js)
 const SCORING_CONFIG = {
   WEIGHTS: {
-    followerCount: 30,
-    recency: 20,
-    releaseCount: 20,
+    followerCount: 20,
+    recency: 15,
+    releaseCount: 15,
     dataCompleteness: 15,
     engagement: 10,
-    genreBonus: 5,
+    genreBonus: 25,
   },
   FOLLOWER_THRESHOLD: 10000,
   RECENCY_DAYS: 180,
@@ -88,29 +88,33 @@ function calculateEngagementScore(artist) {
 
 function calculateGenreBonus(artist) {
   if (!artist.genre) return 0;
-  const genreStr = artist.genre.toLowerCase();
-  if (genreStr.length > 2 && genreStr !== 'unknown') {
+  const genreStr = artist.genre.toLowerCase().trim();
+  if (genreStr.length < 2 || genreStr === "unknown") return 0;
+
+  const PRIORITY_GENRES = /hip.?hop|rap|trap|metal|deathcore|prog.?rock|alt.?rock|hardcore|metalcore/i;
+  if (PRIORITY_GENRES.test(genreStr)) {
     return SCORING_CONFIG.WEIGHTS.genreBonus;
   }
-  return 0;
+
+  return 10;
 }
 
 async function calculateLeadScore(lead) {
   const artist = lead.artist;
-  
+
   const releaseCount = await prisma.release.count({
     where: { artistId: artist.id },
   });
-  
+
   const followerScore = calculateFollowerScore(artist.followerCount);
   const recencyScore = calculateRecencyScore(artist.lastPostAt);
   const releaseScore = calculateReleaseScore(releaseCount);
   const completenessScore = calculateDataCompletenessScore(artist);
   const engagementScore = calculateEngagementScore(artist);
   const genreBonus = calculateGenreBonus(artist);
-  
+
   const totalScore = followerScore + recencyScore + releaseScore + completenessScore + engagementScore + genreBonus;
-  
+
   const rationales = [];
   if (followerScore > 0) {
     rationales.push(`${artist.followerCount?.toLocaleString() || 0} followers (${followerScore}pts)`);
@@ -131,19 +135,19 @@ async function calculateLeadScore(lead) {
   if (genreBonus > 0) {
     rationales.push(`genre "${artist.genre}" (${genreBonus}pts)`);
   }
-  
-  const scoreRationale = rationales.length > 0 
+
+  const scoreRationale = rationales.length > 0
     ? rationales.join("; ")
     : "No scoring data available";
-  
+
   const isQualified = totalScore >= SCORING_CONFIG.QUALIFIED_THRESHOLD;
-  
+
   return { totalScore, scoreRationale, isQualified };
 }
 
 async function scoreLeadsAutomatic(options) {
   const { limit = 100, dryRun = false } = options;
-  
+
   const leads = await prisma.lead.findMany({
     where: { score: null },
     include: { artist: true },

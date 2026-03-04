@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { sendMessage } from "./actions";
+import { GlassCard } from "@/components/GlassCard";
+import { NeonButton } from "@/components/NeonButton";
 
 type SendMessageModalProps = {
   leadId: string;
@@ -41,62 +43,73 @@ export default function SendMessageModal({
     });
   };
 
-  const buttonClassName =
-    variant === "primary"
-      ? "rounded-full bg-(--accent) px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-(--accent-strong)"
-      : "rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-(--muted) transition hover:border-(--accent)";
-
   return (
     <>
-      <button type="button" className={buttonClassName} onClick={openModal}>
+      <NeonButton
+        variant={variant === "primary" ? "cyan" : "outline"}
+        size="sm"
+        onClick={openModal}
+      >
         {label}
-      </button>
+      </NeonButton>
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl rounded-3xl border border-black/10 bg-(--surface-strong) p-6 shadow-[0_40px_80px_-50px_rgba(12,63,56,0.6)]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-foreground">
-                Send Message
-              </h3>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-(--muted)"
-              >
-                Close
-              </button>
-            </div>
-            <p className="mt-2 text-sm text-(--muted)">
-              Edit the message before sending. This will log a MESSAGE_SENT activity.
-            </p>
-            {error ? (
-              <div className="mt-4 rounded-xl bg-red-500/10 p-3 text-xs text-red-500 border border-red-500/20">
-                <strong>Send Failed:</strong> {error}
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-6 backdrop-blur-xl bg-black/60">
+          <div className="relative w-full max-w-2xl animate-in zoom-in-95 duration-200">
+            <GlassCard variant="strong" className="p-8 space-y-6">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Transmission Interface</p>
+                  <h3 className="text-xl font-bold tracking-tight">Outgoing Communication</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full bg-white/5 p-2 text-muted hover:text-foreground transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
               </div>
-            ) : null}
-            <textarea
-              value={body}
-              onChange={(event) => setBody(event.target.value)}
-              rows={8}
-              className="mt-4 w-full rounded-2xl border border-black/10 bg-(--surface) p-4 text-sm text-foreground outline-none focus:border-(--accent)"
-            />
-            <div className="mt-4 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded-full border border-black/10 px-4 py-2 text-xs font-semibold text-(--muted)"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleSubmit}
-                className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-(--surface) transition hover:bg-black/80 disabled:opacity-60"
-              >
-                {isPending ? "Sending" : "Send"}
-              </button>
-            </div>
+
+              {error ? (
+                <div className="rounded-xl border border-error/20 bg-error/10 p-4 text-[10px] font-bold text-error uppercase tracking-widest">
+                  [ Critical Failure ]: {error}
+                </div>
+              ) : null}
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted">Message Payload</label>
+                  <span className="text-[10px] font-mono text-muted/50">{body.length} CHR</span>
+                </div>
+                <textarea
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                  rows={10}
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 p-5 text-sm leading-relaxed text-foreground/90 outline-none focus:border-accent transition-colors resize-none scrollbar-hide font-serif italic"
+                />
+                <p className="text-[10px] text-muted italic">
+                  Transmission will be logged to activity history. AI analysis will scan for efficacy.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="px-6 py-2 text-xs font-bold uppercase tracking-widest text-muted hover:text-foreground transition-colors"
+                >
+                  Abort
+                </button>
+                <NeonButton
+                  disabled={isPending}
+                  onClick={handleSubmit}
+                  variant="cyan"
+                  size="lg"
+                >
+                  {isPending ? "Syncing..." : "Execute Uplink"}
+                </NeonButton>
+              </div>
+            </GlassCard>
           </div>
         </div>
       ) : null}

@@ -27,8 +27,8 @@ export default async function CustomerPortalPage({
 
     if (!project) notFound();
 
-    const workingFiles = project.files.filter((f) => f.type === "WORKING");
-    const deliverables = project.files.filter((f) => f.type === "DELIVERABLE");
+    const workingFiles = project.files.filter((f) => f.type === "WORKING" && f.isPublic);
+    const deliverables = project.files.filter((f) => f.type === "DELIVERABLE" && f.isPublic);
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white font-sans selection:bg-[var(--primary)] selection:text-white">
