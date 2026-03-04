@@ -284,6 +284,7 @@ const mergeReleases = (
 };
 
 type LeadPayload = {
+  isDiscoveryImport?: boolean;
   skipInstagramFetch?: boolean;
   skipSpotifyFetch?: boolean;
   artist: {
@@ -383,34 +384,6 @@ export async function POST(request: Request) {
       lastPostAt,
     } = payload.artist;
 
-    const skipInstagramFetch = payload.skipInstagramFetch === true;
-    const skipSpotifyFetch = payload.skipSpotifyFetch === true;
-    const [scrapedInstagramPosts, scrapedInstagramProfile] =
-      instagramHandle && !skipInstagramFetch
-        ? await Promise.all([
-            fetchInstagramPosts(instagramHandle),
-            fetchInstagramProfile(instagramHandle),
-          ])
-        : [undefined, null];
-    const resolvedInstagramPosts = mergeInstagramPosts(
-      payload.instagramPosts,
-      scrapedInstagramPosts
-    );
-    const spotifyReleaseLimit = Number.parseInt(
-      process.env.SPOTIFY_RELEASE_LIMIT ?? "6",
-      10
-    );
-    const [spotifyProfile, spotifyReleases] =
-      spotifyArtistId && !skipSpotifyFetch
-        ? await Promise.all([
-            fetchSpotifyArtistProfile(spotifyArtistId),
-            fetchSpotifyReleases(
-              spotifyArtistId,
-              Number.isFinite(spotifyReleaseLimit) ? spotifyReleaseLimit : 6
-            ),
-          ])
-        : [null, []];
-
     const artistMatchers = [] as Array<Record<string, unknown>>;
     if (instagramHandle) {
       artistMatchers.push({ instagramHandle });
@@ -426,7 +399,47 @@ export async function POST(request: Request) {
 
     const existingArtist = await prisma.artist.findFirst({
       where: { OR: artistMatchers },
+      include: {
+        leads: true,
+      }
     });
+
+    // If this is a new scraper upload and the artist already exists, skip everything saving API calls
+    if (payload.isDiscoveryImport && existingArtist) {
+      return NextResponse.json({
+        artistId: existingArtist.id,
+        leadId: existingArtist.leads?.[0]?.id,
+        status: "skipped_duplicate"
+      });
+    }
+
+    const skipInstagramFetch = payload.skipInstagramFetch === true;
+    const skipSpotifyFetch = payload.skipSpotifyFetch === true;
+    const [scrapedInstagramPosts, scrapedInstagramProfile] =
+      instagramHandle && !skipInstagramFetch
+        ? await Promise.all([
+          fetchInstagramPosts(instagramHandle),
+          fetchInstagramProfile(instagramHandle),
+        ])
+        : [undefined, null];
+    const resolvedInstagramPosts = mergeInstagramPosts(
+      payload.instagramPosts,
+      scrapedInstagramPosts
+    );
+    const spotifyReleaseLimit = Number.parseInt(
+      process.env.SPOTIFY_RELEASE_LIMIT ?? "6",
+      10
+    );
+    const [spotifyProfile, spotifyReleases] =
+      spotifyArtistId && !skipSpotifyFetch
+        ? await Promise.all([
+          fetchSpotifyArtistProfile(spotifyArtistId),
+          fetchSpotifyReleases(
+            spotifyArtistId,
+            Number.isFinite(spotifyReleaseLimit) ? spotifyReleaseLimit : 6
+          ),
+        ])
+        : [null, []];
 
     const resolvedSpotifyArtistUrl =
       spotifyArtistUrl ?? spotifyProfile?.url ?? existingArtist?.spotifyArtistUrl ?? null;
@@ -478,56 +491,56 @@ export async function POST(request: Request) {
 
     const artist = existingArtist
       ? await prisma.artist.update({
-          where: { id: existingArtist.id },
-          data: {
-            name,
-            instagramHandle,
-            instagramProfileUrl,
-            instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
-            spotifyArtistId,
-            spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
-            spotifyImageUrl: resolvedSpotifyImageUrl,
-            spotifyAccent: resolvedSpotifyAccent,
-            spotifyAccentStrong: resolvedSpotifyAccentStrong,
-            spotifyHighlight: resolvedSpotifyHighlight,
-            officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
-            location,
-            city,
-            state,
-            country,
-            genre,
-            tags: tags ?? undefined,
-            bio,
-            emails: resolvedEmailsWithWebsite,
-            followerCount,
-            lastPostAt: toDate(lastPostAt),
-          },
-        })
+        where: { id: existingArtist.id },
+        data: {
+          name,
+          instagramHandle,
+          instagramProfileUrl,
+          instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
+          spotifyArtistId,
+          spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
+          spotifyImageUrl: resolvedSpotifyImageUrl,
+          spotifyAccent: resolvedSpotifyAccent,
+          spotifyAccentStrong: resolvedSpotifyAccentStrong,
+          spotifyHighlight: resolvedSpotifyHighlight,
+          officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
+          location,
+          city,
+          state,
+          country,
+          genre,
+          tags: tags ?? undefined,
+          bio,
+          emails: resolvedEmailsWithWebsite,
+          followerCount,
+          lastPostAt: toDate(lastPostAt),
+        },
+      })
       : await prisma.artist.create({
-          data: {
-            name,
-            instagramHandle,
-            instagramProfileUrl,
-            instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
-            spotifyArtistId,
-            spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
-            spotifyImageUrl: resolvedSpotifyImageUrl,
-            spotifyAccent: resolvedSpotifyAccent,
-            spotifyAccentStrong: resolvedSpotifyAccentStrong,
-            spotifyHighlight: resolvedSpotifyHighlight,
-            officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
-            location,
-            city,
-            state,
-            country,
-            genre,
-            tags: tags ?? [],
-            bio,
-            emails: resolvedEmailsWithWebsite,
-            followerCount,
-            lastPostAt: toDate(lastPostAt),
-          },
-        });
+        data: {
+          name,
+          instagramHandle,
+          instagramProfileUrl,
+          instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
+          spotifyArtistId,
+          spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
+          spotifyImageUrl: resolvedSpotifyImageUrl,
+          spotifyAccent: resolvedSpotifyAccent,
+          spotifyAccentStrong: resolvedSpotifyAccentStrong,
+          spotifyHighlight: resolvedSpotifyHighlight,
+          officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
+          location,
+          city,
+          state,
+          country,
+          genre,
+          tags: tags ?? [],
+          bio,
+          emails: resolvedEmailsWithWebsite,
+          followerCount,
+          lastPostAt: toDate(lastPostAt),
+        },
+      });
 
     const leadData = payload.lead;
     const existingLead = leadData?.id
@@ -536,26 +549,26 @@ export async function POST(request: Request) {
 
     const lead = existingLead
       ? await prisma.lead.update({
-          where: { id: existingLead.id },
-          data: {
-            artistId: artist.id,
-            status: leadData?.status ?? undefined,
-            score: leadData?.score ?? undefined,
-            scoreRationale: leadData?.scoreRationale ?? undefined,
-            lastContactedAt: toDate(leadData?.lastContactedAt),
-            nextActionAt: toDate(leadData?.nextActionAt),
-          },
-        })
+        where: { id: existingLead.id },
+        data: {
+          artistId: artist.id,
+          status: leadData?.status ?? undefined,
+          score: leadData?.score ?? undefined,
+          scoreRationale: leadData?.scoreRationale ?? undefined,
+          lastContactedAt: toDate(leadData?.lastContactedAt),
+          nextActionAt: toDate(leadData?.nextActionAt),
+        },
+      })
       : await prisma.lead.create({
-          data: {
-            artistId: artist.id,
-            status: leadData?.status ?? undefined,
-            score: leadData?.score ?? undefined,
-            scoreRationale: leadData?.scoreRationale ?? undefined,
-            lastContactedAt: toDate(leadData?.lastContactedAt),
-            nextActionAt: toDate(leadData?.nextActionAt),
-          },
-        });
+        data: {
+          artistId: artist.id,
+          status: leadData?.status ?? undefined,
+          score: leadData?.score ?? undefined,
+          scoreRationale: leadData?.scoreRationale ?? undefined,
+          lastContactedAt: toDate(leadData?.lastContactedAt),
+          nextActionAt: toDate(leadData?.nextActionAt),
+        },
+      });
 
     const resolvedReleases = mergeReleases(payload.releases, spotifyReleases);
 
@@ -642,32 +655,32 @@ export async function POST(request: Request) {
         resolvedInstagramPosts.map((post) =>
           post.instagramPostId
             ? prisma.instagramPost.upsert({
-                where: { instagramPostId: post.instagramPostId },
-                update: {
-                  artistId: artist.id,
-                  caption: post.caption,
-                  imageUrl: post.imageUrl ?? undefined,
-                  postedAt: toDate(post.postedAt),
-                  url: post.url,
-                },
-                create: {
-                  artistId: artist.id,
-                  instagramPostId: post.instagramPostId,
-                  caption: post.caption,
-                  imageUrl: post.imageUrl ?? undefined,
-                  postedAt: toDate(post.postedAt),
-                  url: post.url,
-                },
-              })
+              where: { instagramPostId: post.instagramPostId },
+              update: {
+                artistId: artist.id,
+                caption: post.caption,
+                imageUrl: post.imageUrl ?? undefined,
+                postedAt: toDate(post.postedAt),
+                url: post.url,
+              },
+              create: {
+                artistId: artist.id,
+                instagramPostId: post.instagramPostId,
+                caption: post.caption,
+                imageUrl: post.imageUrl ?? undefined,
+                postedAt: toDate(post.postedAt),
+                url: post.url,
+              },
+            })
             : prisma.instagramPost.create({
-                data: {
-                  artistId: artist.id,
-                  caption: post.caption,
-                  imageUrl: post.imageUrl ?? undefined,
-                  postedAt: toDate(post.postedAt),
-                  url: post.url,
-                },
-              })
+              data: {
+                artistId: artist.id,
+                caption: post.caption,
+                imageUrl: post.imageUrl ?? undefined,
+                postedAt: toDate(post.postedAt),
+                url: post.url,
+              },
+            })
         )
       );
     }

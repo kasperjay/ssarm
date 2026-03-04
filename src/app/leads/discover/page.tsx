@@ -191,6 +191,7 @@ export default function DiscoverPage() {
                 if (!artistName) continue;
 
                 const payload = {
+                    isDiscoveryImport: true,
                     artist: {
                         name: artistName,
                         instagramHandle: item.username || undefined,

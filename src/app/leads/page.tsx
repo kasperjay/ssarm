@@ -14,6 +14,11 @@ export default async function LeadsPage() {
         },
       },
     },
+    where: {
+      status: {
+        not: "CONTACTED",
+      },
+    },
     orderBy: [{ score: "desc" }, { updatedAt: "desc" }],
   });
 
