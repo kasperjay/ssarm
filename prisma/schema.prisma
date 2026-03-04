@@ -160,7 +160,10 @@ model ProjectFile {
   id        String   @id @default(cuid())
   projectId String
   name      String
-  url       String // External URL (e.g. Dropbox, Google Drive)
+  url       String // Can be local path (/uploads/...) or S3 URL
+  key       String // Unique identifier/path for the file system or S3 bucket
+  size      Int // Size in bytes
+  mimeType  String // E.g., 'audio/wav', 'application/pdf'
   type      FileType @default(WORKING)
   createdAt DateTime @default(now())
 
