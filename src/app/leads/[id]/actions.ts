@@ -225,7 +225,7 @@ export async function generateDraftsForLead(
     include: {
       artist: true,
       messages: true,
-      activities: { orderBy: { occurredAt: "desc" }, take: 1 },
+      activities: { orderBy: { occurredAt: "desc" } },
     },
   });
 
@@ -260,6 +260,12 @@ export async function generateDraftsForLead(
       ? lead.scoreRationale
       : null;
 
+  // Find show info in activities (notes that contain ' · ' or ' | ' from ingestion)
+  const showInfo = lead.activities
+    .filter(a => a.type === "NOTE" && a.note?.includes(" · "))
+    .map(a => a.note)
+  [0] || null;
+
   const output = await generateReachoutDrafts({
     artist: lead.artist.name,
     genreText: lead.artist.genre,
@@ -274,6 +280,7 @@ export async function generateDraftsForLead(
     isRecentRelease,
     personalHook,
     recentPosts,
+    showInfo,
     bio: lead.artist.bio,
     hasEmail: (lead.artist.emails?.length ?? 0) > 0,
     styleHint: styleHint ?? undefined,
@@ -352,7 +359,7 @@ export async function regenerateDraft(formData: FormData) {
     include: {
       artist: true,
       messages: true,
-      activities: { orderBy: { occurredAt: "desc" }, take: 1 },
+      activities: { orderBy: { occurredAt: "desc" } },
     },
   });
 
@@ -389,6 +396,12 @@ export async function regenerateDraft(formData: FormData) {
 
   const styleHint = typeof styleHintRaw === "string" ? styleHintRaw : undefined;
 
+  // Find show info in activities
+  const showInfo = lead.activities
+    .filter(a => a.type === "NOTE" && a.note?.includes(" · "))
+    .map(a => a.note)
+  [0] || null;
+
   const output = await generateReachoutDrafts({
     artist: lead.artist.name,
     genreText: lead.artist.genre,
@@ -403,6 +416,7 @@ export async function regenerateDraft(formData: FormData) {
     isRecentRelease,
     personalHook,
     recentPosts,
+    showInfo,
     bio: lead.artist.bio,
     hasEmail: (lead.artist.emails?.length ?? 0) > 0,
     styleHint,

@@ -26,6 +26,13 @@ export async function getRandomLead() {
             take: 1,
           },
           instagramPosts: {
+            where: {
+              imageUrl: { not: "" },
+              OR: [
+                { caption: { not: "" } },
+                { url: { not: "" } },
+              ],
+            },
             orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
             take: 1,
           },

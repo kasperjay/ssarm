@@ -150,10 +150,10 @@ export default async function LeadDetailPage({
 
   const postWhere = {
     artistId: lead.artist.id,
-    imageUrl: { not: null },
+    imageUrl: { not: "" },
     OR: [
-      { caption: { not: null } },
-      { url: { not: null } },
+      { caption: { not: "" } },
+      { url: { not: "" } },
     ],
   };
 

@@ -16,6 +16,7 @@ type ReachoutContext = {
   isRecentRelease: boolean;
   personalHook?: string | null;
   recentPosts?: string | null;
+  showInfo?: string | null;
   bio?: string | null;
   hasEmail: boolean;
   styleHint?: string | null;
@@ -125,14 +126,9 @@ const detectGenreStyle = (genreText?: string | null) => {
 
 const buildPayload = (ctx: ReachoutContext) => {
   const genreStyle = detectGenreStyle(ctx.genreText);
-  const referenceType = ctx.personalHook
-    ? "hook"
-    : ctx.isRecentRelease
-      ? "release"
-      : "posts";
   const messagesToGenerate = ctx.hasEmail
     ? "FOUR messages: IG_A, IG_B, EMAIL_A, EMAIL_B"
-    : "TWO messages: IG_A, IG_B (no emails needed - artist has no email address)";
+    : "TWO messages: IG_A, IG_B (no emails needed)";
 
   const genreInstructions =
     "GENRE-SPECIFIC TONE REQUIREMENTS:\n" +
@@ -145,13 +141,6 @@ const buildPayload = (ctx: ReachoutContext) => {
     (ctx.hasEmail
       ? `- EMAIL_A: ${genreStyle.emailEmojis}\n- EMAIL_B: ${genreStyle.emailEmojis}\n`
       : "");
-
-  const referenceRule =
-    referenceType === "hook"
-      ? "Use ONLY the Personal Hook as the specific reference. Do not mention releases or posts."
-      : referenceType === "release"
-        ? "Use ONLY the Release reference. Do not mention posts or personal hook.\nYou MUST include the exact track title verbatim in EVERY message.\nDo NOT wrap the title in quotes.\nDo NOT say 'recent release' in a templated way."
-        : "Use ONLY Recent Posts: pick ONE idea and paraphrase it naturally (do NOT quote or copy phrases).\nDo not mention releases or personal hook.";
 
   const styleHintText = ctx.styleHint ? `Style tweak (apply to ALL messages): ${ctx.styleHint}\n` : "";
 
@@ -182,22 +171,28 @@ const buildPayload = (ctx: ReachoutContext) => {
   const userText =
     "Context:\n" +
     `Artist: ${ctx.artist}\n` +
-    `Location: ${ctx.location || "Unknown"}\n\n` +
+    `Location (Artist's Home): ${ctx.location || "Unknown"}\n` +
+    `Upcoming Show in Austin (if non-local): ${ctx.showInfo || "None"}\n\n` +
     genreInstructions +
-    `ReferenceType (MUST follow): ${referenceType}\n` +
-    `Personal Hook: ${clip(ctx.personalHook, REACHOUT_CONFIG.maxPersonalHookChars)}\n` +
-    `Recent release within 90 days: ${ctx.isRecentRelease ? "TRUE" : "FALSE"}\n` +
-    `Release title: ${ctx.releaseTitle || ""}\n` +
-    `Release date: ${ctx.releaseDatePretty || ""}\n` +
-    `Recent Posts (if needed): ${clip(ctx.recentPosts, REACHOUT_CONFIG.maxRecentPostsChars)}\n` +
-    `Bio (optional): ${clip(ctx.bio, REACHOUT_CONFIG.maxBioChars)}\n\n` +
-    referenceRule +
-    "\n\nAdditional format requirements:\n" +
-    "- IG messages should match the genre's vibe and energy level\n" +
-    (ctx.hasEmail
-      ? "- EMAIL messages should be professional regardless of genre (no emojis or slang)\n"
+    "DRAFT-SPECIFIC RULES:\n" +
+    "1. VARIANT A (IG_A and EMAIL_A):\n" +
+    (ctx.recentPosts
+      ? "   - Reference exactly ONE idea from Recent Posts. Pick the most interesting one and paraphrase it naturally.\n"
+      : "   - Use the Personal Hook or Release reference if available.\n") +
+    (ctx.showInfo
+      ? "   - If the artist's home location is >150 miles from Austin (use your judgment based on location provided), mention their upcoming Austin show and suggest that since they are coming into town, they might be interested in stopping by the studio if they have time. Keep it low-pressure.\n"
       : "") +
-    (ctx.hasEmail ? "Signature name for emails (MUST use): Kasper Pickett\n" : "") +
+    "\n2. VARIANT B (IG_B and EMAIL_B):\n" +
+    (ctx.personalHook
+      ? "   - Reference the Personal Hook.\n"
+      : ctx.isRecentRelease
+        ? `   - Reference the recent release: ${ctx.releaseTitle}. Include the title verbatim.\n`
+        : "   - Be friendly and refer to their overall vibe or bio.\n") +
+    "\nArtist Data:\n" +
+    `Personal Hook: ${clip(ctx.personalHook, REACHOUT_CONFIG.maxPersonalHookChars)}\n` +
+    `Recent release: ${ctx.isRecentRelease ? ctx.releaseTitle : "None"}\n` +
+    `Recent IG Posts: ${clip(ctx.recentPosts, REACHOUT_CONFIG.maxRecentPostsChars)}\n` +
+    `Bio: ${clip(ctx.bio, REACHOUT_CONFIG.maxBioChars)}\n\n` +
     "Return JSON only.\n";
 
   const schemaProperties: Record<string, { type: "string" }> = {

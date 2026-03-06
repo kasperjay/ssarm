@@ -19,6 +19,13 @@ export default async function Home() {
               take: 1,
             },
             instagramPosts: {
+              where: {
+                imageUrl: { not: "" },
+                OR: [
+                  { caption: { not: "" } },
+                  { url: { not: "" } },
+                ],
+              },
               orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
               take: 1,
             },
