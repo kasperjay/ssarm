@@ -42,8 +42,7 @@ export default function CompletionRating({
             key={star}
             type="button"
             onClick={() => setRating(star)}
-            className={`text-3xl transition-colors hover:scale-110 ${rating >= star ? "text-[var(--accent)]" : "text-white/10 hover:text-white/30"
-              }`}
+            className={`text-3xl transition-colors hover:scale-110 ${rating >= star ? "text-[var(--accent)]" : "text-white/10 hover:text-white/30"}`}
           >
             ★
           </button>

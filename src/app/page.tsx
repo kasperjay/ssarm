@@ -5,7 +5,7 @@ import { SpotlightSection } from "@/components/SpotlightSection";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { StatusPill } from "@/components/StatusPill";
-
+import { RefreshInboxButton } from "@/components/RefreshInboxButton";
 export default async function Home() {
   const now = new Date();
 
@@ -169,12 +169,15 @@ export default async function Home() {
                   Lead Inbox
                 </h2>
               </div>
-              <Link
-                href="/leads"
-                className="group text-[10px] font-bold uppercase tracking-[0.2em] text-accent/70 hover:text-accent transition-colors"
-              >
-                Execute Full Scan <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
-              </Link>
+              <div className="flex items-center gap-6">
+                <RefreshInboxButton />
+                <Link
+                  href="/leads"
+                  className="group text-[10px] font-bold uppercase tracking-[0.2em] text-accent/70 hover:text-accent transition-colors"
+                >
+                  Execute Full Scan <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+                </Link>
+              </div>
             </div>
 
             <div className="flex flex-col gap-6">

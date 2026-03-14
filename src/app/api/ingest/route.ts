@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { discoverEmailsFromUrls, extractEmailsFromTextSafe, mergeEmails } from "@/lib/email";
 import { fetchInstagramPosts, fetchInstagramProfile } from "@/lib/instagram";
 import { fetchSpotifyArtistProfile, fetchSpotifyReleases } from "@/lib/spotify";
+import { discoverInstagramHandle } from "@/lib/google-search";
 import { scoreLead } from "@/lib/scoring";
+import sharp from "sharp";
 
 type LeadStatus =
   | "NEW"
@@ -161,11 +163,9 @@ const extractAccentFromImage = async (imageUrl: string) => {
     });
     if (!response.ok) return null;
     const buffer = Buffer.from(await response.arrayBuffer());
-    const sharpModule = await import("sharp").catch(() => null);
-    if (!sharpModule || !sharpModule.default) return null;
 
     // Resize to a small grid to sample colors
-    const { data } = await (sharpModule.default as any)(buffer)
+    const { data } = await sharp(buffer)
       .resize(24, 24, { fit: "cover" })
       .removeAlpha()
       .raw()
@@ -180,18 +180,14 @@ const extractAccentFromImage = async (imageUrl: string) => {
       const g = data[i + 1];
       const b = data[i + 2];
       const { s, l } = rgbToHsl(r, g, b);
-
-      // Favor saturated colors that are not too dark or too light
       const score = s * (1 - Math.abs(l - 0.5) * 2);
-
       if (score > bestPixel.score) {
         bestPixel = { r, g, b, score };
       }
     }
 
-    // If no vibrant pixel found (all very gray), fallback to 1x1 average
     if (bestPixel.score < 0.1) {
-      const { data: avgData } = await (sharpModule.default as any)(buffer)
+      const { data: avgData } = await sharp(buffer)
         .resize(1, 1, { fit: "cover" })
         .removeAlpha()
         .raw()
@@ -362,7 +358,6 @@ export async function POST(request: Request) {
 
     const {
       name,
-      instagramHandle,
       instagramProfileUrl,
       instagramProfileImageUrl,
       spotifyArtistId,
@@ -383,6 +378,8 @@ export async function POST(request: Request) {
       followerCount,
       lastPostAt,
     } = payload.artist;
+
+    let { instagramHandle } = payload.artist;
 
     const artistMatchers = [] as Array<Record<string, unknown>>;
     if (instagramHandle) {
@@ -411,6 +408,15 @@ export async function POST(request: Request) {
         leadId: existingArtist.leads?.[0]?.id,
         status: "skipped_duplicate"
       });
+    }
+
+    if (!instagramHandle) {
+      console.log(`[Ingest] Missing IG handle for ${name}. Attempting to auto-discover...`);
+      const discovered = await discoverInstagramHandle(name);
+      if (discovered) {
+        console.log(`[Ingest] Discovered handle @${discovered} for ${name}`);
+        instagramHandle = discovered;
+      }
     }
 
     const skipInstagramFetch = payload.skipInstagramFetch === true;

@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { LeadStatus } from "@/generated/prisma";
@@ -9,6 +8,7 @@ import SendMessageModal from "./SendMessageModal";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { StatusPill } from "@/components/StatusPill";
+import { DynamicThemeShell } from "@/components/DynamicThemeShell";
 import {
   generateDraftsForLead,
   markContacted,
@@ -140,13 +140,10 @@ export default async function LeadDetailPage({
   }
 
   const spotifyImageUrl = lead.artist.spotifyImageUrl;
-  const accentStyle = lead.artist.spotifyAccent
-    ? ({
-      "--accent": lead.artist.spotifyAccent || "#23d3ff",
-      "--accent-strong": lead.artist.spotifyAccentStrong ?? lead.artist.spotifyAccent,
-      "--highlight": lead.artist.spotifyHighlight ?? lead.artist.spotifyAccent,
-    } as CSSProperties)
-    : undefined;
+  // Use proxied URL for canvas extraction (avoids CORS on direct CDN URLs)
+  const themeImageUrl = spotifyImageUrl
+    ? `/api/proxy?url=${encodeURIComponent(spotifyImageUrl)}`
+    : null;
 
   const postWhere = {
     artistId: lead.artist.id,
@@ -183,9 +180,10 @@ export default async function LeadDetailPage({
   const instagramBio = lead.artist.bio ?? "No telemetry found.";
 
   return (
-    <div
-      className="relative min-h-screen pb-20"
-      style={accentStyle}
+    <DynamicThemeShell
+      imageUrl={themeImageUrl}
+      artistName={lead.artist.name}
+      genre={lead.artist.genre}
     >
       <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12">
         <header className="relative w-full">
@@ -372,7 +370,7 @@ export default async function LeadDetailPage({
                   <div className="h-1 lg:h-px flex-1 mx-4 bg-accent/20" />
                 </div>
                 <p className="text-sm text-foreground/80 leading-relaxed italic">
-                  "{lead.scoreRationale ?? "Analysis pending verification."}"
+                  &quot;{lead.scoreRationale ?? "Analysis pending verification."}&quot;
                 </p>
               </div>
               <div className="mt-8 pt-6 border-t border-white/5">
@@ -608,7 +606,7 @@ export default async function LeadDetailPage({
                           </div>
                         </div>
                         <p className="text-sm text-foreground/80 leading-relaxed font-serif italic">
-                          "{message.body}"
+                          &quot;{message.body}&quot;
                         </p>
                       </div>
 
@@ -728,7 +726,7 @@ export default async function LeadDetailPage({
                         </div>
                         {activity.note && (
                           <p className="text-xs text-foreground/70 font-serif italic max-w-2xl leading-relaxed">
-                            "{activity.note}"
+                            &quot;{activity.note}&quot;
                           </p>
                         )}
                       </div>
@@ -740,6 +738,6 @@ export default async function LeadDetailPage({
           </section>
         </main>
       </div>
-    </div>
+    </DynamicThemeShell>
   );
 }

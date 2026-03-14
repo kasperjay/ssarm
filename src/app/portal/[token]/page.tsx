@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import FeedbackForm from "./components/FeedbackForm";
 import CompletionRating from "./components/CompletionRating";
 
@@ -200,7 +199,7 @@ export default async function CustomerPortalPage({
                     </div>
 
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
