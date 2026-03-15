@@ -49,3 +49,14 @@ export async function getRandomLead() {
 
   return lead;
 }
+
+export async function clearAllDrafts() {
+  await prisma.messageDraft.deleteMany({
+    where: { selected: false }
+  });
+  revalidatePath('/');
+}
+
+export async function refreshInbox() {
+  revalidatePath('/');
+}

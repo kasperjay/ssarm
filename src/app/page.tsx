@@ -1,15 +1,23 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatRelativeDate, formatLocation, clampScore } from "@/lib/utils";
-import { SpotlightSection } from "@/components/SpotlightSection";
+import { ActionRequiredQueue } from "@/components/ActionRequiredQueue";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { StatusPill } from "@/components/StatusPill";
 import { RefreshInboxButton } from "@/components/RefreshInboxButton";
-export default async function Home() {
+import { ClearDraftsButton } from "@/components/ClearDraftsButton";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await props.searchParams;
+  const skip = parseInt((params?.skip as string) || "0", 10);
   const now = new Date();
 
-  const [leadRows, newCount, draftCount, followUpCount] = await Promise.all([
+  const [leadRows, newCount, draftCount, followUpCount, overdueLeads, totalInboxCount] = await Promise.all([
     prisma.lead.findMany({
       include: {
         artist: {
@@ -42,6 +50,7 @@ export default async function Home() {
       },
       orderBy: [{ score: "desc" }, { updatedAt: "desc" }],
       take: 3,
+      skip: skip,
     }),
     prisma.lead.count({ where: { status: "NEW" } }),
     prisma.messageDraft.count({ where: { selected: false } }),
@@ -49,6 +58,22 @@ export default async function Home() {
       where: {
         status: "FOLLOW_UP",
         nextActionAt: { lte: now },
+      },
+    }),
+    prisma.lead.findMany({
+      where: {
+        status: "FOLLOW_UP",
+        nextActionAt: { lte: now },
+      },
+      include: {
+        artist: true,
+      },
+      orderBy: { nextActionAt: "asc" },
+      take: 5,
+    }),
+    prisma.lead.count({
+      where: {
+        status: { in: ["NEW", "QUALIFIED", "FOLLOW_UP"] },
       },
     }),
   ]);
@@ -75,16 +100,8 @@ export default async function Home() {
     };
   });
 
-  const spotlight = leadRows[0];
-
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
-      {/* Immersive Background Effects */}
-      <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none" />
-      <div className="absolute inset-0 scanlines pointer-events-none opacity-30" />
-      <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute top-[10%] -right-[5%] w-[40%] h-[40%] bg-accent-secondary/10 blur-[100px] rounded-full pointer-events-none" />
-
+    <div className="relative min-h-screen bg-transparent text-foreground overflow-hidden">
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col gap-10 px-6 py-12">
         {/* Header Section */}
         <header className="flex flex-col gap-8">
@@ -125,7 +142,8 @@ export default async function Home() {
                 label: "Draft Engine",
                 value: String(draftCount),
                 detail: "Messages pending",
-                variant: 'purple'
+                variant: 'purple',
+                action: <ClearDraftsButton count={draftCount} />
               },
               {
                 label: "Follow-up Cycle",
@@ -150,9 +168,12 @@ export default async function Home() {
                     <div className={`h-2 w-2 rounded-full ${stat.variant === 'cyan' ? 'bg-accent' : stat.variant === 'purple' ? 'bg-accent-secondary' : 'bg-accent-warm'}`} />
                   </div>
                 </div>
-                <p className="mt-4 text-xs text-muted/80 font-medium italic">
-                  {stat.detail}
-                </p>
+                <div className="mt-4 flex justify-between items-end">
+                  <p className="text-xs text-muted/80 font-medium italic">
+                    {stat.detail}
+                  </p>
+                  {stat.action && stat.action}
+                </div>
               </GlassCard>
             ))}
           </div>
@@ -170,7 +191,7 @@ export default async function Home() {
                 </h2>
               </div>
               <div className="flex items-center gap-6">
-                <RefreshInboxButton />
+                <RefreshInboxButton totalCount={totalInboxCount} />
                 <Link
                   href="/leads"
                   className="group text-[10px] font-bold uppercase tracking-[0.2em] text-accent/70 hover:text-accent transition-colors"
@@ -248,15 +269,9 @@ export default async function Home() {
             </div>
           </section>
 
-          {/* Spotlight Section */}
+          {/* Action Required Section */}
           <aside className="space-y-6">
-            <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-              <div className="h-2 w-2 bg-accent-secondary neon-glow-purple rounded-full" />
-              <h2 className="text-xl font-bold tracking-tight uppercase">
-                Intelligence
-              </h2>
-            </div>
-            <SpotlightSection initialLead={spotlight} />
+            <ActionRequiredQueue initialLeads={overdueLeads} />
           </aside>
         </main>
       </div>

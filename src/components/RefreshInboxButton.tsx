@@ -1,31 +1,36 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useTransition } from 'react';
 
-export function RefreshInboxButton() {
+export function RefreshInboxButton({ totalCount }: { totalCount: number }) {
   const router = useRouter();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    router.refresh();
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 800);
+    startTransition(() => {
+      const currentSkip = parseInt(searchParams.get('skip') || '0', 10);
+      let nextSkip = currentSkip + 3;
+      if (nextSkip >= totalCount) {
+        nextSkip = 0;
+      }
+      router.push(`/?skip=${nextSkip}`);
+      router.refresh();
+    });
   };
 
   return (
     <button
       onClick={handleRefresh}
-      disabled={isRefreshing}
+      disabled={isPending}
       className="group flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent/70 hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       title="Refresh Inbox"
     >
-      <span className={`inline-block transition-transform duration-500 ${isRefreshing ? 'rotate-180 opacity-50' : 'group-hover:rotate-180'}`}>
+      <span className={`inline-block transition-transform duration-500 ${isPending ? 'animate-spin opacity-50' : 'group-hover:rotate-180'}`}>
         ↻
       </span>
-      {isRefreshing ? 'Refreshing...' : 'Refresh'}
+      {isPending ? 'Refreshing...' : 'Refresh'}
     </button>
   );
 }

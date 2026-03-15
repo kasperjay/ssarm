@@ -31,10 +31,8 @@ export default async function CustomerPortalPage({
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white font-sans selection:bg-[var(--primary)] selection:text-white">
-            {/* Background ambient gradient */}
+            {/* Background ambient gradient wrapper (heavy filters removed for performance) */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-20">
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-[var(--primary)] rounded-full mix-blend-screen filter blur-[150px] opacity-30 animate-pulse-slow"></div>
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[var(--accent)] rounded-full mix-blend-screen filter blur-[120px] opacity-20"></div>
             </div>
 
             <div className="relative z-10 max-w-5xl mx-auto px-6 py-16 space-y-16">
