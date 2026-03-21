@@ -37,7 +37,7 @@ export default function CreateProjectForm({
             <div className="space-y-2">
                 <label
                     htmlFor="artistId"
-                    className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 ml-1"
+                    className="block text-xs font-bold uppercase tracking-[0.3em] text-white/30 ml-1"
                 >
                     Target_Entity
                 </label>
@@ -64,7 +64,7 @@ export default function CreateProjectForm({
             <div className="space-y-2">
                 <label
                     htmlFor="title"
-                    className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 ml-1"
+                    className="block text-xs font-bold uppercase tracking-[0.3em] text-white/30 ml-1"
                 >
                     Strategic_Title
                 </label>
@@ -83,7 +83,7 @@ export default function CreateProjectForm({
                     disabled={loading}
                     variant="lime"
                     size="lg"
-                    className="w-full justify-center text-[10px]! tracking-[0.3em]! font-bold!"
+                    className="w-full justify-center text-xs! tracking-[0.3em]! font-bold!"
                 >
                     {loading ? "INITIALIZING..." : "INITIALIZE_PROJECT"}
                 </NeonButton>

@@ -26,7 +26,7 @@ export const formatStatus = (status: string) =>
 export const formatLocation = (location: string | null, city: string | null, state: string | null, country: string | null) => {
   if (location) return location;
   const parts = [city, state, country].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "Unknown";
+  return parts.length > 0 ? parts.join(", ") : null;
 };
 
 export const clampScore = (score: number | null) => {

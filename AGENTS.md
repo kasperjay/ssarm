@@ -294,4 +294,19 @@ npm run standardize:genres -- --taxonomy # Show canonical taxonomy
 
 ---
 
-## Architecture Notes
+## Architecture Notes for Tier 2 & Tier 3
+
+The Tier 2 and Tier 3 agents introduce more complex processing and external interactions while maintaining the core architectural principles established by the Tier 1 agents:
+
+### Processing & Data Safety
+- **Non-Destructive Defaults:** Complex operations (like merging duplicates or standardizing genres) always default to a preview state using `--dry-run`. Flags like `--auto-fix` or `--auto-merge` require explicit invocation.
+- **Confidence Gating:** Automated actions are strictly gated by confidence scoring thresholds (e.g., 85%+ for verified contact discovery, 95%+ for auto-merging duplicates).
+- **Advanced Logic:** Employs appropriate algorithms such as Levenshtein distance for string similarity detection and robust pattern matching for data extraction.
+
+### Extensibility & Integration
+- **Modular Design:** Core functionality for these agents is decoupled from their CLI wrappers, enabling seamless future integration into Next.js background API routes or scheduled webhooks.
+- **Structured Reporting:** Analytical agents (e.g., `report-campaign`) generate structured data (JSON/Markdown) to facilitate easy integration with frontend dashboards and BI tools.
+
+### Operational Compliance
+- **Ethical Web Crawling:** External data gathering implements sensible rate limiting and polite scraping practices to prevent rate-limits or IP blocks.
+- **Holistic Audit Trails:** All substantive database modifications made by these agents are appended to the `Activity` log, preserving a complete, granular history of data transformations within the platform.

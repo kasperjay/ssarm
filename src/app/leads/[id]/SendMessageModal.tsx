@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { sendMessage } from "./actions";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
@@ -26,6 +27,11 @@ export default function SendMessageModal({
   const [body, setBody] = useState(defaultBody);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const openModal = () => {
     setBody(defaultBody);
@@ -55,13 +61,13 @@ export default function SendMessageModal({
       >
         {label}
       </NeonButton>
-      {open ? (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-6 backdrop-blur-xl bg-black/60">
+      {open && mounted ? createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-black/60">
           <div className="relative w-full max-w-2xl animate-in zoom-in-95 duration-200">
             <GlassCard variant="strong" className="p-8 space-y-6">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Message Editor</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-accent">Message Editor</p>
                   <h3 className="text-xl font-bold tracking-tight">Outgoing Message</h3>
                 </div>
                 <button
@@ -74,15 +80,15 @@ export default function SendMessageModal({
               </div>
 
               {error ? (
-                <div className="rounded-xl border border-error/20 bg-error/10 p-4 text-[10px] font-bold text-error uppercase tracking-widest">
+                <div className="rounded-xl border border-error/20 bg-error/10 p-4 text-xs font-bold text-error uppercase tracking-widest">
                   Error: {error}
                 </div>
               ) : null}
 
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted">Message Content</label>
-                  <span className="text-[10px] font-sans font-bold text-muted/50">{body.length} Characters</span>
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted">Message Content</label>
+                  <span className="text-xs font-sans font-bold text-muted/50">{body.length} Characters</span>
                 </div>
                 <textarea
                   value={body}
@@ -90,7 +96,7 @@ export default function SendMessageModal({
                   rows={10}
                   className="w-full rounded-2xl border border-white/10 bg-black/40 p-5 text-sm leading-relaxed text-foreground/90 outline-none focus:border-accent transition-colors resize-none scrollbar-hide font-serif italic"
                 />
-                <p className="text-[10px] text-muted italic">
+                <p className="text-xs text-muted italic">
                   Messages are logged to activity history for relationship tracking.
                 </p>
               </div>
@@ -114,7 +120,8 @@ export default function SendMessageModal({
               </div>
             </GlassCard>
           </div>
-        </div>
+        </div>,
+        document.body
       ) : null}
     </>
   );

@@ -157,7 +157,7 @@ async function enrichArtist(artist, dryRun = false) {
 }
 
 async function getArtistsToEnrich(options) {
-  const { limit = 100, dryRun = false } = options;
+  const { limit = 100 } = options;
 
   return prisma.artist.findMany({
     take: limit,
@@ -165,8 +165,90 @@ async function getArtistsToEnrich(options) {
   });
 }
 
+// ─── Location backfill ─────────────────────────────────────────────────────
+
+async function fixArtistLocations(options = {}) {
+  const { limit = 100, dryRun = false, skipGoogle = false } = options;
+
+  // Dynamically import the TypeScript enrichment module via tsx
+  // Because scripts/ is CJS, we use the ingest API as a bridge instead of
+  // importing location.ts directly. This keeps the script dependency-light.
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+  const artists = await prisma.artist.findMany({
+    where: {
+      OR: [
+        { location: null },
+        { genre: null },
+        { bio: null },
+      ],
+    },
+    take: limit,
+    orderBy: { updatedAt: "asc" },
+  });
+
+  console.log(`\n🔍 Found ${artists.length} artists missing location, genre, or bio.\n`);
+  if (dryRun) {
+    for (const a of artists) {
+      const missing = [!a.location && "location", !a.genre && "genre", !a.bio && "bio"].filter(Boolean);
+      console.log(`  [DRY RUN] Would enrich "${a.name}" (missing: ${missing.join(", ")})`);
+    }
+    return;
+  }
+
+  let updated = 0;
+  let failed = 0;
+
+  for (const artist of artists) {
+    try {
+      const missing = [!artist.location && "location", !artist.genre && "genre", !artist.bio && "bio"].filter(Boolean);
+      process.stdout.write(`  Enriching "${artist.name}" (missing: ${missing.join(", ")})...`);
+
+      // Re-ingest via API which runs the full enrichment pipeline
+      const res = await fetch(`${baseUrl}/api/ingest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          artist: {
+            name: artist.name,
+            instagramHandle: artist.instagramHandle,
+            spotifyArtistId: artist.spotifyArtistId,
+            location: artist.location,
+            genre: artist.genre,
+            bio: artist.bio,
+            officialSiteUrl: artist.officialSiteUrl,
+          },
+          skipInstagramFetch: true,
+          skipSpotifyFetch: true,
+          isDiscoveryImport: skipGoogle,
+        }),
+      });
+
+      if (res.ok) {
+        process.stdout.write(" ✓\n");
+        updated++;
+      } else {
+        const errText = await res.text();
+        process.stdout.write(` ✗ (${res.status}: ${errText.substring(0, 80)})\n`);
+        failed++;
+      }
+
+      // MusicBrainz rate limit: 1 req/sec. The pipeline itself also delays,
+      // but we add extra breathing room here between artists.
+      await new Promise((r) => setTimeout(r, 1500));
+    } catch (err) {
+      process.stdout.write(` ✗ (${err.message})\n`);
+      failed++;
+    }
+  }
+
+  console.log(`\n📍 Location/Genre/Bio Backfill: ${updated} updated, ${failed} failed`);
+}
+
 async function main() {
   const dryRun = hasFlag("--dry-run");
+  const fixLocations = hasFlag("--fix-locations");
+  const skipGoogle = hasFlag("--no-google");
   const limitArg = getArg("--limit");
   const limit = limitArg ? parseInt(limitArg, 10) : 100;
 
@@ -174,7 +256,17 @@ async function main() {
   console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"} | Limit: ${limit}`);
   console.log();
 
-  const artists = await getArtistsToEnrich({ limit, dryRun });
+  // ── Location / Genre / Bio backfill mode ─────────────────────────────────
+  if (fixLocations) {
+    console.log("📍 Running location/genre/bio backfill...");
+    if (skipGoogle) console.log("   (Skipping Google/homepage stages — --no-google)");
+    await fixArtistLocations({ limit, dryRun, skipGoogle });
+    await prisma.$disconnect();
+    process.exit(0);
+  }
+
+  // ── Normal staleness check mode ───────────────────────────────────────────
+  const artists = await getArtistsToEnrich({ limit });
 
   if (artists.length === 0) {
     console.log("✓ No artists to enrich");

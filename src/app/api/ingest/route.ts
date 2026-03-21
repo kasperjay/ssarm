@@ -4,6 +4,7 @@ import { discoverEmailsFromUrls, extractEmailsFromTextSafe, mergeEmails } from "
 import { fetchInstagramPosts, fetchInstagramProfile } from "@/lib/instagram";
 import { fetchSpotifyArtistProfile, fetchSpotifyReleases } from "@/lib/spotify";
 import { discoverInstagramHandle, discoverSpotifyArtistId } from "@/lib/google-search";
+import { resolveArtistEnrichment } from "@/lib/location";
 import { scoreLead } from "@/lib/scoring";
 import sharp from "sharp";
 
@@ -528,7 +529,7 @@ export async function POST(request: Request) {
     ]);
     const resolvedEmailsWithWebsite = mergeEmails(resolvedEmails, scrapedWebsiteEmails);
 
-    const resolvedBio = bio ?? scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? undefined;
+    let resolvedBio = bio ?? scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? undefined;
     const maxFollowers = Math.max(
       followerCount ?? 0,
       scrapedInstagramProfile?.followersCount ?? 0,
@@ -540,11 +541,38 @@ export async function POST(request: Request) {
     const existingLastPostAt = existingArtist?.lastPostAt;
     const dateOptions = [payloadLastPostAt, scrapedLastPostAt, existingLastPostAt].filter(Boolean) as Date[];
     const resolvedLastPostAt = dateOptions.length > 0 ? new Date(Math.max(...dateOptions.map(d => d.getTime()))) : undefined;
-    const resolvedGenre = genre ?? spotifyProfile?.genres?.[0] ?? existingArtist?.genre ?? undefined;
+    let resolvedGenre = genre ?? spotifyProfile?.genres?.[0] ?? existingArtist?.genre ?? undefined;
     const resolvedCity = city ?? existingArtist?.city ?? undefined;
     const resolvedState = state ?? existingArtist?.state ?? undefined;
     const resolvedCountry = country ?? existingArtist?.country ?? undefined;
-    const resolvedLocation = location ?? existingArtist?.location ?? undefined;
+    let resolvedLocation = location ?? existingArtist?.location ?? undefined;
+
+    // ── Enrichment Pipeline ────────────────────────────────────────────────
+    // Run if we are still missing location, genre, or bio.
+    // skipGoogle = true during discovery imports to avoid Apify costs;
+    // the enrich:stale script can run all stages.
+    const needsEnrichment = !resolvedLocation || !resolvedGenre || !resolvedBio;
+    if (needsEnrichment) {
+      console.log(`[Ingest] Running enrichment pipeline for "${name}" (missing: ${[
+        !resolvedLocation && 'location',
+        !resolvedGenre && 'genre',
+        !resolvedBio && 'bio',
+      ].filter(Boolean).join(', ')})`);
+      const enrichment = await resolveArtistEnrichment({
+        name,
+        bio: resolvedBio ?? scrapedInstagramProfile?.bio ?? null,
+        externalUrl: resolvedOfficialSiteUrl,
+        rawData: payload.artist as unknown as Record<string, unknown>,
+        skipGoogle: payload.isDiscoveryImport === true, // skip expensive Google search during bulk imports
+      });
+      if (!resolvedLocation && enrichment.location) resolvedLocation = enrichment.location;
+      if (!resolvedGenre && enrichment.genre) resolvedGenre = enrichment.genre;
+      // Only store external bio if we have no bio at all
+      if (!resolvedBio && enrichment.externalBio) {
+        const source = enrichment.externalBioSource === 'lastfm' ? '[Last.fm]' : enrichment.externalBioSource === 'discogs' ? '[Discogs]' : '';
+        resolvedBio = source ? `${enrichment.externalBio}\n\n— ${source}` : enrichment.externalBio;
+      }
+    }
 
     const artist = existingArtist
       ? await prisma.artist.update({

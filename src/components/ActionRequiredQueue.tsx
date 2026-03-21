@@ -25,7 +25,7 @@ export function ActionRequiredQueue({ initialLeads }: ActionRequiredQueueProps) 
     <aside className="space-y-6">
       <div className="flex items-center gap-3 border-b border-white/5 pb-4">
         <div className="h-1.5 w-1.5 bg-accent-warm rounded-full" />
-        <h2 className="text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">
+        <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-white/40">
           Action Required
         </h2>
       </div>
@@ -62,7 +62,7 @@ export function ActionRequiredQueue({ initialLeads }: ActionRequiredQueueProps) 
                       </p>
                     </div>
                     <div className="flex flex-col items-end shrink-0">
-                      <span className="text-[10px] uppercase tracking-widest font-bold text-accent-warm/80">
+                      <span className="text-xs uppercase tracking-widest font-bold text-accent-warm/80">
                         Overdue
                       </span>
                       <span className="text-xs font-sans font-bold text-accent-warm">
@@ -72,12 +72,12 @@ export function ActionRequiredQueue({ initialLeads }: ActionRequiredQueueProps) 
                   </div>
 
                   <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 max-w-[180px] truncate italic">
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/30 max-w-[180px] truncate italic">
                       Follow-up Due
                     </p>
                     <Link
                       href={`/leads/${lead.id}`}
-                      className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 hover:text-accent-warm transition-all flex items-center gap-1"
+                      className="text-xs font-bold uppercase tracking-[0.2em] text-white/40 hover:text-accent-warm transition-all flex items-center gap-1"
                     >
                       View Profile <span className="group-hover:translate-x-1 transition-transform">→</span>
                     </Link>

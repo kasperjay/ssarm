@@ -23,7 +23,7 @@ export default async function ProjectsDashboard() {
                     
                     <div className="flex flex-wrap items-end justify-between gap-8 pb-10 border-b border-white/5 relative z-10">
                         <div className="space-y-4">
-                            <Link href="/" className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all">
+                            <Link href="/" className="inline-flex items-center gap-2 group text-xs font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all">
                                 <span className="transition-transform group-hover:-translate-x-1 text-lg leading-none">←</span> 
                                 Dashboard
                             </Link>
@@ -47,7 +47,7 @@ export default async function ProjectsDashboard() {
 
                         {projects.length === 0 ? (
                             <GlassCard className="p-12! text-center border-dashed border-white/10 bg-white/2">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20">
+                                <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/20">
                                     No active projects found.
                                 </p>
                             </GlassCard>
@@ -67,8 +67,8 @@ export default async function ProjectsDashboard() {
                                                             {project.title || "Untitled Project"}
                                                         </h2>
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Client:</span>
-                                                            <span className="text-[10px] font-bold text-accent uppercase tracking-widest">{project.artist.name}</span>
+                                                            <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Client:</span>
+                                                            <span className="text-xs font-bold text-accent uppercase tracking-widest">{project.artist.name}</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-4">
@@ -80,7 +80,7 @@ export default async function ProjectsDashboard() {
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-end gap-3">
-                                                    <div className="flex items-center gap-4 px-4 py-2 rounded-xl bg-white/2 border border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/40">
+                                                    <div className="flex items-center gap-4 px-4 py-2 rounded-xl bg-white/2 border border-white/5 text-xs font-bold uppercase tracking-widest text-white/40">
                                                         <div className="flex items-center gap-2">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
                                                             {project.files.length}
@@ -92,7 +92,7 @@ export default async function ProjectsDashboard() {
                                                         </div>
                                                     </div>
                                                     {project.feedbacks.length > 0 && (
-                                                        <span className="flex items-center gap-2 text-[8px] font-bold text-red-500 uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+                                                        <span className="flex items-center gap-2 text-xs font-bold text-red-500 uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
                                                             <div className="h-1 w-1 rounded-full bg-red-500 animate-pulse" />
                                                             Needs Review
                                                         </span>
@@ -108,7 +108,7 @@ export default async function ProjectsDashboard() {
 
                     <div className="space-y-8">
                         <div className="flex items-center gap-4 mb-2">
-                            <h2 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Management</h2>
+                            <h2 className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">Management</h2>
                             <div className="h-px flex-1 bg-white/5" />
                         </div>
                         

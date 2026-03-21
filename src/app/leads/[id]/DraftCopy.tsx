@@ -19,7 +19,7 @@ export default function DraftCopy({ text }: DraftCopyProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className={`rounded-full border border-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest transition-all ${copied
+      className={`rounded-full border border-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest transition-all ${copied
           ? "bg-accent/20 text-accent border-accent/40"
           : "bg-white/5 text-muted hover:text-foreground hover:bg-white/10 hover:border-white/20"
         }`}

@@ -50,7 +50,7 @@ export default function CompletionRating({
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Final_Review_Node</label>
+        <label className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">Final_Review_Node</label>
         <textarea
           name="review"
           placeholder="Neural feedback summary (optional). Any final insights regarding the project trajectory..."

@@ -38,7 +38,7 @@ export default async function CustomerPortalPage({
                 <header className="text-center space-y-6 relative">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 bg-accent/5 blur-[100px] rounded-full pointer-events-none" />
                     <div className="flex flex-col items-center gap-4 relative z-10">
-                        <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-[0.4em] text-white/40 mb-2">
+                        <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-[0.4em] text-white/40 mb-2">
                             Secure Client Portal
                         </div>
                         <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tighter text-white">
@@ -67,7 +67,7 @@ export default async function CustomerPortalPage({
                                     </div>
                                     <div className="space-y-1">
                                         <h2 className="text-2xl font-bold uppercase tracking-widest text-white">Final Deliverables</h2>
-                                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Master files for download</p>
+                                        <p className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">Master files for download</p>
                                     </div>
                                 </div>
 
@@ -87,7 +87,7 @@ export default async function CustomerPortalPage({
                                                 </div>
                                                 <div className="space-y-4">
                                                     <p className="font-bold text-lg text-white group-hover:text-accent transition-colors truncate pr-8 tracking-tighter">{file.name}</p>
-                                                    <div className="flex items-center gap-4 text-[10px] font-sans font-bold text-white/40 uppercase tracking-[0.2em]">
+                                                    <div className="flex items-center gap-4 text-xs font-sans font-bold text-white/40 uppercase tracking-[0.2em]">
                                                         <span className="text-accent/60 px-2 py-0.5 rounded-md bg-accent/5">Master</span>
                                                         <span>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
                                                     </div>
@@ -107,13 +107,13 @@ export default async function CustomerPortalPage({
                                 </div>
                                 <div className="space-y-1">
                                     <h2 className="text-2xl font-bold uppercase tracking-widest text-white/80">Session Bounces</h2>
-                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Review latest work-in-progress</p>
+                                    <p className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">Review latest work-in-progress</p>
                                 </div>
                             </div>
 
                             {workingFiles.length === 0 ? (
                                 <GlassCard className="p-12! text-center bg-white/2 border-white/5 border-dashed">
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 leading-relaxed">
+                                    <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 leading-relaxed">
                                         No files available for review at this time.
                                     </p>
                                 </GlassCard>
@@ -156,7 +156,7 @@ export default async function CustomerPortalPage({
                         {project.status !== "COMPLETED" && (
                             <div className="space-y-8 sticky top-12">
                                 <div className="space-y-2">
-                                    <h3 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Request Changes</h3>
+                                    <h3 className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">Request Changes</h3>
                                     <div className="h-px w-12 bg-accent/30" />
                                 </div>
                                 
@@ -167,18 +167,18 @@ export default async function CustomerPortalPage({
                                     {/* Previous Notes Log */}
                                     {project.feedbacks.length > 0 && (
                                         <div className="mt-12 pt-8 border-t border-white/5 space-y-6">
-                                            <h4 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Review History</h4>
+                                            <h4 className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">Review History</h4>
                                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                                 {project.feedbacks.map(fb => (
                                                     <div key={fb.id} className={`p-5 rounded-2xl border transition-all ${fb.resolved ? 'bg-black/20 border-white/5 opacity-30 grayscale' : 'bg-white/4 border-white/10 group/item'}`}>
                                                         <div className="flex justify-between items-start mb-2">
-                                                             <span className="text-[8px] font-sans font-bold text-white/20 uppercase tracking-widest">{formatRelativeDate(fb.createdAt)}</span>
+                                                             <span className="text-xs font-sans font-bold text-white/20 uppercase tracking-widest">{formatRelativeDate(fb.createdAt)}</span>
                                                         </div>
                                                         <p className="text-xs font-medium text-white/60 leading-relaxed italic">&quot;{fb.content}&quot;</p>
                                                         {fb.resolved && (
                                                             <div className="mt-3 flex items-center gap-2">
                                                                 <div className="h-1 w-1 rounded-full bg-accent" />
-                                                                 <span className="text-[8px] font-bold uppercase tracking-widest text-accent">Resolved</span>
+                                                                 <span className="text-xs font-bold uppercase tracking-widest text-accent">Resolved</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -194,7 +194,7 @@ export default async function CustomerPortalPage({
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                                                <h3 className="text-[10px] font-bold text-accent uppercase tracking-[0.3em]">Project Completion</h3>
+                                                <h3 className="text-xs font-bold text-accent uppercase tracking-[0.3em]">Project Completion</h3>
                                             </div>
                                             <p className="text-xs text-white/40 leading-relaxed font-medium">
                                                 If the current deliverables meet your expectations, you can mark this project as complete.

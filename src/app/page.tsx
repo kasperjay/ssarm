@@ -131,7 +131,7 @@ export default async function Home(props: {
 
           <div className="absolute inset-0 bg-linear-to-r from-[#0d0d12] via-[#0d0d12]/60 to-transparent" />
           <div className="absolute inset-x-12 bottom-12 max-w-2xl space-y-4">
-             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold uppercase tracking-widest backdrop-blur-md">
+             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold uppercase tracking-widest backdrop-blur-md">
                <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                Lead Intelligence Active
              </div>
@@ -219,7 +219,7 @@ export default async function Home(props: {
                         <Link href={`/leads/${lead.id}`} className="text-lg font-bold text-white truncate hover:text-accent transition-colors block leading-tight mb-1">
                           {lead.name}
                         </Link>
-                        <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold">{lead.location} // {lead.genre}</p>
+                        <p className="text-xs uppercase tracking-widest text-white/30 font-bold">{lead.location} // {lead.genre}</p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <StatusPill status={lead.status} />
@@ -228,7 +228,7 @@ export default async function Home(props: {
                    </div>
                  ))
                )}
-               <Link href="/leads" className="block text-center p-4 rounded-2xl bg-white/5 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+               <Link href="/leads" className="block text-center p-4 rounded-2xl bg-white/5 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">
                  View All Dashboard Records →
                </Link>
             </div>
@@ -237,25 +237,25 @@ export default async function Home(props: {
           {/* Right Sidebar: Active Queue & Stats */}
           <aside className="space-y-12">
             <div className="space-y-6">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">
+              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">
                 Action Required
               </h3>
               <ActionRequiredQueue initialLeads={overdueLeads} />
             </div>
 
             <GlassCard className="bg-white/2 border-white/5">
-              <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 mb-8 border-b border-white/5 pb-4">Quick Stats</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.3em] text-white/30 mb-8 border-b border-white/5 pb-4">Quick Stats</h4>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Active Leads</span>
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Active Leads</span>
                    <span className="text-xl font-bold text-white">{totalInboxCount}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">New Artists</span>
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">New Artists</span>
                    <span className="text-xl font-bold text-accent">{newCount}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Active Projects</span>
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Active Projects</span>
                    <span className="text-xl font-bold text-accent-secondary">{projectCount}</span>
                 </div>
               </div>

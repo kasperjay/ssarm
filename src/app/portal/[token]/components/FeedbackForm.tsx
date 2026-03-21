@@ -34,7 +34,7 @@ export default function FeedbackForm({
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-                <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Transmission_Input</label>
+                <label className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">Transmission_Input</label>
                 <textarea
                     name="content"
                     required
@@ -47,7 +47,7 @@ export default function FeedbackForm({
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full group relative overflow-hidden bg-accent/10 border border-accent/20 hover:bg-accent/20 text-accent font-bold py-4 rounded-[20px] transition-all disabled:opacity-50 text-[10px] uppercase tracking-[0.3em] neon-glow-pink"
+                className="w-full group relative overflow-hidden bg-accent/10 border border-accent/20 hover:bg-accent/20 text-accent font-bold py-4 rounded-[20px] transition-all disabled:opacity-50 text-xs uppercase tracking-[0.3em] neon-glow-pink"
             >
                 <span className="relative z-10">{loading ? "UPLINK_IN_PROGRESS" : "SUBMIT_FEEDBACK_NODE"}</span>
                 <div className="absolute inset-x-0 bottom-0 h-1 bg-accent/20 group-hover:bg-accent/40 transition-all" />

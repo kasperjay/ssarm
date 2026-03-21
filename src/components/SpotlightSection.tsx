@@ -90,9 +90,9 @@ export function SpotlightSection({ initialLead }: SpotlightSectionProps) {
 
         <div>
           <h2 className="text-xl font-bold tracking-tight uppercase flex items-center gap-2">
-            Spotlight <span className="text-[10px] text-accent/40 font-mono tracking-widest">ID:{lead.id.slice(-6).toUpperCase()}</span>
+            Spotlight <span className="text-xs text-accent/40 font-mono tracking-widest">ID:{lead.id.slice(-6).toUpperCase()}</span>
           </h2>
-          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent/80">
+          <p className="mt-2 text-xs font-bold uppercase tracking-[0.2em] text-accent/80">
             {lead.artist.name} <span className="mx-2 text-white/10">//</span> {formatLocation(
               lead.artist.location,
               lead.artist.city,
@@ -109,10 +109,10 @@ export function SpotlightSection({ initialLead }: SpotlightSectionProps) {
             { label: "Last Transmission", value: lead.artist.lastPostAt ? formatRelativeDate(lead.artist.lastPostAt) : "Unknown", meta: "Sync Signal" }
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-              <span className="text-[10px] uppercase tracking-widest text-muted font-bold">{item.label}</span>
+              <span className="text-xs uppercase tracking-widest text-muted font-bold">{item.label}</span>
               <div className="flex flex-col items-end">
                 <span className="text-xs font-bold text-foreground tracking-tight">{item.value}</span>
-                {item.meta && <span className="text-[8px] uppercase tracking-tighter text-muted/60">{item.meta}</span>}
+                {item.meta && <span className="text-xs uppercase tracking-tighter text-muted/60">{item.meta}</span>}
               </div>
             </div>
           ))}
@@ -133,7 +133,7 @@ export function SpotlightSection({ initialLead }: SpotlightSectionProps) {
             <div className="h-2 w-2 bg-accent-secondary neon-glow-purple rounded-full" />
             <h3 className="text-lg font-bold tracking-tight uppercase">Outreach Drafts</h3>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted/60">
+          <span className="text-xs font-bold uppercase tracking-widest text-muted/60">
             {messageCount} Active
           </span>
         </div>
@@ -145,7 +145,7 @@ export function SpotlightSection({ initialLead }: SpotlightSectionProps) {
               className="group relative border-l border-l-white/10 hover:border-l-accent-secondary transition-colors"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent-secondary">
+                <span className="text-xs font-bold uppercase tracking-[0.3em] text-accent-secondary">
                   [{message.tone}]
                 </span>
                 <div className="h-1 w-8 bg-white/5 rounded-full" />

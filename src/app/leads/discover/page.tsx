@@ -304,6 +304,7 @@ export default function DiscoverPage() {
                             instagramProfileImageUrl: item.ownerProfilePicUrl || item.owner?.profile_pic_url || item.profilePicUrl || item.avatarUrl || item.ownerProfileImageUrl || undefined,
                             bio: item.biography || item.owner?.biography || item.bio || item.description || item.caption || undefined,
                             followerCount: isNaN(Number(followerCount)) ? undefined : followerCount,
+                            location: item.locationName || item.city || item.address || item.location || item.venueName || undefined,
                         },
                         lead: {
                             status: "NEW",
@@ -364,7 +365,7 @@ export default function DiscoverPage() {
                         <div className="space-y-6">
                             <Link 
                                 href="/" 
-                                className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all"
+                                className="inline-flex items-center gap-2 group text-xs font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all"
                             >
                                 <span className="transition-transform group-hover:-translate-x-1">←</span> 
                                 <span>Dashboard</span>
@@ -372,7 +373,7 @@ export default function DiscoverPage() {
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3">
                                     <span className="h-px w-8 bg-accent/40" />
-                                        <p className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-bold">
+                                        <p className="text-xs uppercase tracking-[0.3em] text-accent/60 font-bold">
                                             Artist Search
                                         </p>
                                 </div>
@@ -384,7 +385,7 @@ export default function DiscoverPage() {
 
                         <div className="flex items-center gap-8 pb-2">
                              <div className="flex flex-col items-end">
-                                 <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Service Status</span>
+                                 <span className="text-xs font-bold text-white/30 uppercase tracking-[0.2em]">Service Status</span>
                                  <span className="text-xl font-bold tracking-widest text-white">Active</span>
                             </div>
                             <div className="h-10 w-px bg-white/5 mx-4" />
@@ -401,13 +402,13 @@ export default function DiscoverPage() {
                         <div className="flex items-center gap-1 justify-between mb-10 p-1 bg-white/5 rounded-2xl border border-white/5">
                             <button
                                 onClick={() => setActiveTab("venues")}
-                                className={`flex-1 py-3 px-6 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "venues" ? "bg-accent text-white shadow-lg" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
+                                className={`flex-1 py-3 px-6 rounded-xl text-xs font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "venues" ? "bg-accent text-white shadow-lg" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
                             >
                                 Venue Calendars
                             </button>
                             <button
                                 onClick={() => setActiveTab("tags")}
-                                className={`flex-1 py-3 px-6 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "tags" ? "bg-accent text-white shadow-lg" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
+                                className={`flex-1 py-3 px-6 rounded-xl text-xs font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "tags" ? "bg-accent text-white shadow-lg" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
                             >
                                 Instagram Tags
                             </button>
@@ -426,7 +427,7 @@ export default function DiscoverPage() {
                                 <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
                                     <div className="space-y-8">
                                         <div className="space-y-4">
-                                            <label className="block text-[10px] uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Data Source</label>
+                                            <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Data Source</label>
                                             <div className="relative group/select">
                                                 <select
                                                     value={actorId}
@@ -473,7 +474,7 @@ export default function DiscoverPage() {
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        <label className="block text-[10px] uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Search Parameters (JSON)</label>
+                                        <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Search Parameters (JSON)</label>
                                         <div className="relative group/textarea">
                                             <div className="absolute -inset-0.5 bg-accent/5 rounded-[24px] blur-sm opacity-0 group-hover/textarea:opacity-100 transition-opacity" />
                                             <textarea
@@ -498,7 +499,7 @@ export default function DiscoverPage() {
 
                                 <div className="space-y-8 max-w-2xl">
                                     <div className="space-y-4">
-                                        <label className="block text-[10px] uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Target Hashtag</label>
+                                        <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Target Hashtag</label>
                                         <div className="relative group/hashtag">
                                             <div className="absolute -inset-0.5 bg-accent/5 rounded-[32px] blur-sm opacity-0 group-hover/hashtag:opacity-100 transition-opacity" />
                                             <input
@@ -516,7 +517,7 @@ export default function DiscoverPage() {
                                                 <div className="absolute left-0 right-0 top-full mt-4 z-50 overflow-hidden rounded-[24px] border border-white/10 bg-[#0d0d12]/95 backdrop-blur-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
                                                     <div className="p-2">
                                                         <div className="px-4 py-2 border-b border-white/5 mb-1">
-                                                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Recently Searched</span>
+                                                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/20">Recently Searched</span>
                                                         </div>
                                                         {searchHistory.map((term, i) => (
                                                             <button
@@ -537,7 +538,7 @@ export default function DiscoverPage() {
                                                                 setSearchHistory([]);
                                                                 localStorage.removeItem("ss_search_history");
                                                             }}
-                                                            className="w-full mt-1 px-4 py-2 text-[8px] font-bold uppercase tracking-widest text-white/10 hover:text-red-400/40 text-center transition-colors"
+                                                            className="w-full mt-1 px-4 py-2 text-xs font-bold uppercase tracking-widest text-white/10 hover:text-red-400/40 text-center transition-colors"
                                                         >
                                                             Clear History
                                                         </button>
@@ -548,7 +549,7 @@ export default function DiscoverPage() {
                                     </div>
                                     
                                     <div className="space-y-4">
-                                        <label className="block text-[10px] uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Discovery Limit</label>
+                                        <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Discovery Limit</label>
                                         <div className="grid grid-cols-4 gap-4">
                                             {[50, 100, 250, 500].map((limit) => (
                                                 <button
@@ -584,13 +585,13 @@ export default function DiscoverPage() {
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-3">
                                         <div className="h-1.5 w-1.5 rounded-full bg-accent animate-ping" />
-                                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent">Searching for Artists</p>
+                                        <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Searching for Artists</p>
                                     </div>
                                     <h3 className="text-2xl font-bold tracking-tight">Status: <span className="premium-gradient-text italic">{pollStatus}</span></h3>
                                 </div>
                                  <div className="flex flex-col items-end">
                                      <span className="text-4xl font-sans font-bold text-white leading-none tracking-tighter">{pollItemCount}</span>
-                                     <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/20 mt-2">New Artists</span>
+                                     <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/20 mt-2">New Artists</span>
                                  </div>
                             </div>
                             <div className="relative w-full bg-white/5 overflow-hidden h-3 rounded-full border border-white/5 p-0.5">
@@ -622,7 +623,7 @@ export default function DiscoverPage() {
                                         disabled={sifting}
                                         variant="outline"
                                         size="sm"
-                                        className="text-[10px]! tracking-[0.2em]! px-6!"
+                                        className="text-xs! tracking-[0.2em]! px-6!"
                                     >
                                         {sifting ? "Sifting..." : "Smart Selection"}
                                     </NeonButton>
@@ -631,7 +632,7 @@ export default function DiscoverPage() {
                                         disabled={selectedIndices.size === 0 || importing}
                                         variant="lime"
                                         size="sm"
-                                        className="text-[10px]! tracking-[0.2em]! px-6!"
+                                        className="text-xs! tracking-[0.2em]! px-6!"
                                     >
                                         {importing ? `Importing [${importProgress}/${selectedIndices.size}]` : `Import Selected (${selectedIndices.size})`}
                                     </NeonButton>
@@ -641,7 +642,7 @@ export default function DiscoverPage() {
                             <div className="overflow-hidden rounded-[40px] border border-white/5 bg-white/2 backdrop-blur-md shadow-2xl">
                                 <div className="overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-left">
-                                        <thead className="bg-white/5 text-[10px] uppercase font-bold tracking-[0.3em] text-white/20">
+                                        <thead className="bg-white/5 text-xs uppercase font-bold tracking-[0.3em] text-white/20">
                                             <tr>
                                                 <th className="px-8 py-6">
                                                     <div className="flex items-center">
@@ -691,7 +692,7 @@ export default function DiscoverPage() {
                                                          </td>
                                                          <td className="px-8 py-6 text-right">
                                                             {isUnknown ? (
-                                                                <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest">NO DATA</span>
+                                                                <span className="text-xs font-bold text-white/10 uppercase tracking-widest">NO DATA</span>
                                                             ) : (
                                                                 url !== "-" ? (
                                                                     <a 
@@ -704,7 +705,7 @@ export default function DiscoverPage() {
                                                                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
                                                                     </a>
                                                                 ) : (
-                                                                    <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest">No Link</span>
+                                                                    <span className="text-xs font-bold text-white/10 uppercase tracking-widest">No Link</span>
                                                                 )
                                                             )}
                                                         </td>

@@ -34,7 +34,7 @@ export function StatusPill({ status, className = '' }: StatusPillProps) {
     };
 
     return (
-        <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] ${getColors()} ${className}`}>
+        <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] ${getColors()} ${className}`}>
             <span className="mr-2 h-1.5 w-1.5 rounded-full bg-current animate-pulse shadow-[0_0_8px_currentColor]" />
             {getLabel()}
         </span>

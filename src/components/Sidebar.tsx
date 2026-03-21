@@ -58,7 +58,7 @@ export function Sidebar() {
       {/* Footer Nav */}
       <div className="flex flex-col gap-6 items-center">
         <div className="h-12 w-12 rounded-full border-2 border-accent/30 p-0.5 group cursor-pointer transition-transform hover:scale-110">
-          <div className="h-full w-full rounded-full bg-linear-to-tr from-accent-secondary/40 to-accent/40 flex items-center justify-center text-[10px] font-bold">
+          <div className="h-full w-full rounded-full bg-linear-to-tr from-accent-secondary/40 to-accent/40 flex items-center justify-center text-xs font-bold">
             KP
           </div>
         </div>

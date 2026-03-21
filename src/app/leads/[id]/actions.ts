@@ -536,3 +536,38 @@ export async function updateArtistHandle(state: {
 
   revalidatePath(`/leads/${lead.id}`);
 }
+
+export async function updateArtistName(state: {
+  artistId: string;
+  name: string;
+}) {
+  const artist = await prisma.artist.findUnique({
+    where: { id: state.artistId },
+    include: { leads: true },
+  });
+
+  if (!artist || !state.name.trim()) return;
+
+  const newName = state.name.trim();
+
+  await prisma.artist.update({
+    where: { id: artist.id },
+    data: { name: newName },
+  });
+
+  // Log activity on all leads associated with this artist
+  if (artist.leads.length > 0) {
+    await prisma.activity.createMany({
+       data: artist.leads.map(lead => ({
+          leadId: lead.id,
+          type: "STATUS_CHANGE",
+          note: `Artist name updated from '${artist.name}' to '${newName}'`,
+       }))
+    });
+  }
+
+  // Revalidate paths for all associated leads
+  for (const lead of artist.leads) {
+    revalidatePath(`/leads/${lead.id}`);
+  }
+}

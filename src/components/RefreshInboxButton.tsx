@@ -24,7 +24,7 @@ export function RefreshInboxButton({ totalCount }: { totalCount: number }) {
     <button
       onClick={handleRefresh}
       disabled={isPending}
-      className="group flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent/70 hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className="group flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-accent/70 hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       title="Refresh Inbox"
     >
       <span className={`inline-block transition-transform duration-500 ${isPending ? 'animate-spin opacity-50' : 'group-hover:rotate-180'}`}>

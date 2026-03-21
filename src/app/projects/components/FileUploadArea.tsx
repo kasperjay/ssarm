@@ -75,11 +75,11 @@ export default function FileUploadArea({
                         )}
                     </div>
                     <div className="space-y-1 mt-2">
-                        <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/60">
+                        <div className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">
                             {loading ? "Uploading File..." : `Upload ${type === "DELIVERABLE" ? "Deliverable" : "Working File"}`}
                         </div>
                         {!loading && (
-                            <div className="text-[10px] font-sans font-bold text-white/20 uppercase tracking-widest">
+                            <div className="text-xs font-sans font-bold text-white/20 uppercase tracking-widest">
                                 MP3 / WAV / ZIP • Max 500MB
                             </div>
                         )}

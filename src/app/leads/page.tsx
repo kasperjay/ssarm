@@ -59,14 +59,14 @@ export default async function LeadsPage() {
             <div className="space-y-6">
               <Link 
                 href="/" 
-                className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all"
+                className="inline-flex items-center gap-2 group text-xs font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all"
               >
                 <span className="transition-transform group-hover:-translate-x-1">←</span>                 <span>Dashboard</span>
               </Link>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <span className="h-px w-8 bg-accent/40" />
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-bold">
+                  <p className="text-xs uppercase tracking-[0.3em] text-accent/60 font-bold">
                     Lead Directory
                   </p>
                 </div>
@@ -79,7 +79,7 @@ export default async function LeadsPage() {
             <div className="flex items-center gap-8 pb-2">
               <GlassCard className="px-6! py-4! flex items-center gap-6 bg-white/2 border-white/5 shadow-xl">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Total Leads</span>
+                  <span className="text-xs font-bold text-white/30 uppercase tracking-[0.2em]">Total Leads</span>
                   <span className="text-3xl font-bold tracking-tighter text-white">{leads.length}</span>
                 </div>
                 <div className="h-10 w-px bg-white/5" />
@@ -102,7 +102,7 @@ export default async function LeadsPage() {
           <div className="flex flex-col gap-6">
             {leads.length === 0 ? (
               <GlassCard className="text-center py-32 bg-white/2 border-white/5 border-dashed">
-                <p className="text-white/30 uppercase tracking-[0.2em] font-bold text-[10px]">
+                <p className="text-white/30 uppercase tracking-[0.2em] font-bold text-xs">
                   No leads found in this view
                 </p>
               </GlassCard>
@@ -126,8 +126,8 @@ export default async function LeadsPage() {
                             {lead.name}
                           </Link>
                         </h3>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">
-                           {lead.location} <span className="mx-4 text-white/10">•</span> {lead.genre}
+                        <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/30">
+                           {lead.location && <>{lead.location} <span className="mx-4 text-white/10">•</span></>} {lead.genre}
                         </p>
                       </div>
                       <div className="flex items-center gap-8">
@@ -136,7 +136,7 @@ export default async function LeadsPage() {
                           <span className="text-2xl font-bold premium-gradient-text">
                             {lead.score}
                           </span>
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-white/20">Lead Score</span>
+                          <span className="text-xs font-bold uppercase tracking-widest text-white/20">Lead Score</span>
                         </div>
                       </div>
                     </div>
@@ -147,7 +147,7 @@ export default async function LeadsPage() {
                     </p>
 
                     <div className="flex flex-wrap items-center justify-between gap-8 pt-6 border-t border-white/5">
-                      <div className="flex items-center gap-3 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">
+                      <div className="flex items-center gap-3 text-xs font-bold text-white/30 uppercase tracking-[0.2em]">
                         <span className="h-1.5 w-1.5 bg-accent-secondary neon-glow-amber rounded-full" />
                         {lead.lastRelease}
                       </div>
@@ -159,7 +159,7 @@ export default async function LeadsPage() {
                           />
                           <div className="absolute inset-0 bg-accent/20 blur-md" style={{ width: `${lead.score}%` }} />
                         </div>
-                        <span className="text-[10px] font-bold text-accent tracking-tighter">{lead.score}%</span>
+                        <span className="text-xs font-bold text-accent tracking-tighter">{lead.score}%</span>
                       </div>
                     </div>
                   </div>
