@@ -2,13 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { LeadStatus } from "@/generated/prisma";
+import { LeadStatus } from "local-prisma-client";
 import DraftCopy from "./DraftCopy";
 import SendMessageModal from "./SendMessageModal";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { StatusPill } from "@/components/StatusPill";
 import { DynamicThemeShell } from "@/components/DynamicThemeShell";
+import { Navbar } from "@/components/Navbar";
 import {
   generateDraftsForLead,
   markContacted,
@@ -178,6 +179,7 @@ export default async function LeadDetailPage({
     lead.artist.instagramProfileImageUrl ?? featuredPost?.imageUrl ?? null
   );
   const instagramBio = lead.artist.bio ?? "No telemetry found.";
+  const score = lead.score?.toFixed(0) || "0";
 
   return (
     <DynamicThemeShell
@@ -185,559 +187,239 @@ export default async function LeadDetailPage({
       artistName={lead.artist.name}
       genre={lead.artist.genre}
     >
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12">
-        <header className="relative w-full">
-          <div className="flex flex-wrap items-end justify-between gap-8 pb-8 border-b border-white/10">
+    <div className="relative min-h-screen bg-background text-foreground pb-20 selection:bg-accent/30 selection:text-white">
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-12 pt-12">
+        
+        {/* Cinematic Artist Header */}
+        <div className="relative h-[400px] w-full rounded-[48px] overflow-hidden group shadow-2xl">
+          {spotifyImageUrl && (
+            <Image
+              src={spotifyImageUrl}
+              alt={lead.artist.name}
+              fill
+              className="object-cover transition-transform duration-1000 group-hover:scale-105"
+            />
+          )}
+          <div className="absolute inset-0 bg-linear-to-t from-[#0d0d12] via-[#0d0d12]/40 to-transparent" />
+          <div className="absolute inset-x-12 bottom-12 flex items-end justify-between gap-12">
             <div className="space-y-4">
-              <Link href="/" className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors">
-                <span className="transition-transform group-hover:-translate-x-1">←</span> Lead Desk
+              <Link href="/" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-white/40 hover:text-accent transition-colors">
+                 <span>← Back to Feed</span>
               </Link>
-              <div className="flex items-center gap-6">
-                <div className="h-20 w-20 overflow-hidden rounded-2xl border border-white/10 bg-white/5 relative shadow-2xl">
-                  {spotifyImageUrl ? (
-                    <Image
-                      src={spotifyImageUrl}
-                      alt={lead.artist.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-muted uppercase tracking-[0.2em]">ART</div>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
-                    {lead.artist.name}
-                  </h1>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted flex items-center gap-2">
-                    <span className="h-px w-4 bg-accent/40" />
-                    {formatLocation(lead.artist.location, lead.artist.city, lead.artist.state, lead.artist.country)}
-                    <span className="text-accent/30">//</span>
-                    {lead.artist.genre || "Universal Sound"}
-                  </p>
-                </div>
+              <h1 className="text-6xl font-bold tracking-tight text-white leading-none capitalize">
+                {lead.artist.name}
+              </h1>
+              <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">
+                <span>{lead.artist.location}</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-white/10" />
+                <span>{lead.artist.genre || "Social Profile"}</span>
               </div>
             </div>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <GlassCard className="p-4! border-accent/20">
-                <div className="flex items-center gap-6">
-                  <div className="flex flex-col">
-                    <span className="text-[8px] font-bold uppercase tracking-widest text-muted mb-1">Status</span>
-                    <StatusPill status={lead.status} />
-                  </div>
-                  <div className="h-8 w-px bg-white/10" />
-                  <div className="flex flex-col items-end">
-                    <span className="text-[8px] font-bold uppercase tracking-widest text-muted mb-1">Index Score</span>
-                    <span className="text-2xl font-mono text-accent">{lead.score?.toFixed(0) || "0"}</span>
-                  </div>
-                </div>
-              </GlassCard>
+            <div className="flex items-center gap-4 pb-2">
+              <a href={lead.artist.spotifyArtistUrl || "#"} target="_blank" className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-accent/20 hover:text-accent transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+              </a>
+              <a href={lead.artist.instagramProfileUrl || "#"} target="_blank" className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-accent-warm/20 hover:text-accent-warm transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+              </a>
             </div>
           </div>
+        </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-6 bg-white/5 rounded-2xl p-4 border border-white/5 backdrop-blur-sm">
-            <div className="flex flex-wrap items-center gap-3">
-              <form
-                action={async (formData) => {
-                  "use server";
-                  const status = formData.get("status");
-                  if (typeof status === "string" && statusOptions.includes(status as LeadStatus)) {
-                    await updateLeadStatus({ leadId: lead.id, status: status as LeadStatus });
-                  }
-                }}
-                className="flex items-center gap-2"
-              >
-                <select
-                  name="status"
-                  defaultValue={lead.status}
-                  className="rounded-xl border border-white/10 bg-surface px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground focus:border-accent focus:outline-none appearance-none cursor-pointer"
-                >
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {formatStatusLabel(status)}
-                    </option>
-                  ))}
-                </select>
-                <NeonButton variant="outline" size="sm" type="submit">Update</NeonButton>
-              </form>
-              <div className="h-6 w-px bg-white/10 mx-2" />
-              <form
-                action={async () => {
-                  "use server";
-                  await markContacted({ leadId: lead.id });
-                }}
-              >
-                <NeonButton type="submit" variant="outline" size="sm">Mark Contacted</NeonButton>
-              </form>
-              <div className="flex items-center gap-1">
-                {[3, 7, 14].map((days) => (
-                  <form
-                    key={days}
-                    action={async () => {
-                      "use server";
-                      const nextActionAt = new Date();
-                      nextActionAt.setDate(nextActionAt.getDate() + days);
-                      await markContacted({ leadId: lead.id, nextActionAt });
-                    }}
-                  >
-                    <button
-                      type="submit"
-                      className="rounded-lg border border-white/5 px-2 py-1.5 text-[8px] font-bold uppercase tracking-widest text-muted transition hover:bg-white/10 hover:text-accent"
-                    >
-                      +{days}d
-                    </button>
-                  </form>
-                ))}
+        {/* Profile Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12">
+          
+          {/* Main Content Column */}
+          <div className="space-y-12">
+            
+            {/* Bio Section */}
+            <section className="space-y-6">
+               <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">Social Bio</h2>
+              <div className="text-xl text-white/70 leading-relaxed font-medium italic">
+                &quot;{instagramBio}&quot;
               </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <SendMessageModal
-                leadId={lead.id}
-                label="Compose Direct"
-                source="custom"
-                variant="primary"
-              />
-              <form action={refreshLeadData}>
-                <input type="hidden" name="leadId" value={lead.id} />
-                <button
-                  type="submit"
-                  className="group flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-muted hover:text-accent hover:border-accent transition-all"
-                  title="Refresh Intelligence"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-180 transition-transform duration-500"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
-                </button>
-              </form>
-            </div>
-          </div>
-        </header>
+            </section>
 
-        <main className="grid gap-10">
-          <section className="grid gap-10 lg:grid-cols-3">
-            <GlassCard className="justify-between">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted mb-4">Latest Transmission</p>
-                {featuredRelease?.url ? (
-                  <Link
-                    href={featuredRelease.url}
-                    target="_blank"
-                    className="text-xl font-bold text-foreground transition hover:text-accent block truncate"
-                  >
-                    {featuredRelease.title}
-                  </Link>
-                ) : (
-                  <p className="text-xl font-bold text-foreground truncate">
-                    {featuredRelease?.title ?? "Offline"}
-                  </p>
-                )}
-                <p className="mt-1 text-[10px] font-mono text-muted uppercase">
-                  {featuredRelease?.releaseDate
-                    ? formatRelativeDate(featuredRelease.releaseDate)
-                    : "Date Unknown"}
-                </p>
-              </div>
-              <div className="mt-8 pt-6 border-t border-white/5">
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-accent neon-glow" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted font-mono">Signal Active</span>
-                </div>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="justify-between">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted mb-4">Social Momentum</p>
-                <p className="text-3xl font-mono font-bold text-foreground">
-                  {lead.artist.followerCount?.toLocaleString() ?? "0"}
-                </p>
-                <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted">
-                  {lead.artist.lastPostAt
-                    ? `Last Pulse: ${formatRelativeDate(lead.artist.lastPostAt)}`
-                    : "Activity Void"}
-                </p>
-              </div>
-              <div className="mt-8 pt-6 border-t border-white/5">
-                <Link href={lead.artist.instagramProfileUrl || "#"} target="_blank" className="text-[10px] font-bold uppercase tracking-widest text-accent hover:text-highlight transition-colors flex items-center gap-2">
-                  Open Instagram Interface <span className="translate-y-px">→</span>
-                </Link>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="justify-between border-accent/20" variant="strong">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent">Analysis</p>
-                  <div className="h-1 lg:h-px flex-1 mx-4 bg-accent/20" />
-                </div>
-                <p className="text-sm text-foreground/80 leading-relaxed italic">
-                  &quot;{lead.scoreRationale ?? "Analysis pending verification."}&quot;
-                </p>
-              </div>
-              <div className="mt-8 pt-6 border-t border-white/5">
-                <span className="text-[8px] font-bold uppercase tracking-tighter text-muted">AIG-SYSTEM // THREAT_LEVEL_LOW</span>
-              </div>
-            </GlassCard>
-          </section>
-
-          <section className="grid gap-10 lg:grid-cols-2">
-            <GlassCard className="space-y-6">
-              <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                <h2 className="text-lg font-bold tracking-tight text-foreground">Instagram Intelligence</h2>
-                <span className="text-[10px] font-mono text-muted uppercase tracking-widest">{postCount} NODES</span>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
-                  <div className="h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-surface relative shadow-xl">
-                    {instagramAvatar ? (
-                      <img
-                        src={instagramAvatar}
-                        alt={lead.artist.name}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[8px] font-bold text-muted uppercase tracking-widest">IG</div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <form
-                      action={async (formData) => {
-                        "use server";
-                        const handle = formData.get("handle");
-                        if (typeof handle === "string") {
-                          await updateArtistHandle({
-                            leadId: lead.id,
-                            instagramHandle: handle,
-                          });
-                        }
-                      }}
-                      className="flex items-center gap-2 group"
-                    >
-                      <span className="text-sm font-mono text-accent">@</span>
-                      <input
-                        name="handle"
-                        defaultValue={lead.artist.instagramHandle || ""}
-                        placeholder="handle_id"
-                        className="w-full bg-transparent border-b border-white/5 focus:border-accent text-sm font-bold tracking-tight text-foreground outline-none transition-colors"
-                      />
-                      <button type="submit" className="text-[8px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors">SAVE</button>
-                    </form>
-                    <p className="mt-1 text-[10px] text-muted font-mono leading-none">
-                      SYNC_INTERVAL: {lead.artist.lastPostAt ? formatRelativeDate(lead.artist.lastPostAt) : "N/A"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-xs text-foreground/70 leading-relaxed font-serif italic max-h-24 overflow-y-auto pr-2 scrollbar-hide">
-                  {instagramBio}
-                </div>
-
-                {featuredPost ? (
-                  <div className="space-y-4 pt-4 border-t border-white/5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted">Latest Deployment</span>
-                      <Link href={featuredPost.url || "#"} target="_blank" className="text-[10px] font-bold uppercase tracking-widest text-accent hover:underline">EXTERNAL_UPLINK</Link>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-[0.4fr_0.6fr]">
-                      <div className="aspect-square overflow-hidden rounded-xl border border-white/10 relative group">
-                        {featuredPost.imageUrl ? (
-                          <img
-                            src={proxiedHelper(featuredPost.imageUrl)}
-                            alt="Deployment Media"
-                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-muted uppercase tracking-widest">MEDIA_MISSING</div>
+            {/* Social Presence Section */}
+            <section className="space-y-8">
+               <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">Social Presence</h2>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <GlassCard className="p-8! bg-white/2 border-white/5">
+                     <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                           <div className="h-12 w-12 rounded-full border border-white/10 overflow-hidden relative">
+                              {instagramAvatar && <img src={instagramAvatar} alt="Avatar" className="object-cover" />}
+                           </div>
+                           <div>
+                              <p className="text-sm font-bold text-white">@{lead.artist.instagramHandle || "unknown"}</p>
+                              <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{lead.artist.followerCount?.toLocaleString()} Followers</p>
+                           </div>
+                        </div>
+                        {featuredPost && (
+                           <div className="space-y-4 pt-4 border-t border-white/5">
+                              <div className="aspect-square rounded-2xl overflow-hidden border border-white/10 relative group">
+                                 <img src={proxiedHelper(featuredPost.imageUrl)} alt="Post" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Link href={featuredPost.url || "#"} target="_blank" className="text-[10px] font-bold text-white uppercase tracking-widest bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">View Post</Link>
+                                 </div>
+                              </div>
+                              <p className="text-xs text-white/50 line-clamp-2 italic">&quot;{featuredPost.caption}&quot;</p>
+                           </div>
                         )}
-                        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex flex-col justify-between py-1">
-                        <p className="text-xs text-foreground/80 leading-relaxed line-clamp-6">
-                          {featuredPost.caption || "Metadata body empty."}
-                        </p>
-                        <p className="text-[8px] font-mono text-muted uppercase mt-4">
-                          TIMESTAMP: {formatRelativeDate(featuredPost.postedAt || featuredPost.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-8 rounded-2xl border border-dashed border-white/10 text-center">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No media logs found.</p>
-                  </div>
-                )}
-              </div>
+                     </div>
+                  </GlassCard>
 
-              <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                <Link
-                  href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.max(1, postPage - 1)}`}
-                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${postPage === 1 ? "pointer-events-none opacity-20" : "text-muted hover:text-accent"}`}
-                >
-                  PREV_NODE
-                </Link>
-                <span className="text-[10px] font-mono text-accent/50">{postPage} / {postTotalPages}</span>
-                <Link
-                  href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.min(postTotalPages, postPage + 1)}`}
-                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${postPage === postTotalPages ? "pointer-events-none opacity-20" : "text-muted hover:text-accent"}`}
-                >
-                  NEXT_NODE
-                </Link>
-              </div>
-            </GlassCard>
+                  <GlassCard className="p-8! bg-white/2 border-white/5 flex flex-col justify-center items-center text-center space-y-4">
+                      <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Activity Status</p>
+                     <div className="text-4xl font-bold text-accent tracking-tighter">
+                        {lead.artist.lastPostAt ? "ACTIVE" : "STALE"}
+                     </div>
+                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                        LAST POST: {formatRelativeDate(lead.artist.lastPostAt)}
+                     </p>
+                  </GlassCard>
+               </div>
+            </section>
 
-            <GlassCard className="space-y-6">
+            {/* Top Releases Section */}
+            <section className="space-y-8">
+               <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">Top Releases</h2>
+               {featuredRelease ? (
+                  <GlassCard className="p-8! bg-white/2 border-white/5">
+                     <div className="flex flex-col md:flex-row gap-8 items-center">
+                        <div className="h-40 w-40 rounded-3xl border border-white/10 overflow-hidden shrink-0 shadow-2xl">
+                           <img src={proxiedHelper(featuredRelease.imageUrl)} alt={featuredRelease.title} className="object-cover w-full h-full" />
+                        </div>
+                        <div className="flex-1 space-y-4 text-center md:text-left">
+                           <div>
+                              <h3 className="text-2xl font-bold text-white uppercase tracking-tight">{featuredRelease.title}</h3>
+                              <p className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] mt-1">{featuredRelease.releaseType || "Single"}</p>
+                           </div>
+                           {featuredRelease.url && (
+                              <iframe
+                                 src={featuredRelease.url.includes("/embed/") ? featuredRelease.url : featuredRelease.url.replace("open.spotify.com/", "open.spotify.com/embed/")}
+                                 width="100%"
+                                 height="80"
+                                 allow="encrypted-media"
+                                 className="rounded-xl border border-white/5"
+                              />
+                           )}
+                        </div>
+                     </div>
+                  </GlassCard>
+               ) : (
+                  <div className="py-12 border border-dashed border-white/10 rounded-[32px] text-center">
+                      <p className="text-[10px] font-bold uppercase text-white/20 tracking-widest">No releases found</p>
+                  </div>
+               )}
+            </section>
+
+            {/* Message Drafts Section */}
+            <section className="space-y-8">
               <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                <h2 className="text-lg font-bold tracking-tight text-foreground">Acoustic Inventory</h2>
-                <span className="text-[10px] font-mono text-muted uppercase tracking-widest">{releaseCount} DATA_POINTS</span>
+                 <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20">Draft Messages</h3>
               </div>
-
-              <div className="space-y-6">
-                {featuredRelease ? (
-                  <div className="space-y-6">
-                    <div className="flex flex-col items-center gap-6">
-                      <div className="relative h-44 w-44 sm:h-52 sm:w-52 group">
-                        <div className="absolute -inset-4 bg-accent/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative h-full w-full overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
-                          {featuredRelease.imageUrl ? (
-                            <img
-                              src={proxiedHelper(featuredRelease.imageUrl)}
-                              alt={featuredRelease.title}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-muted uppercase tracking-widest">DATA_ENV_VOID</div>
-                          )}
+              <div className="grid grid-cols-1 gap-6">
+                {lead.messages.filter(m => !m.selected).map((message) => (
+                  <GlassCard key={message.id} className="p-8! bg-white/2 border-white/5 hover:border-accent/20">
+                     <div className="flex flex-col gap-6">
+                        <div className="flex items-center justify-between">
+                           <span className="px-3 py-1 rounded-full bg-accent/10 text-[8px] font-bold text-accent uppercase tracking-widest border border-accent/20">
+                             Tone: {message.tone || "Standard"}
+                           </span>
+                           <DraftCopy text={message.body} />
                         </div>
-                      </div>
-
-                      <div className="w-full space-y-4">
-                        {featuredRelease.url ? (
-                          <iframe
-                            key={featuredRelease.url}
-                            src={featuredRelease.url.includes("/embed/")
-                              ? featuredRelease.url
-                              : featuredRelease.url.replace("open.spotify.com/", "open.spotify.com/embed/")}
-                            width="100%"
-                            height="152"
-                            allow="encrypted-media; clipboard-write; fullscreen; picture-in-picture"
-                            className="rounded-2xl border border-white/10 bg-black/40 shadow-inner"
-                            title="Acoustic Player"
-                          />
-                        ) : (
-                          <div className="h-32 w-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 text-center p-6">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted text-center">Acoustic payload missing</p>
-                          </div>
-                        )}
-
-                        <div className="text-center space-y-2">
-                          <h3 className="text-xl font-bold tracking-tight text-foreground">{featuredRelease.title}</h3>
-                          <p className="text-[10px] font-mono text-muted uppercase tracking-[0.2em]">
-                            TIMESTAMP: {formatRelativeDate(featuredRelease.releaseDate || featuredRelease.createdAt)}
-                          </p>
-                          <div className="flex flex-wrap justify-center gap-2 pt-2">
-                            {featuredRelease.releaseType && (
-                              <span className="rounded-lg bg-white/5 border border-white/5 px-2 py-1 text-[8px] font-bold text-muted uppercase tracking-widest">{featuredRelease.releaseType}</span>
-                            )}
-                            <StatusPill status="IDENTIFIED" className="bg-white/5! border-white/5! text-muted!" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-12 rounded-2xl border border-dashed border-white/10 text-center">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No acoustic assets detected.</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between pt-6 border-t border-white/5 mt-auto">
-                <Link
-                  href={`/leads/${lead.id}?rPage=${Math.max(1, releasePage - 1)}&pPage=${postPage}`}
-                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${releasePage === 1 ? "pointer-events-none opacity-20" : "text-muted hover:text-accent"}`}
-                >
-                  PREV_POINT
-                </Link>
-                <span className="text-[10px] font-mono text-accent/50">{releasePage} / {releaseTotalPages}</span>
-                <Link
-                  href={`/leads/${lead.id}?rPage=${Math.min(releaseTotalPages, releasePage + 1)}&pPage=${postPage}`}
-                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${releasePage === releaseTotalPages ? "pointer-events-none opacity-20" : "text-muted hover:text-accent"}`}
-                >
-                  NEXT_POINT
-                </Link>
-              </div>
-            </GlassCard>
-          </section>
-
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full bg-accent neon-glow" />
-                <h2 className="text-xl font-bold tracking-tight text-foreground">Strategic Outreach Drafts</h2>
-              </div>
-              <span className="text-[10px] font-mono text-muted uppercase tracking-[0.3em]">
-                {lead.messages.filter(m => !m.selected).length} PREVIEW_NODES
-              </span>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {lead.messages.filter(m => !m.selected).length === 0 ? (
-                <div className="col-span-full py-12 rounded-3xl border border-dashed border-white/10 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No neural drafts generated.</p>
-                </div>
-              ) : (
-                lead.messages
-                  .filter((m) => !m.selected)
-                  .map((message) => (
-                    <GlassCard
-                      key={message.id}
-                      className="group flex flex-col justify-between p-6!"
-                    >
-                      <div className="space-y-4">
-                        <div className="flex items-start justify-between">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-accent/60">
-                            MODE_{message.tone || "GENERAL"}
-                          </span>
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <DraftCopy text={message.body} />
-                          </div>
-                        </div>
-                        <p className="text-sm text-foreground/80 leading-relaxed font-serif italic">
+                        <p className="text-lg text-white/80 leading-relaxed font-serif italic pl-6 border-l-2 border-accent/30">
                           &quot;{message.body}&quot;
                         </p>
-                      </div>
-
-                      <div className="mt-6 flex items-center justify-between pt-4 border-t border-white/5">
-                        <details className="relative group/details">
-                          <summary className="list-none cursor-pointer flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-foreground transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6 6-6" /></svg>
-                            TUNE_VARIANT
-                          </summary>
-                          <div className="absolute left-0 bottom-full mb-4 z-20 w-48 rounded-2xl border border-white/10 bg-surface-strong p-2 shadow-2xl backdrop-blur-xl">
-                            <div className="group/tone relative">
-                              <div className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors cursor-default">
-                                Change Tone
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
-                              </div>
-                              <div className="hidden group-hover/tone:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-surface-strong p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-left-2 transition-all">
-                                {["professional", "casual"].map((hint) => (
-                                  <form key={hint} action={regenerateDraft}>
-                                    <input type="hidden" name="leadId" value={lead.id} />
-                                    <input type="hidden" name="draftId" value={message.id} />
-                                    <input type="hidden" name="tone" value={message.tone || "Draft"} />
-                                    <input type="hidden" name="styleHint" value={`more ${hint}`} />
-                                    <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors">
-                                      more {hint}
-                                    </button>
-                                  </form>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="group/style relative mt-1">
-                              <div className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors cursor-default">
-                                Change Style
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
-                              </div>
-                              <div className="hidden group-hover/style:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-surface-strong p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-left-2 transition-all">
-                                {["boring", "fun"].map((hint) => (
-                                  <form key={hint} action={regenerateDraft}>
-                                    <input type="hidden" name="leadId" value={lead.id} />
-                                    <input type="hidden" name="draftId" value={message.id} />
-                                    <input type="hidden" name="tone" value={message.tone || "Draft"} />
-                                    <input type="hidden" name="styleHint" value={`more ${hint}`} />
-                                    <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors">
-                                      more {hint}
-                                    </button>
-                                  </form>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="mt-1 border-t border-white/10 pt-1">
-                              <form action={regenerateDraft}>
-                                <input type="hidden" name="leadId" value={lead.id} />
-                                <input type="hidden" name="draftId" value={message.id} />
-                                <input type="hidden" name="tone" value={message.tone || "Draft"} />
-                                <input type="hidden" name="styleHint" value="more random" />
-                                <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent hover:bg-white/5 transition-colors">
-                                  randomize
-                                </button>
-                              </form>
-                              <SendMessageModal
-                                leadId={lead.id}
-                                label="CUSTOM_OVERRIDE"
-                                defaultBody={message.body}
-                                source="draft-edit"
-                              />
-                            </div>
-                          </div>
-                        </details>
-
-                        <SendMessageModal
-                          leadId={lead.id}
-                          label="EXECUTE_UPLINK"
-                          defaultBody={message.body}
-                          source="draft"
-                          variant="primary"
-                        />
-                      </div>
-                    </GlassCard>
-                  ))
-              )}
-            </div>
-          </section>
-
-          <section className="mt-10">
-            <GlassCard className="p-8!">
-              <div className="flex items-center justify-between border-b border-white/10 pb-6 mb-8">
-                <h2 className="text-xl font-bold tracking-tight text-foreground">Operational History Timeline</h2>
-                <span className="text-[10px] font-mono text-muted uppercase tracking-[0.3em]">
-                  {lead.activities.length} EVENTS_LOGGED
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                {lead.activities.length === 0 ? (
-                  <div className="py-8 text-center rounded-2xl border border-dashed border-white/10">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No historical data recorded.</p>
-                  </div>
-                ) : (
-                  lead.activities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="flex gap-4 group"
-                    >
-                      <div className="flex flex-col items-center">
-                        <div className="h-3 w-3 rounded-full border-2 border-accent bg-background z-10" />
-                        <div className="w-px flex-1 bg-white/10" />
-                      </div>
-                      <div className="flex-1 pb-8 group-last:pb-2">
-                        <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-accent">
-                            {formatStatusLabel(activity.type)}
-                          </p>
-                          <p className="text-[8px] font-mono text-muted uppercase">
-                            {formatRelativeDate(activity.occurredAt)}
-                          </p>
+                        <div className="flex items-center justify-end gap-4 pt-4 border-t border-white/5">
+                           <SendMessageModal
+                              leadId={lead.id}
+                               label="Send Message"
+                              defaultBody={message.body}
+                              source="draft"
+                              variant="primary"
+                            />
                         </div>
-                        {activity.note && (
-                          <p className="text-xs text-foreground/70 font-serif italic max-w-2xl leading-relaxed">
-                            &quot;{activity.note}&quot;
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
+                     </div>
+                  </GlassCard>
+                ))}
+              </div>
+            </section>
+
+          </div>
+
+          {/* Right Sidebar Column */}
+          <aside className="space-y-12">
+            
+            {/* Meta Actions Card */}
+            <GlassCard className="p-8! bg-[#0d0d12] border-white/10" variant="strong">
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20">Lead Score</p>
+                  <div className="flex items-end gap-3">
+                    <span className="text-5xl font-bold text-accent tracking-tighter">{score}%</span>
+                     <span className="text-[10px] font-bold text-accent/40 uppercase tracking-widest mb-1">Relevance</span>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-6 border-t border-white/5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20">Lead Status</p>
+                   <form
+                      action={async (formData) => {
+                          "use server";
+                          const status = formData.get("status");
+                          if (typeof status === "string" && statusOptions.includes(status as LeadStatus)) {
+                              await updateLeadStatus({ leadId: lead.id, status: status as LeadStatus });
+                          }
+                      }}
+                      className="flex flex-col gap-3"
+                  >
+                      <select
+                          name="status"
+                          defaultValue={lead.status}
+                          className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 focus:border-accent focus:outline-none appearance-none cursor-pointer hover:bg-white/10"
+                      >
+                          {statusOptions.map((status) => (
+                              <option key={status} value={status} className="bg-[#0f0f0f] text-white">
+                                  {formatStatusLabel(status)}
+                              </option>
+                          ))}
+                      </select>
+                      <NeonButton variant="outline" size="sm" type="submit" className="w-full">Update Status</NeonButton>
+                  </form>
+                </div>
+
+                <div className="pt-6 border-t border-white/5">
+                   <form action={refreshLeadData} className="w-full">
+                      <input type="hidden" name="leadId" value={lead.id} />
+                      <NeonButton type="submit" variant="outline" size="sm" className="w-full justify-center! gap-3!">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
+                          Update Profile
+                      </NeonButton>
+                   </form>
+                </div>
               </div>
             </GlassCard>
-          </section>
-        </main>
+
+            {/* Social & Releases Previews */}
+            <div className="space-y-6">
+               <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">Activity Timeline</h3>
+               {lead.activities.slice(0, 5).map((activity) => (
+                 <div key={activity.id} className="flex gap-4 group">
+                    <div className="h-2 w-2 rounded-full bg-white/10 mt-1.5 group-hover:bg-accent transition-colors shrink-0" />
+                    <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-white/60 leading-tight">{activity.note}</p>
+                       <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">{formatRelativeDate(activity.occurredAt)}</p>
+                    </div>
+                 </div>
+               ))}
+            </div>
+
+          </aside>
+        </div>
       </div>
-    </DynamicThemeShell>
-  );
+    </div>
+  </DynamicThemeShell>
+);
 }

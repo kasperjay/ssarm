@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true,
   },
+  serverExternalPackages: ["@prisma/client", "apify-client", "local-prisma-client"],
 };
 
 export default nextConfig;

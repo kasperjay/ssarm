@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { LeadStatus } from "@/generated/prisma";
+import { LeadStatus } from "local-prisma-client";
 import { generateReachoutDrafts } from "@/lib/reachout";
 import { scoreLead } from "@/lib/scoring";
 import { ensureBotRunning } from "@/lib/instagram-bot";

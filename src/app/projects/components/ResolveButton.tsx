@@ -20,10 +20,9 @@ export default function ResolveButton({
                 });
             }}
             disabled={isPending}
-            className={`px-3 py-1 rounded text-xs transition-all disabled:opacity-50 ${"bg-[var(--accent)] text-black font-medium hover:opacity-90"
-                }`}
+            className="px-3 py-1 rounded-lg text-[9px] uppercase font-bold tracking-[0.2em] transition-all border border-accent/20 bg-accent/10 text-accent hover:bg-accent/20 neon-glow-pink disabled:opacity-50"
         >
-            {isPending ? "..." : "Resolve"}
+            {isPending ? "..." : "RESOLVE_NODE"}
         </button>
     );
 }

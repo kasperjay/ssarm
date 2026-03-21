@@ -4,6 +4,7 @@ import { formatRelativeDate, formatLocation, clampScore } from "@/lib/utils";
 import { GlassCard } from "@/components/GlassCard";
 import { StatusPill } from "@/components/StatusPill";
 import { NeonButton } from "@/components/NeonButton";
+import { Navbar } from "@/components/Navbar";
 
 export default async function LeadsPage() {
   const leadRows = await prisma.lead.findMany({
@@ -48,27 +49,49 @@ export default async function LeadsPage() {
   });
 
   return (
-    <div className="relative min-h-screen pb-20">
-      <div className="relative mx-auto flex max-w-5xl flex-col gap-10 px-6 py-12">
-        <header className="flex flex-col gap-6">
-          <div className="flex flex-wrap items-end justify-between gap-6 pb-6 border-b border-white/10">
-            <div className="space-y-2">
-              <Link href="/" className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors">
-                <span className="transition-transform group-hover:-translate-x-1">←</span> Return Terminal
+    <div className="relative min-h-screen bg-background pt-32 pb-20 selection:bg-accent/30 selection:text-white">
+      <Navbar />
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-16 px-6">
+        
+        {/* Header Section */}
+        <header className="flex flex-col gap-10">
+          <div className="flex flex-wrap items-end justify-between gap-12 border-b border-white/5 pb-12">
+            <div className="space-y-6">
+              <Link 
+                href="/" 
+                className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all"
+              >
+                <span className="transition-transform group-hover:-translate-x-1">←</span>                 <span>Dashboard</span>
               </Link>
-              <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
-                Master <span className="text-accent italic">Inbox</span>
-              </h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Active Records</span>
-                <span className="text-2xl font-mono text-foreground">{leads.length}</span>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="h-px w-8 bg-accent/40" />
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-bold">
+                    Lead Directory
+                  </p>
+                </div>
+                <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight premium-gradient-text pr-4">
+                  Inbox
+                </h1>
               </div>
-              <div className="h-10 w-px bg-white/10 mx-2" />
+            </div>
+
+            <div className="flex items-center gap-8 pb-2">
+              <GlassCard className="px-6! py-4! flex items-center gap-6 bg-white/2 border-white/5 shadow-xl">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Total Leads</span>
+                  <span className="text-3xl font-bold tracking-tighter text-white">{leads.length}</span>
+                </div>
+                <div className="h-10 w-px bg-white/5" />
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-accent neon-glow" />
+                  <span className="text-[9px] font-bold text-accent/60 uppercase tracking-widest">Auto-Sync</span>
+                </div>
+              </GlassCard>
+
               <Link href="/leads/discover">
-                <NeonButton variant="cyan" size="sm">
-                  Scan New Data
+                <NeonButton variant="outline" size="md">
+                  + New Search
                 </NeonButton>
               </Link>
             </div>
@@ -78,63 +101,71 @@ export default async function LeadsPage() {
         <main>
           <div className="flex flex-col gap-6">
             {leads.length === 0 ? (
-              <GlassCard className="text-center py-20">
-                <p className="text-muted uppercase tracking-[0.3em] font-bold text-xs">[ No Records Found ]</p>
+              <GlassCard className="text-center py-32 bg-white/2 border-white/5 border-dashed">
+                <p className="text-white/30 uppercase tracking-[0.2em] font-bold text-[10px]">
+                  No leads found in this view
+                </p>
               </GlassCard>
             ) : (
-              leads.map((lead) => (
-                <GlassCard
-                  key={lead.id}
-                  className="group relative border-l-2 border-l-transparent hover:border-l-accent transition-all hover:translate-x-1"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-6">
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-bold tracking-tight">
-                        <Link
-                          href={`/leads/${lead.id}`}
-                          className="hover:text-accent transition-colors"
-                        >
-                          {lead.name}
-                        </Link>
-                      </h3>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted/80">
-                        {lead.location} <span className="mx-2 text-accent/30">//</span> {lead.genre}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <StatusPill status={lead.status} />
-                      <div className="flex flex-col items-end">
-                        <span className="text-sm font-bold text-accent font-mono tracking-tighter">
-                          {lead.score}
-                        </span>
-                        <span className="text-[8px] uppercase tracking-tighter text-muted">INDEX</span>
+              <div className="grid gap-8 pb-12">
+                {leads.map((lead) => (
+                  <GlassCard
+                    key={lead.id}
+                    className="group relative border-white/5 hover:border-white/10 transition-all hover:translate-x-1 active:scale-[0.995] shadow-2xl overflow-hidden"
+                  >
+                    {/* Background Detail */}
+                    <div className="absolute top-0 right-0 h-32 w-32 bg-accent/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                    
+                    <div className="flex flex-wrap items-center justify-between gap-8 mb-10">
+                      <div className="space-y-3">
+                        <h3 className="text-3xl font-bold tracking-tighter">
+                          <Link
+                            href={`/leads/${lead.id}`}
+                            className="hover:text-accent transition-colors premium-gradient-text"
+                          >
+                            {lead.name}
+                          </Link>
+                        </h3>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">
+                           {lead.location} <span className="mx-4 text-white/10">•</span> {lead.genre}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-8">
+                        <StatusPill status={lead.status} />
+                        <div className="flex flex-col items-end min-w-[80px]">
+                          <span className="text-2xl font-bold premium-gradient-text">
+                            {lead.score}
+                          </span>
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-white/20">Lead Score</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-6 flex flex-col gap-4">
-                    <p className="text-sm text-foreground/70 leading-relaxed border-l border-white/10 pl-4 py-1">
-                      {lead.summary}
+                  <div className="space-y-8">
+                    <p className="text-sm text-white/60 leading-relaxed max-w-3xl border-l border-white/10 pl-6 py-1 italic font-medium">
+                      &quot;{lead.summary}&quot;
                     </p>
 
-                    <div className="mt-2 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/5">
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-muted uppercase tracking-[0.15em]">
-                        <span className="h-1 w-4 bg-accent-secondary/40 rounded-full" />
+                    <div className="flex flex-wrap items-center justify-between gap-8 pt-6 border-t border-white/5">
+                      <div className="flex items-center gap-3 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">
+                        <span className="h-1.5 w-1.5 bg-accent-secondary neon-glow-amber rounded-full" />
                         {lead.lastRelease}
                       </div>
-                      <div className="flex w-40 items-center gap-3">
-                        <div className="h-1 flex-1 rounded-full bg-white/5 overflow-hidden">
+                      <div className="flex w-64 items-center gap-4">
+                        <div className="h-1.5 flex-1 rounded-full bg-white/5 overflow-hidden border border-white/5 relative">
                           <div
-                            className="h-full bg-accent neon-glow transition-all duration-1000"
+                            className="h-full bg-accent neon-glow transition-all duration-1000 relative z-10"
                             style={{ width: `${lead.score}%` }}
                           />
+                          <div className="absolute inset-0 bg-accent/20 blur-md" style={{ width: `${lead.score}%` }} />
                         </div>
-                        <span className="text-[10px] font-mono text-accent/70">{lead.score}%</span>
+                        <span className="text-[10px] font-bold text-accent tracking-tighter">{lead.score}%</span>
                       </div>
                     </div>
                   </div>
                 </GlassCard>
-              ))
+                ))}
+              </div>
             )}
           </div>
         </main>

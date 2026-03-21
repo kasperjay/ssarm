@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createProject } from "../actions";
 import { useRouter } from "next/navigation";
+import { NeonButton } from "@/components/NeonButton";
 
 export default function CreateProjectForm({
     artists,
@@ -32,52 +33,61 @@ export default function CreateProjectForm({
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
                 <label
                     htmlFor="artistId"
-                    className="block text-sm font-medium text-[var(--foreground-muted)] mb-1"
+                    className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 ml-1"
                 >
-                    Select Client
+                    Target_Entity
                 </label>
-                <select
-                    id="artistId"
-                    name="artistId"
-                    required
-                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
-                >
-                    <option value="">-- Choose Artist --</option>
-                    {artists.map((artist) => (
-                        <option key={artist.id} value={artist.id}>
-                            {artist.name}
-                        </option>
-                    ))}
-                </select>
+                <div className="relative group/select">
+                    <select
+                        id="artistId"
+                        name="artistId"
+                        required
+                        className="w-full rounded-2xl border border-white/10 bg-white/2 p-4 pr-12 text-[13px] font-bold tracking-tight focus:border-accent focus:outline-none text-white/80 appearance-none transition-all cursor-pointer hover:bg-white/5 shadow-inner"
+                    >
+                        <option value="" className="bg-[#0c0c0c] text-white/40">-- DISCOVERED_UNIT --</option>
+                        {artists.map((artist) => (
+                            <option key={artist.id} value={artist.id} className="bg-[#0c0c0c] text-white">
+                                {artist.name}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover/select:text-accent transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                </div>
             </div>
 
-            <div>
+            <div className="space-y-2">
                 <label
                     htmlFor="title"
-                    className="block text-sm font-medium text-[var(--foreground-muted)] mb-1"
+                    className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 ml-1"
                 >
-                    Project Title (Optional)
+                    Strategic_Title
                 </label>
                 <input
                     type="text"
                     id="title"
                     name="title"
-                    placeholder="e.g. Summer EP Mixes"
-                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--primary)] transition-colors placeholder:text-[var(--border)]"
+                    placeholder="e.g. ALPHA_TRANSMISSION_01"
+                    className="w-full rounded-2xl border border-white/10 bg-white/2 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/10"
                 />
             </div>
 
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[var(--primary)] text-[var(--background)] font-medium rounded-lg px-4 py-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-                {loading ? "Creating..." : "Create Project"}
-            </button>
+            <div className="pt-4">
+                <NeonButton
+                    type="submit"
+                    disabled={loading}
+                    variant="lime"
+                    size="lg"
+                    className="w-full justify-center text-[10px]! tracking-[0.3em]! font-bold!"
+                >
+                    {loading ? "INITIALIZING..." : "INITIALIZE_PROJECT"}
+                </NeonButton>
+            </div>
         </form>
     );
 }

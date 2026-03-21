@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/GlassCard";
@@ -27,6 +27,8 @@ const ACTOR_VENUES = [
 
 export default function DiscoverPage() {
     const router = useRouter();
+    const [activeTab, setActiveTab] = useState<"venues" | "tags">("venues");
+    const [instagramTag, setInstagramTag] = useState("");
     const [actorId, setActorId] = useState(ACTOR_VENUES[0].id);
     const [inputJson, setInputJson] = useState(JSON.stringify({ url: ACTOR_VENUES[0].url }, null, 2));
     const [loading, setLoading] = useState(false);
@@ -40,6 +42,26 @@ export default function DiscoverPage() {
     const [importProgress, setImportProgress] = useState(0);
     const [sifting, setSifting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [searchHistory, setSearchHistory] = useState<string[]>([]);
+    const [showHistory, setShowHistory] = useState(false);
+
+    useEffect(() => {
+        const history = localStorage.getItem("ss_search_history");
+        if (history) {
+            try {
+                setSearchHistory(JSON.parse(history));
+            } catch (e) {
+                console.error("Failed to parse search history", e);
+            }
+        }
+    }, []);
+
+    const addToHistory = (term: string) => {
+        if (!term) return;
+        const newHistory = [term, ...searchHistory.filter(t => t !== term)].slice(0, 10);
+        setSearchHistory(newHistory);
+        localStorage.setItem("ss_search_history", JSON.stringify(newHistory));
+    };
 
     const handleDiscover = async () => {
         try {
@@ -49,33 +71,71 @@ export default function DiscoverPage() {
             setPollStatus("STARTING");
             setPollItemCount(0);
 
-            let parsedInput;
-            try {
-                parsedInput = JSON.parse(inputJson);
-            } catch (e) {
-                throw new Error("Invalid JSON input format. Please check syntax.");
-            }
+            let finalActorId = actorId;
+            let finalInput: any;
 
-            const limit = parsedInput.resultsLimit || parsedInput.maxItems || 100;
-            setExpectedResults(limit);
+            if (activeTab === "tags") {
+                if (!instagramTag) throw new Error("Please enter an Instagram tag or handle.");
+                
+                const isProfile = instagramTag.startsWith('@');
+                const cleanTerm = instagramTag.replace(/^[@#]/, '');
+                
+                // Save to history
+                addToHistory(instagramTag);
+
+                if (isProfile) {
+                    finalActorId = "apify/instagram-scraper";
+                    finalInput = {
+                        directUrls: [`https://www.instagram.com/${cleanTerm}/`],
+                        resultsLimit: expectedResults || 50,
+                        addParentData: true
+                    };
+                } else {
+                    finalActorId = "apify/instagram-hashtag-scraper";
+                    // Standard hashtag scraper input
+                    finalInput = {
+                        hashtags: [cleanTerm],
+                        resultsLimit: expectedResults || 100
+                    };
+                }
+            } else {
+                try {
+                    finalInput = JSON.parse(inputJson);
+                } catch (e) {
+                    throw new Error("Invalid JSON input format. Please check syntax.");
+                }
+            }
 
             const res = await fetch("/api/discover", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ actorId, input: parsedInput }),
+                body: JSON.stringify({ 
+                    actorId: finalActorId, 
+                    input: finalInput 
+                }),
             });
 
             if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.detail || data.error || "Failed to start discovery run.");
+                const textBody = await res.text();
+                try {
+                    const data = JSON.parse(textBody);
+                    throw new Error(data.detail || data.error || "Failed to start discovery run.");
+                } catch (e) {
+                    throw new Error(`Server returned non-JSON error (${res.status}): ${textBody.substring(0, 500)}`);
+                }
             }
 
-            const data = await res.json();
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(`Server returned status 200 but invalid JSON: ${text.substring(0, 500)}`);
+            }
             const { runId, datasetId } = data;
 
             setPolling(true);
             pollStatusLoop(runId, datasetId);
-
         } catch (err: any) {
             setError(err.message);
             setLoading(false);
@@ -91,22 +151,48 @@ export default function DiscoverPage() {
             });
 
             if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.detail || data.error || "Failed to poll status.");
+                const text = await res.text();
+                try {
+                    const data = JSON.parse(text);
+                    throw new Error(data.detail || data.error || "Failed to poll status.");
+                } catch (e) {
+                    throw new Error(`Status check returned non-JSON error (${res.status}): ${text.substring(0, 500)}`);
+                }
             }
 
-            const data = await res.json();
-            setPollStatus(data.status);
+            const textBody = await res.text();
+            let data;
+            try {
+                data = JSON.parse(textBody);
+            } catch (e) {
+                throw new Error(`Status check returned status 200 but invalid JSON: ${textBody.substring(0, 500)}`);
+            }
+            const statusMap: Record<string, string> = {
+                "SUCCEEDED": "Complete",
+                "RUNNING": "Processing",
+                "PENDING": "Starting",
+                "FAILED": "Interrupted",
+                "ABORTED": "Stopped"
+            };
+            const friendlyStatus = statusMap[data.status] || data.status.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+            setPollStatus(friendlyStatus);
             setPollItemCount(data.itemCount || 0);
 
             if (data.status === "SUCCEEDED" || data.status === "FAILED" || data.status === "ABORTED") {
                 setPolling(false);
                 setLoading(false);
                 if (data.status === "SUCCEEDED") {
-                    setResults(data.items || []);
+                    const flattened = (data.items || []).flatMap((rawItem: any) => {
+                        const nestedKeys = Object.keys(rawItem).filter(k => !isNaN(Number(k)));
+                        if (nestedKeys.length > 0 && !rawItem.artist && !rawItem.fullName && !rawItem.name) {
+                            return nestedKeys.map(k => ({ ...rawItem, ...rawItem[k] }));
+                        }
+                        return [rawItem];
+                    });
+                    setResults(flattened);
                     setSelectedIndices(new Set());
                 } else {
-                    setError(`Actor run ended with status: ${data.status}`);
+                    setError(`Search ended with status: ${data.status.toLowerCase()}`);
                 }
             } else {
                 setTimeout(() => {
@@ -182,44 +268,83 @@ export default function DiscoverPage() {
             setError(null);
 
             const selectedItems = Array.from(selectedIndices).map((idx) => results[idx]);
+            console.log(`Starting import for ${selectedItems.length} items...`);
 
             let count = 0;
-            for (const item of selectedItems) {
-                const artistName = item.fullName || item.username || item.title || item.name || item.artistName;
-                if (!artistName) continue;
+            const CONCURRENCY_LIMIT = 5;
 
-                const payload = {
-                    isDiscoveryImport: true,
-                    artist: {
-                        name: artistName,
-                        instagramHandle: item.username || undefined,
-                        instagramProfileUrl: item.url || undefined,
-                        bio: item.biography || item.bio || item.description || undefined,
-                        followerCount: item.followersCount || undefined,
-                    },
-                    lead: {
-                        status: "NEW",
-                    },
-                    activities: item.eventTitle ? [
-                        {
-                            type: "NOTE",
-                            note: [
-                                item.eventTitle,
-                                item.venueName,
-                                item.eventDate
-                            ].filter(Boolean).join(" · ")
-                        }
-                    ] : undefined
-                };
+            for (let i = 0; i < selectedItems.length; i += CONCURRENCY_LIMIT) {
+                const batch = selectedItems.slice(i, i + CONCURRENCY_LIMIT);
+                
+                await Promise.all(batch.map(async (item) => {
+                    const rawName = item.ownerUsername || item.owner?.username || item.owner?.full_name || item.username || item.artist || item.fullName || item.title || item.name || item.musician || item.band || item.artistName;
+                    if (!rawName) {
+                        console.log("Skipping item with no artist name:", item);
+                        return;
+                    }
 
-                await fetch("/api/ingest", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
+                    const artistName = rawName || "Unknown Artist";
 
-                count++;
-                setImportProgress(count);
+                    console.log(`Importing artist: ${artistName}`);
+
+                    const handle = item.ownerUsername || item.owner?.username || item.username || item.handle || item.instagramHandle;
+                    const postUrl = item.shortCode ? `https://www.instagram.com/p/${item.shortCode}` : (item.url || item.instagramUrl || item.link || undefined);
+                    const profileUrl = handle ? `https://www.instagram.com/${handle.replace('@', '')}` : undefined;
+                    
+                    // Parse followers as integer to avoid Prisma errors
+                    const rawFollowers = item.followersCount || item.ownerFollowersCount || item.owner?.followersCount;
+                    const followerCount = rawFollowers ? parseInt(String(rawFollowers).replace(/[^0-9]/g, '')) : undefined;
+
+                    const payload = {
+                        isDiscoveryImport: true,
+                        artist: {
+                            name: artistName,
+                            instagramHandle: handle || undefined,
+                            instagramProfileUrl: profileUrl,
+                            instagramProfileImageUrl: item.ownerProfilePicUrl || item.owner?.profile_pic_url || item.profilePicUrl || item.avatarUrl || item.ownerProfileImageUrl || undefined,
+                            bio: item.biography || item.owner?.biography || item.bio || item.description || item.caption || undefined,
+                            followerCount: isNaN(Number(followerCount)) ? undefined : followerCount,
+                        },
+                        lead: {
+                            status: "NEW",
+                        },
+                        instagramPosts: postUrl ? [
+                            {
+                                instagramPostId: item.id || item.shortCode || undefined,
+                                caption: item.caption || undefined,
+                                imageUrl: item.displayUrl || item.imageUrl || undefined,
+                                postedAt: item.timestamp || item.postedAt || undefined,
+                                url: postUrl
+                            }
+                        ] : undefined,
+                        activities: item.eventTitle ? [
+                            {
+                                type: "NOTE",
+                                note: [
+                                    item.eventTitle,
+                                    item.venueName,
+                                    item.eventDate
+                                ].filter(Boolean).join(" · ")
+                            }
+                        ] : undefined
+                    };
+
+                    console.log(`Payload for ${artistName}:`, JSON.stringify(payload, null, 2));
+
+                    const ingestRes = await fetch("/api/ingest", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!ingestRes.ok) {
+                        const errorText = await ingestRes.text();
+                        console.error(`Failed to ingest ${artistName}:`, errorText);
+                    }
+
+                    count++;
+                    setImportProgress(count);
+                }));
             }
 
             router.push("/");
@@ -230,120 +355,266 @@ export default function DiscoverPage() {
     };
 
     return (
-        <div className="relative min-h-screen pb-20">
-            <div className="mx-auto max-w-6xl space-y-10 px-6 py-12">
-                <header className="flex flex-col gap-6">
-                    <div className="flex flex-wrap items-end justify-between gap-6 pb-6 border-b border-white/10">
-                        <div className="space-y-2">
-                            <Link href="/" className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors">
-                                <span className="transition-transform group-hover:-translate-x-1">←</span> Terminal
+        <div className="relative min-h-screen bg-transparent pb-20 selection:bg-accent/30 selection:text-white">
+            <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6">
+                
+                {/* Header Phase */}
+                <header className="flex flex-col gap-10">
+                    <div className="flex flex-wrap items-end justify-between gap-12 border-b border-white/5 pb-12">
+                        <div className="space-y-6">
+                            <Link 
+                                href="/" 
+                                className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all"
+                            >
+                                <span className="transition-transform group-hover:-translate-x-1">←</span> 
+                                <span>Dashboard</span>
                             </Link>
-                            <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
-                                Data <span className="text-accent italic">Harvest</span>
-                            </h1>
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <span className="h-px w-8 bg-accent/40" />
+                                        <p className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-bold">
+                                            Artist Search
+                                        </p>
+                                </div>
+                                <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight premium-gradient-text pr-4">
+                                    Lead <span className="text-white/40 italic">Discovery</span>
+                                </h1>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-8 pb-2">
+                             <div className="flex flex-col items-end">
+                                 <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Service Status</span>
+                                 <span className="text-xl font-bold tracking-widest text-white">Active</span>
+                            </div>
+                            <div className="h-10 w-px bg-white/5 mx-4" />
+                            <div className="flex items-center gap-2 text-accent/60">
+                                <div className="h-2 w-2 rounded-full bg-accent" />
+                                <span className="text-[9px] font-bold uppercase tracking-widest">Live Data</span>
+                            </div>
                         </div>
                     </div>
                 </header>
 
-                <main className="space-y-10">
-                    <GlassCard variant="strong">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="h-2 w-2 bg-accent neon-glow rounded-full" />
-                            <h2 className="text-xl font-bold tracking-tight uppercase">Configuration</h2>
+                <main className="space-y-12 relative z-10">
+                    <GlassCard className="p-10!">
+                        <div className="flex items-center gap-1 justify-between mb-10 p-1 bg-white/5 rounded-2xl border border-white/5">
+                            <button
+                                onClick={() => setActiveTab("venues")}
+                                className={`flex-1 py-3 px-6 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "venues" ? "bg-accent text-white shadow-lg" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
+                            >
+                                Venue Calendars
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("tags")}
+                                className={`flex-1 py-3 px-6 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "tags" ? "bg-accent text-white shadow-lg" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
+                            >
+                                Instagram Tags
+                            </button>
                         </div>
 
-                        {error && (
-                            <div className="mb-6 rounded-xl border border-error/20 bg-error/10 p-4 text-xs font-bold text-error uppercase tracking-widest">
-                                [ Error ]: {error}
+                        {activeTab === "venues" ? (
+                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                <div className="flex items-center justify-between pb-6 border-b border-white/5">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-2 w-2 bg-accent neon-glow rounded-full animate-pulse" />
+                                        <h2 className="text-xl font-bold uppercase tracking-widest text-white/80">Search Configuration</h2>
+                                    </div>
+                                    <div className="h-px flex-1 ml-10 bg-white/5 hidden md:block" />
+                                </div>
+
+                                <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
+                                    <div className="space-y-8">
+                                        <div className="space-y-4">
+                                            <label className="block text-[10px] uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Data Source</label>
+                                            <div className="relative group/select">
+                                                <select
+                                                    value={actorId}
+                                                    onChange={(e) => {
+                                                        const newActorId = e.target.value;
+                                                        setActorId(newActorId);
+                                                        const venue = ACTOR_VENUES.find(v => v.id === newActorId);
+                                                        if (venue) {
+                                                            setInputJson(JSON.stringify({ url: venue.url }, null, 2));
+                                                        }
+                                                    }}
+                                                    className="w-full rounded-2xl border border-white/10 bg-white/2 p-4 pr-12 text-[13px] font-bold tracking-tight focus:border-accent focus:outline-none text-white/80 appearance-none transition-all cursor-pointer hover:bg-white/5 shadow-inner"
+                                                >
+                                                    {ACTOR_VENUES.map(actor => (
+                                                        <option key={actor.id} value={actor.id} className="bg-[#0c0c0c] text-white">
+                                                            {actor.id.split('/').pop()?.replace('-scraper', '').split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                                                        </option>
+                                                    ))}
+                                                     <option value="custom" className="bg-[#0c0c0c] text-white">-- Custom Data Source --</option>
+                                                </select>
+                                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover/select:text-accent transition-colors">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                                </div>
+                                            </div>
+                                            {actorId === "custom" && (
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter Custom Source ID..."
+                                                    className="mt-4 w-full rounded-2xl border border-white/10 bg-white/2 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/10"
+                                                    onChange={(e) => setActorId(e.target.value)}
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="pt-4">
+                                            <NeonButton
+                                                onClick={handleDiscover}
+                                                disabled={loading}
+                                                variant="lime"
+                                                size="lg"
+                                                className="w-full text-sm! font-bold! tracking-[0.2em]! py-8!"
+                                            >
+                                                {loading ? "Searching..." : "Begin Artist Search"}
+                                            </NeonButton>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <label className="block text-[10px] uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Search Parameters (JSON)</label>
+                                        <div className="relative group/textarea">
+                                            <div className="absolute -inset-0.5 bg-accent/5 rounded-[24px] blur-sm opacity-0 group-hover/textarea:opacity-100 transition-opacity" />
+                                            <textarea
+                                                value={inputJson}
+                                                onChange={(e) => setInputJson(e.target.value)}
+                                                className="relative h-[200px] w-full rounded-[24px] border border-white/10 bg-black/40 p-6 text-[12px] font-sans font-medium text-white/70 focus:text-accent focus:border-accent focus:outline-none resize-none custom-scrollbar transition-all"
+                                                placeholder='{ "url": "..." }'
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                <div className="flex items-center justify-between pb-6 border-b border-white/5">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-2 w-2 bg-accent neon-glow rounded-full animate-pulse" />
+                                        <h2 className="text-xl font-bold uppercase tracking-widest text-white/80">Tag Search</h2>
+                                    </div>
+                                    <div className="h-px flex-1 ml-10 bg-white/5 hidden md:block" />
+                                </div>
+
+                                <div className="space-y-8 max-w-2xl">
+                                    <div className="space-y-4">
+                                        <label className="block text-[10px] uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Target Hashtag</label>
+                                        <div className="relative group/hashtag">
+                                            <div className="absolute -inset-0.5 bg-accent/5 rounded-[32px] blur-sm opacity-0 group-hover/hashtag:opacity-100 transition-opacity" />
+                                            <input
+                                                type="text"
+                                                value={instagramTag}
+                                                onChange={(e) => setInstagramTag(e.target.value)}
+                                                onFocus={() => setShowHistory(true)}
+                                                onBlur={() => setTimeout(() => setShowHistory(false), 200)}
+                                                placeholder="@handle or #hashtag"
+                                                className="relative w-full px-8 py-6 rounded-[32px] bg-black/40 border border-white/10 text-white text-3xl font-bold tracking-tight placeholder:text-white/5 focus:text-accent focus:border-accent focus:outline-none transition-all shadow-2xl"
+                                            />
+
+                                            {/* History Dropdown */}
+                                            {showHistory && searchHistory.length > 0 && (
+                                                <div className="absolute left-0 right-0 top-full mt-4 z-50 overflow-hidden rounded-[24px] border border-white/10 bg-[#0d0d12]/95 backdrop-blur-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <div className="p-2">
+                                                        <div className="px-4 py-2 border-b border-white/5 mb-1">
+                                                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Recently Searched</span>
+                                                        </div>
+                                                        {searchHistory.map((term, i) => (
+                                                            <button
+                                                                key={i}
+                                                                onClick={() => {
+                                                                    setInstagramTag(term);
+                                                                    setShowHistory(false);
+                                                                }}
+                                                                className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/5 hover:text-accent text-[14px] font-bold tracking-tight text-white/60 transition-all group/item"
+                                                            >
+                                                                <span>{term}</span>
+                                                                <span className="text-[9px] font-bold uppercase tracking-widest text-white/10 opacity-0 group-hover/item:opacity-100 transition-opacity">Search</span>
+                                                            </button>
+                                                        ))}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSearchHistory([]);
+                                                                localStorage.removeItem("ss_search_history");
+                                                            }}
+                                                            className="w-full mt-1 px-4 py-2 text-[8px] font-bold uppercase tracking-widest text-white/10 hover:text-red-400/40 text-center transition-colors"
+                                                        >
+                                                            Clear History
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="space-y-4">
+                                        <label className="block text-[10px] uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Discovery Limit</label>
+                                        <div className="grid grid-cols-4 gap-4">
+                                            {[50, 100, 250, 500].map((limit) => (
+                                                <button
+                                                    key={limit}
+                                                    onClick={() => setExpectedResults(limit)}
+                                                    className={`px-4 py-4 rounded-2xl border text-[11px] font-bold uppercase tracking-[0.2em] transition-all ${expectedResults === limit ? "bg-accent/20 border-accent text-accent shadow-[0_0_20px_rgba(0,242,255,0.1)]" : "bg-white/2 border-white/5 text-white/40 hover:bg-white/5"}`}
+                                                >
+                                                    {limit} Items
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-6">
+                                        <NeonButton
+                                            onClick={handleDiscover}
+                                            disabled={loading}
+                                            variant="lime"
+                                            size="lg"
+                                            className="w-full text-sm! font-bold! tracking-[0.2em]! py-8!"
+                                        >
+                                            {loading ? "Searching..." : "Begin Artist Search"}
+                                        </NeonButton>
+                                    </div>
+                                </div>
                             </div>
                         )}
-
-                        <div className="grid gap-8 lg:grid-cols-2">
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="block text-[10px] uppercase font-bold tracking-widest text-muted mb-2">Venue Protocol</label>
-                                    <select
-                                        value={actorId}
-                                        onChange={(e) => {
-                                            const newActorId = e.target.value;
-                                            setActorId(newActorId);
-                                            const venue = ACTOR_VENUES.find(v => v.id === newActorId);
-                                            if (venue) {
-                                                setInputJson(JSON.stringify({ url: venue.url }, null, 2));
-                                            }
-                                        }}
-                                        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-sm focus:border-accent focus:outline-none text-white appearance-none transition-all cursor-pointer hover:bg-white/10"
-                                    >
-                                        {ACTOR_VENUES.map(actor => (
-                                            <option key={actor.id} value={actor.id} className="bg-surface">{actor.id.replace('spectral-soundworks/', '')}</option>
-                                        ))}
-                                        <option value="custom" className="bg-surface">-- Custom Protocol --</option>
-                                    </select>
-                                    {actorId === "custom" && (
-                                        <input
-                                            type="text"
-                                            placeholder="Enter actor handle..."
-                                            className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 p-3 text-sm focus:border-accent focus:outline-none"
-                                            onChange={(e) => setActorId(e.target.value)}
-                                        />
-                                    )}
-                                </div>
-                                <div className="flex justify-start">
-                                    <NeonButton
-                                        onClick={handleDiscover}
-                                        disabled={loading}
-                                        variant="cyan"
-                                        size="lg"
-                                        className="w-full sm:w-auto"
-                                    >
-                                        {loading ? "Initializing..." : "Execute Scan"}
-                                    </NeonButton>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-[10px] uppercase font-bold tracking-widest text-muted mb-2">Parameters (JSON)</label>
-                                <textarea
-                                    value={inputJson}
-                                    onChange={(e) => setInputJson(e.target.value)}
-                                    className="h-[148px] w-full rounded-xl border border-white/10 bg-white/5 p-4 text-xs font-mono focus:border-accent focus:outline-none resize-none scrollbar-hide"
-                                    placeholder='{ "url": "..." }'
-                                />
-                            </div>
-                        </div>
                     </GlassCard>
 
                     {polling && (
-                        <GlassCard className="space-y-6 border-accent/20">
-                            <div className="flex justify-between items-end">
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Active Transmission</p>
-                                    <h3 className="text-lg font-bold">Status: {pollStatus}</h3>
+                        <GlassCard className="p-8! border-accent/20 animate-pulse-subtle bg-accent/2">
+                            <div className="flex justify-between items-end mb-8">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-accent animate-ping" />
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent">Searching for Artists</p>
+                                    </div>
+                                    <h3 className="text-2xl font-bold tracking-tight">Status: <span className="premium-gradient-text italic">{pollStatus}</span></h3>
                                 </div>
-                                <div className="flex flex-col items-end">
-                                    <span className="text-2xl font-mono text-foreground">{pollItemCount}</span>
-                                    <span className="text-[8px] uppercase tracking-tighter text-muted">Objects Cached</span>
-                                </div>
+                                 <div className="flex flex-col items-end">
+                                     <span className="text-4xl font-sans font-bold text-white leading-none tracking-tighter">{pollItemCount}</span>
+                                     <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/20 mt-2">New Artists</span>
+                                 </div>
                             </div>
-                            <div className="relative w-full bg-white/5 overflow-hidden h-2 rounded-full border border-white/5">
+                            <div className="relative w-full bg-white/5 overflow-hidden h-3 rounded-full border border-white/5 p-0.5">
                                 <div
-                                    className="bg-accent h-full rounded-full transition-all duration-500 ease-out neon-glow"
+                                    className="bg-accent h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]"
                                     style={{ width: `${Math.min(100, (pollItemCount / expectedResults) * 100)}%` }}
                                 ></div>
                             </div>
-                            <p className="text-[10px] text-muted text-center italic tracking-widest uppercase">
-                                Syncing with remote data streams... encryption in progress...
-                            </p>
+                            <div className="flex items-center justify-between mt-6">
+                                 <p className="text-[9px] text-white/30 font-bold tracking-[0.2em] uppercase">
+                                     Analyzing profiles and event data...
+                                 </p>
+                            </div>
                         </GlassCard>
                     )}
 
                     {!polling && results.length > 0 && (
-                        <section className="space-y-6">
-                            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                                <div className="flex items-center gap-3">
+                        <section className="space-y-8 animate-in fade-in duration-700">
+                            <div className="flex items-center justify-between border-b border-white/5 pb-8 mb-4">
+                                <div className="flex items-center gap-4">
                                     <div className="h-2 w-2 bg-accent neon-glow rounded-full" />
-                                    <h2 className="text-xl font-bold tracking-tight uppercase">
-                                        Scan Output ({results.length})
-                                    </h2>
+                                     <h2 className="text-xl font-bold uppercase tracking-[0.2em] text-white/80">
+                                         Search Results <span className="text-accent/40 ml-2 font-sans">[{results.length}]</span>
+                                     </h2>
                                 </div>
                                 <div className="flex gap-4">
                                     <NeonButton
@@ -351,76 +622,90 @@ export default function DiscoverPage() {
                                         disabled={sifting}
                                         variant="outline"
                                         size="sm"
+                                        className="text-[10px]! tracking-[0.2em]! px-6!"
                                     >
-                                        {sifting ? "Processing..." : "AI Sift"}
+                                        {sifting ? "Sifting..." : "Smart Selection"}
                                     </NeonButton>
                                     <NeonButton
                                         onClick={handleImport}
                                         disabled={selectedIndices.size === 0 || importing}
-                                        variant="cyan"
+                                        variant="lime"
                                         size="sm"
+                                        className="text-[10px]! tracking-[0.2em]! px-6!"
                                     >
-                                        {importing ? `Importing [${importProgress}/${selectedIndices.size}]` : `Ingest Selected (${selectedIndices.size})`}
+                                        {importing ? `Importing [${importProgress}/${selectedIndices.size}]` : `Import Selected (${selectedIndices.size})`}
                                     </NeonButton>
                                 </div>
                             </div>
 
-                            <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left text-xs">
-                                        <thead className="bg-white/5 text-[10px] uppercase font-bold tracking-widest text-muted">
+                            <div className="overflow-hidden rounded-[40px] border border-white/5 bg-white/2 backdrop-blur-md shadow-2xl">
+                                <div className="overflow-x-auto custom-scrollbar">
+                                    <table className="w-full text-left">
+                                        <thead className="bg-white/5 text-[10px] uppercase font-bold tracking-[0.3em] text-white/20">
                                             <tr>
-                                                <th className="px-6 py-4">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedIndices.size === results.length}
-                                                        onChange={toggleAll}
-                                                        className="rounded border-white/20 bg-transparent cursor-pointer"
-                                                    />
+                                                <th className="px-8 py-6">
+                                                    <div className="flex items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedIndices.size === results.length}
+                                                            onChange={toggleAll}
+                                                            className="h-4 w-4 rounded-lg border-white/10 bg-black/40 text-accent focus:ring-accent/20 cursor-pointer transition-all"
+                                                        />
+                                                    </div>
                                                 </th>
-                                                <th className="px-6 py-4 text-accent/60">Entity / Identity</th>
-                                                <th className="px-6 py-4">Momentum</th>
-                                                <th className="px-6 py-4">Intelligence Snippet</th>
-                                                <th className="px-6 py-4">Source</th>
+                                                <th className="px-8 py-6">Artist</th>
+                                                <th className="px-8 py-6 text-right">Source</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-white/5">
+                                        <tbody className="divide-y divide-white/2 space-y-2">
                                             {results.map((item, i) => {
-                                                const name = item.fullName || item.title || item.name || item.artist || item.musician || item.band || item.artistName;
-                                                const isUnknown = !name;
-                                                const displayName = name || "Unknown Entity";
-                                                const handle = item.username || item.handle || "-";
-                                                const bioSnipppet = (item.biography || item.bio || item.description || "").substring(0, 80);
-                                                const url = item.url || item.eventURL || "-";
+                                                const rawName = item.ownerUsername || item.username || item.artist || item.fullName || item.title || item.name || item.musician || item.band || item.artistName;
+                                                const isUnknown = !rawName;
+                                                const displayName = rawName || (item.shortCode ? `Post ${item.shortCode}` : "Unknown Artist");
+                                                const handle = item.ownerUsername || item.username || item.handle || item.instagramHandle || "No Handle";
+                                                const bioSnipppet = (item.biography || item.bio || item.description || item.caption || "").substring(0, 100);
+                                                const url = item.shortCode ? `https://www.instagram.com/p/${item.shortCode}` : (item.url || item.eventUrl || item.eventURL || item.link || "-");
 
                                                 return (
                                                     <tr
                                                         key={i}
-                                                        className={`transition-colors ${selectedIndices.has(i) ? "bg-accent/5" : "hover:bg-white/5"}`}
+                                                        className={`transition-all duration-300 group ${selectedIndices.has(i) ? "bg-accent/3" : "hover:bg-white/3"}`}
                                                     >
-                                                        <td className="px-6 py-4">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedIndices.has(i)}
-                                                                onChange={() => toggleSelection(i)}
-                                                                className="rounded border-white/20 bg-transparent text-accent cursor-pointer"
-                                                            />
+                                                        <td className="px-8 py-6">
+                                                            <div className="flex items-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedIndices.has(i)}
+                                                                    onChange={() => toggleSelection(i)}
+                                                                    className="h-4 w-4 rounded-lg border-white/10 bg-black/40 text-accent focus:ring-accent/20 cursor-pointer transition-all"
+                                                                />
+                                                            </div>
                                                         </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="font-bold text-foreground text-sm tracking-tight">{displayName}</div>
-                                                            <div className="text-[10px] font-mono text-muted/60">{handle}</div>
-                                                        </td>
-                                                        <td className="px-6 py-4 font-mono text-accent/80">{item.followersCount?.toLocaleString() || "-"}</td>
-                                                        <td className="px-6 py-4 text-muted max-w-xs truncate italic">
-                                                            {bioSnipppet}{bioSnipppet.length >= 80 && "..."}
-                                                        </td>
-                                                        <td className="px-6 py-4">
+                                                        <td className="px-8 py-6">
+                                                             <div className="space-y-1">
+                                                                 <div className="font-bold text-white/90 text-[14px] tracking-tight group-hover:text-accent transition-colors">{displayName}</div>
+                                                                 {handle !== "No Handle" && (
+                                                                     <div className="text-[9px] font-bold font-sans text-white/20 uppercase tracking-[0.2em]">@{handle.replace('@', '')}</div>
+                                                                 )}
+                                                             </div>
+                                                         </td>
+                                                         <td className="px-8 py-6 text-right">
                                                             {isUnknown ? (
-                                                                <button className="text-[9px] uppercase font-bold tracking-tighter text-muted hover:text-foreground">Inspect Data</button>
+                                                                <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest">NO DATA</span>
                                                             ) : (
                                                                 url !== "-" ? (
-                                                                    <a href={url} target="_blank" rel="noreferrer" className="text-accent hover:text-highlight underline underline-offset-4 decoration-accent/30 font-bold uppercase tracking-widest text-[9px]">Uplink</a>
-                                                                ) : <span className="text-muted/40 font-mono">-</span>
+                                                                    <a 
+                                                                        href={url} 
+                                                                        target="_blank" 
+                                                                        rel="noreferrer" 
+                                                                        className="inline-flex items-center gap-2 text-accent/60 hover:text-accent font-bold uppercase tracking-[0.3em] text-[9px] transition-all group/link"
+                                                                    >
+                                                                        {url.includes('ticketmaster') || url.includes('event') ? 'View Event' : 'View Profile'}
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                                                                    </a>
+                                                                ) : (
+                                                                    <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest">No Link</span>
+                                                                )
                                                             )}
                                                         </td>
                                                     </tr>

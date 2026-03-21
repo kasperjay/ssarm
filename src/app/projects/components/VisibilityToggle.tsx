@@ -22,12 +22,12 @@ export default function VisibilityToggle({
                 });
             }}
             disabled={isPending}
-            className={`px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider transition-all disabled:opacity-50 ${isPublic
-                    ? "bg-[var(--primary)]/10 text-[var(--primary)]"
-                    : "bg-white/5 text-white/40"
+            className={`px-3 py-1 rounded-xl text-[9px] uppercase font-bold tracking-[0.2em] transition-all border disabled:opacity-50 ${isPublic
+                    ? "bg-accent/10 text-accent border-accent/20 neon-glow-pink"
+                    : "bg-white/5 text-white/20 border-white/5 hover:border-white/10 hover:text-white/40"
                 }`}
         >
-            {isPublic ? "Public" : "Draft"}
+            {isPending ? "Sycing..." : isPublic ? "PUBLIC_SECTOR" : "PRIVATE_NODE"}
         </button>
     );
 }

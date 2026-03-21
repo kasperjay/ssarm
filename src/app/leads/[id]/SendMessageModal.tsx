@@ -10,7 +10,8 @@ type SendMessageModalProps = {
   label: string;
   defaultBody?: string;
   source?: string;
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "ghost" | "lime" | "amber" | "pink" | "outline";
+  className?: string;
 };
 
 export default function SendMessageModal({
@@ -19,6 +20,7 @@ export default function SendMessageModal({
   defaultBody = "",
   source,
   variant = "ghost",
+  className = "",
 }: SendMessageModalProps) {
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState(defaultBody);
@@ -46,9 +48,10 @@ export default function SendMessageModal({
   return (
     <>
       <NeonButton
-        variant={variant === "primary" ? "cyan" : "outline"}
+        variant={variant === "primary" ? "lime" : variant}
         size="sm"
         onClick={openModal}
+        className={className}
       >
         {label}
       </NeonButton>
@@ -58,8 +61,8 @@ export default function SendMessageModal({
             <GlassCard variant="strong" className="p-8 space-y-6">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Transmission Interface</p>
-                  <h3 className="text-xl font-bold tracking-tight">Outgoing Communication</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Message Editor</p>
+                  <h3 className="text-xl font-bold tracking-tight">Outgoing Message</h3>
                 </div>
                 <button
                   type="button"
@@ -72,14 +75,14 @@ export default function SendMessageModal({
 
               {error ? (
                 <div className="rounded-xl border border-error/20 bg-error/10 p-4 text-[10px] font-bold text-error uppercase tracking-widest">
-                  [ Critical Failure ]: {error}
+                  Error: {error}
                 </div>
               ) : null}
 
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted">Message Payload</label>
-                  <span className="text-[10px] font-mono text-muted/50">{body.length} CHR</span>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted">Message Content</label>
+                  <span className="text-[10px] font-sans font-bold text-muted/50">{body.length} Characters</span>
                 </div>
                 <textarea
                   value={body}
@@ -88,7 +91,7 @@ export default function SendMessageModal({
                   className="w-full rounded-2xl border border-white/10 bg-black/40 p-5 text-sm leading-relaxed text-foreground/90 outline-none focus:border-accent transition-colors resize-none scrollbar-hide font-serif italic"
                 />
                 <p className="text-[10px] text-muted italic">
-                  Transmission will be logged to activity history. AI analysis will scan for efficacy.
+                  Messages are logged to activity history for relationship tracking.
                 </p>
               </div>
 
@@ -98,15 +101,15 @@ export default function SendMessageModal({
                   onClick={() => setOpen(false)}
                   className="px-6 py-2 text-xs font-bold uppercase tracking-widest text-muted hover:text-foreground transition-colors"
                 >
-                  Abort
+                  Cancel
                 </button>
                 <NeonButton
                   disabled={isPending}
                   onClick={handleSubmit}
-                  variant="cyan"
+                  variant="lime"
                   size="lg"
                 >
-                  {isPending ? "Syncing..." : "Execute Uplink"}
+                  {isPending ? "Sending..." : "Send Message"}
                 </NeonButton>
               </div>
             </GlassCard>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
+import { formatRelativeDate } from "@/lib/utils";
 
 export default async function DraftsPage() {
     const drafts = await prisma.messageDraft.findMany({
@@ -17,81 +18,114 @@ export default async function DraftsPage() {
     });
 
     return (
-        <div className="relative min-h-screen pb-20">
-            <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12">
-                <header className="relative w-full">
-                    <div className="flex flex-col gap-4 border-b border-white/10 pb-8">
-                        <Link
-                            href="/"
-                            className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors"
-                        >
-                            <span className="transition-transform group-hover:-translate-x-1">←</span> Command Center
-                        </Link>
-                        <div className="flex items-center justify-between">
-                            <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
-                                Neural Queues
+        <div className="relative min-h-screen bg-transparent">
+            
+            <div className="mx-auto max-w-7xl space-y-12 px-6 py-24">
+                <header className="flex flex-col gap-8 relative">
+                    <div className="absolute -top-24 -right-24 h-96 w-96 bg-accent-warm/10 blur-[120px] rounded-full pointer-events-none" />
+                    
+                    <div className="flex flex-wrap items-end justify-between gap-8 pb-10 border-b border-white/5 relative z-10">
+                        <div className="space-y-4">
+                            <Link href="/" className="inline-flex items-center gap-2 group text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all">
+                                <span className="transition-transform group-hover:-translate-x-1 text-lg leading-none">←</span> 
+                                Dashboard
+                            </Link>
+                            <h1 className="font-display text-5xl font-bold tracking-tighter md:text-6xl lg:text-7xl">
+                                Message <span className="premium-gradient-text-warm italic">Drafts</span>
                             </h1>
-                            <div className="text-right">
-                                <span className="block text-[10px] font-mono text-muted uppercase tracking-widest">Buffer Status</span>
-                                <span className="text-sm font-bold text-accent">{drafts.length} ACTIVE_DRAFTS</span>
+                            <p className="text-white/40 text-sm max-w-lg font-medium leading-relaxed">
+                                Review and refine suggested outreach messages for identified artists before sending.
+                            </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 bg-white/2 backdrop-blur-sm border border-white/5 p-6 rounded-[32px]">
+                            <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Pending Review</span>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-4xl font-sans font-extrabold text-accent-warm">{drafts.length}</span>
+                                <span className="text-[10px] font-bold text-white/10 uppercase tracking-widest">Drafts</span>
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <main className="space-y-8">
+                <main className="space-y-10 relative z-10">
                     {drafts.length === 0 ? (
-                        <GlassCard className="py-20 text-center">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted">No neural drafts detected in the buffer.</p>
-                            <Link href="/leads/discovery" className="mt-6 inline-block">
-                                <NeonButton variant="outline">Initiate Discovery</NeonButton>
-                            </Link>
+                        <GlassCard className="py-24 text-center p-12!">
+                            <div className="mb-8 inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/2 border border-dashed border-white/10">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/10"><path d="m21 16-4-4-4 4"/><path d="M17 12V3"/><path d="M10 3 6 7l4 4"/><path d="M6 3v9"/><path d="M4 14.7a10 10 0 1 0 15.6 0"/></svg>
+                            </div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 max-w-sm mx-auto leading-relaxed">
+                                No message drafts currently available. Create new searches to generate suggestions.
+                            </p>
+                            <div className="mt-10">
+                                <Link href="/leads/discover">
+                                    <NeonButton variant="amber" size="lg" className="px-10! text-[10px]! tracking-[0.2em]! font-bold!">
+                                        START SEARCH
+                                    </NeonButton>
+                                </Link>
+                            </div>
                         </GlassCard>
                     ) : (
-                        <div className="grid gap-6">
+                        <div className="grid gap-8">
                             {drafts.map((draft) => (
                                 <GlassCard
                                     key={draft.id}
-                                    className="group p-8! transition-all hover:border-accent/30"
+                                    className="group p-10! transition-all hover:bg-white/4 border-white/5 hover:border-accent-warm/30 shadow-2xl"
                                 >
-                                    <div className="flex flex-wrap items-start justify-between gap-6 mb-8 border-b border-white/5 pb-6">
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted">Target Entity</span>
-                                            <h3 className="text-2xl font-bold tracking-tight text-foreground">
+                                    <div className="flex flex-wrap items-start justify-between gap-8 mb-10 border-b border-white/5 pb-10">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-accent-warm" />
+                                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Recipient</span>
+                                            </div>
+                                            <h3 className="text-3xl font-bold tracking-tighter">
                                                 <Link
                                                     href={`/leads/${draft.leadId}`}
-                                                    className="hover:text-accent transition-colors underline decoration-accent/20 decoration-2 underline-offset-4"
+                                                    className="premium-gradient-text-warm hover:brightness-125 transition-all decoration-accent-warm/20 underline underline-offset-8 decoration-1"
                                                 >
                                                     {draft.lead.artist.name}
                                                 </Link>
                                             </h3>
-                                            <p className="text-[10px] font-mono text-muted uppercase tracking-widest">
-                                                LOC: {draft.lead.artist.city || "REMOTE_NODE"} // ZONE: {draft.lead.artist.country || "GLOBAL"}
-                                            </p>
+                                            <div className="flex items-center gap-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">
+                                                <span>Location: {draft.lead.artist.city || "Remote"}</span>
+                                                <span className="h-1 w-1 rounded-full bg-white/10" />
+                                                <span>Region: {draft.lead.artist.country || "Global"}</span>
+                                            </div>
                                         </div>
 
-                                        <div className="flex flex-col items-end gap-2">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted">Acoustic Mode</span>
-                                            <div className="px-3 py-1 rounded-lg bg-accent/10 border border-accent/20 text-[10px] font-bold uppercase tracking-widest text-accent">
-                                                MODE_{draft.tone || "GENERAL"}
+                                        <div className="flex flex-col items-end gap-3">
+                                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Message Tone</span>
+                                            <div className="px-4 py-2 rounded-xl bg-accent-warm/5 border border-accent-warm/20 text-[10px] font-bold uppercase tracking-[0.2em] text-accent-warm">
+                                                {draft.tone || "General"}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="relative group/body">
-                                        <div className="absolute -inset-4 bg-white/2 rounded-2xl opacity-0 group-hover/body:opacity-100 transition-opacity" />
-                                        <div className="relative font-serif italic text-lg leading-relaxed text-foreground/80 pl-4 border-l-2 border-accent/30">
-                                            "{draft.body}"
-                                        </div>
+                                    <div className="relative group/body p-8 rounded-[32px] bg-white/2 border border-white/5 hover:border-white/10 transition-all overflow-hidden mb-10">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-accent-warm/40" />
+                                        <p className="relative font-serif italic text-xl leading-relaxed text-white/60 pl-4">
+                                            &quot;{draft.body}&quot;
+                                        </p>
                                     </div>
 
-                                    <div className="mt-8 flex items-center justify-between pt-6 border-t border-white/5">
-                                        <span className="text-[8px] font-mono text-muted uppercase tracking-widest">
-                                            GEN_TS: {new Date(draft.createdAt).toLocaleTimeString()} // DRAFT_HASH_{draft.id.slice(-6).toUpperCase()}
-                                        </span>
+                                    <div className="flex items-center justify-between pt-8 border-t border-white/5">
+                                        <div className="flex items-center gap-6">
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">Created At</span>
+                                                <span className="text-[10px] font-sans font-bold text-white/40 uppercase tracking-widest">
+                                                    {formatRelativeDate(draft.createdAt)}
+                                                </span>
+                                            </div>
+                                            <div className="h-8 w-px bg-white/5" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">Draft ID</span>
+                                                <span className="text-[10px] font-sans font-bold text-white/40 uppercase tracking-widest">
+                                                    #{draft.id.slice(-8).toUpperCase()}
+                                                </span>
+                                            </div>
+                                        </div>
                                         <Link href={`/leads/${draft.leadId}`}>
-                                            <NeonButton variant="cyan" size="sm">
-                                                ACCESS_UPLINK →
+                                            <NeonButton variant="pink" size="lg" className="text-[10px]! tracking-[0.2em]! font-bold! px-10!">
+                                                View Profile →
                                             </NeonButton>
                                         </Link>
                                     </div>

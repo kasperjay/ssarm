@@ -8,7 +8,7 @@
 
 require("dotenv").config();
 const { ApifyClient } = require("apify-client");
-const { PrismaClient } = require("../src/generated/prisma");
+const { PrismaClient } = require("../prisma/generated-client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 

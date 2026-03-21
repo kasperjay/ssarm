@@ -18,12 +18,12 @@ export default function CopyButton({ text }: { text: string }) {
     return (
         <button
             onClick={handleCopy}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${copied
-                    ? "bg-[var(--accent)] text-black"
-                    : "bg-[var(--surface-strong)] text-[var(--foreground)] hover:bg-[var(--primary)] hover:text-[var(--background)]"
+            className={`px-4 py-2 rounded-xl text-[9px] uppercase font-bold tracking-[0.2em] transition-all border shadow-lg ${copied
+                    ? "bg-accent/20 text-accent border-accent/40 neon-glow-pink"
+                    : "bg-white/5 text-white/40 border-white/5 hover:border-white/20 hover:text-white/60"
                 }`}
         >
-            {copied ? "Copied!" : "Copy Link"}
+            {copied ? "COPIED_TO_BUFFER" : "COPY_ACCESS_LINK"}
         </button>
     );
 }

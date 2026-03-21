@@ -11,10 +11,10 @@ export async function POST(request: Request) {
             );
         }
 
-        const token = process.env.APIFY_ORG_TOKEN;
+        const token = process.env.APIFY_ORG_TOKEN || process.env.APIFY_TOKEN;
         if (!token) {
             return NextResponse.json(
-                { error: "APIFY_ORG_TOKEN environment variable not set." },
+                { error: "APIFY_TOKEN or APIFY_ORG_TOKEN environment variable not set." },
                 { status: 500 }
             );
         }
@@ -40,18 +40,39 @@ export async function POST(request: Request) {
         if (status === "SUCCEEDED") {
             // Fetch all items when done
             const datasetList = await client.dataset(datasetId).listItems();
-            items = datasetList.items;
+            const rawItems = datasetList.items;
+
+            // Deeply flatten if results are nested in numbered keys (common in some custom scrapers)
+            // Example: [{"0": {artist: "X"}, "1": {artist: "Y"}}] -> [{artist: "X"}, {artist: "Y"}]
+            if (rawItems.length === 1 && typeof rawItems[0] === 'object' && rawItems[0] !== null) {
+                const first = rawItems[0];
+                const keys = Object.keys(first);
+                const allNumeric = keys.length > 0 && keys.every(k => !isNaN(Number(k)));
+                
+                if (allNumeric) {
+                    items = Object.values(first);
+                } else {
+                    items = rawItems;
+                }
+            } else {
+                items = rawItems;
+            }
         }
 
         return NextResponse.json({
             status,
-            itemCount,
+            itemCount: items.length > 0 ? items.length : itemCount,
             items
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("/api/discover/status error", error);
-        const detail = error instanceof Error ? error.message : String(error);
+        
+        let detail = error.message || String(error);
+        if (error.response?.body) {
+            detail += ` | Response: ${typeof error.response.body === 'string' ? error.response.body.substring(0, 500) : JSON.stringify(error.response.body)}`;
+        }
+
         return NextResponse.json(
             { error: "Failed to check actor status", detail },
             { status: 500 }

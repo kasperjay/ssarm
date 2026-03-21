@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { discoverEmailsFromUrls, extractEmailsFromTextSafe, mergeEmails } from "@/lib/email";
 import { fetchInstagramPosts, fetchInstagramProfile } from "@/lib/instagram";
 import { fetchSpotifyArtistProfile, fetchSpotifyReleases } from "@/lib/spotify";
-import { discoverInstagramHandle } from "@/lib/google-search";
+import { discoverInstagramHandle, discoverSpotifyArtistId } from "@/lib/google-search";
 import { scoreLead } from "@/lib/scoring";
 import sharp from "sharp";
 
@@ -401,13 +401,20 @@ export async function POST(request: Request) {
       }
     });
 
-    // If this is a new scraper upload and the artist already exists, skip everything saving API calls
+    // If this is a new scraper upload and the artist already exists AND has recent data, skip to save API calls
+    // But if they are missing critical data like spotifyId or profile pic, we proceed.
     if (payload.isDiscoveryImport && existingArtist) {
-      return NextResponse.json({
-        artistId: existingArtist.id,
-        leadId: existingArtist.leads?.[0]?.id,
-        status: "skipped_duplicate"
-      });
+      const hasSpotify = !!existingArtist.spotifyArtistId;
+      const hasPic = !!existingArtist.instagramProfileImageUrl;
+      const isRecent = existingArtist.updatedAt > new Date(Date.now() - 24 * 60 * 60 * 1000);
+      
+      if (hasSpotify && hasPic && isRecent) {
+        return NextResponse.json({
+          artistId: existingArtist.id,
+          leadId: existingArtist.leads?.[0]?.id,
+          status: "skipped_recent_duplicate"
+        });
+      }
     }
 
     if (!instagramHandle) {
@@ -419,15 +426,34 @@ export async function POST(request: Request) {
       }
     }
 
+    let resolvedSpotifyArtistId = spotifyArtistId;
+    if (!resolvedSpotifyArtistId) {
+      console.log(`[Ingest] Missing Spotify ID for ${name}. Attempting to auto-discover...`);
+      const discovered = await discoverSpotifyArtistId(name);
+      if (discovered) {
+        console.log(`[Ingest] Discovered Spotify ID ${discovered} for ${name}`);
+        resolvedSpotifyArtistId = discovered;
+      } else {
+        console.log(`[Ingest] NO Spotify ID found for ${name}`);
+      }
+    }
+
     const skipInstagramFetch = payload.skipInstagramFetch === true;
     const skipSpotifyFetch = payload.skipSpotifyFetch === true;
     const [scrapedInstagramPosts, scrapedInstagramProfile] =
       instagramHandle && !skipInstagramFetch
         ? await Promise.all([
-          fetchInstagramPosts(instagramHandle),
-          fetchInstagramProfile(instagramHandle),
+          fetchInstagramPosts(instagramHandle).catch(e => { console.error(`[Ingest] IG Posts fetch failed for @${instagramHandle}:`, e); return undefined; }),
+          fetchInstagramProfile(instagramHandle).catch(e => { console.error(`[Ingest] IG Profile fetch failed for @${instagramHandle}:`, e); return null; }),
         ])
         : [undefined, null];
+    
+    if (scrapedInstagramProfile) {
+        console.log(`[Ingest] Scraped IG Profile for @${instagramHandle}:`, {
+            followers: scrapedInstagramProfile.followersCount,
+            hasPic: !!scrapedInstagramProfile.profileImageUrl
+        });
+    }
     const resolvedInstagramPosts = mergeInstagramPosts(
       payload.instagramPosts,
       scrapedInstagramPosts
@@ -437,15 +463,22 @@ export async function POST(request: Request) {
       10
     );
     const [spotifyProfile, spotifyReleases] =
-      spotifyArtistId && !skipSpotifyFetch
+      resolvedSpotifyArtistId && !skipSpotifyFetch
         ? await Promise.all([
-          fetchSpotifyArtistProfile(spotifyArtistId),
+          fetchSpotifyArtistProfile(resolvedSpotifyArtistId).catch(e => { console.error(`[Ingest] Spotify Profile fetch failed for ${resolvedSpotifyArtistId}:`, e); return null; }),
           fetchSpotifyReleases(
-            spotifyArtistId,
+            resolvedSpotifyArtistId,
             Number.isFinite(spotifyReleaseLimit) ? spotifyReleaseLimit : 6
-          ),
+          ).catch(e => { console.error(`[Ingest] Spotify Releases fetch failed for ${resolvedSpotifyArtistId}:`, e); return []; }),
         ])
         : [null, []];
+
+    if (spotifyProfile) {
+        console.log(`[Ingest] Scraped Spotify Profile for ${resolvedSpotifyArtistId}:`, {
+            name: spotifyProfile.name,
+            hasPic: !!spotifyProfile.imageUrl
+        });
+    }
 
     const resolvedSpotifyArtistUrl =
       spotifyArtistUrl ?? spotifyProfile?.url ?? existingArtist?.spotifyArtistUrl ?? null;
@@ -453,7 +486,7 @@ export async function POST(request: Request) {
       spotifyImageUrl ??
       existingArtist?.spotifyImageUrl ??
       spotifyProfile?.imageUrl ??
-      (await fetchSpotifyImageUrl(resolvedSpotifyArtistUrl, spotifyArtistId));
+      (await fetchSpotifyImageUrl(resolvedSpotifyArtistUrl, resolvedSpotifyArtistId));
     const computedAccent = resolvedSpotifyImageUrl
       ? await extractAccentFromImage(resolvedSpotifyImageUrl)
       : null;
@@ -495,6 +528,24 @@ export async function POST(request: Request) {
     ]);
     const resolvedEmailsWithWebsite = mergeEmails(resolvedEmails, scrapedWebsiteEmails);
 
+    const resolvedBio = bio ?? scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? undefined;
+    const maxFollowers = Math.max(
+      followerCount ?? 0,
+      scrapedInstagramProfile?.followersCount ?? 0,
+      existingArtist?.followerCount ?? 0
+    );
+    const resolvedFollowerCount = maxFollowers > 0 ? maxFollowers : undefined;
+    const payloadLastPostAt = toDate(lastPostAt);
+    const scrapedLastPostAt = resolvedInstagramPosts?.[0]?.postedAt ? new Date(resolvedInstagramPosts[0].postedAt) : undefined;
+    const existingLastPostAt = existingArtist?.lastPostAt;
+    const dateOptions = [payloadLastPostAt, scrapedLastPostAt, existingLastPostAt].filter(Boolean) as Date[];
+    const resolvedLastPostAt = dateOptions.length > 0 ? new Date(Math.max(...dateOptions.map(d => d.getTime()))) : undefined;
+    const resolvedGenre = genre ?? spotifyProfile?.genres?.[0] ?? existingArtist?.genre ?? undefined;
+    const resolvedCity = city ?? existingArtist?.city ?? undefined;
+    const resolvedState = state ?? existingArtist?.state ?? undefined;
+    const resolvedCountry = country ?? existingArtist?.country ?? undefined;
+    const resolvedLocation = location ?? existingArtist?.location ?? undefined;
+
     const artist = existingArtist
       ? await prisma.artist.update({
         where: { id: existingArtist.id },
@@ -503,23 +554,23 @@ export async function POST(request: Request) {
           instagramHandle,
           instagramProfileUrl,
           instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
-          spotifyArtistId,
+          spotifyArtistId: resolvedSpotifyArtistId,
           spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
           spotifyImageUrl: resolvedSpotifyImageUrl,
           spotifyAccent: resolvedSpotifyAccent,
           spotifyAccentStrong: resolvedSpotifyAccentStrong,
           spotifyHighlight: resolvedSpotifyHighlight,
           officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
-          location,
-          city,
-          state,
-          country,
-          genre,
+          location: resolvedLocation,
+          city: resolvedCity,
+          state: resolvedState,
+          country: resolvedCountry,
+          genre: resolvedGenre,
           tags: tags ?? undefined,
-          bio,
+          bio: resolvedBio,
           emails: resolvedEmailsWithWebsite,
-          followerCount,
-          lastPostAt: toDate(lastPostAt),
+          followerCount: resolvedFollowerCount,
+          lastPostAt: resolvedLastPostAt,
         },
       })
       : await prisma.artist.create({
@@ -528,23 +579,23 @@ export async function POST(request: Request) {
           instagramHandle,
           instagramProfileUrl,
           instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
-          spotifyArtistId,
+          spotifyArtistId: resolvedSpotifyArtistId,
           spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
           spotifyImageUrl: resolvedSpotifyImageUrl,
           spotifyAccent: resolvedSpotifyAccent,
           spotifyAccentStrong: resolvedSpotifyAccentStrong,
           spotifyHighlight: resolvedSpotifyHighlight,
           officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
-          location,
-          city,
-          state,
-          country,
-          genre,
+          location: resolvedLocation,
+          city: resolvedCity,
+          state: resolvedState,
+          country: resolvedCountry,
+          genre: resolvedGenre,
           tags: tags ?? [],
-          bio,
+          bio: resolvedBio,
           emails: resolvedEmailsWithWebsite,
-          followerCount,
-          lastPostAt: toDate(lastPostAt),
+          followerCount: resolvedFollowerCount,
+          lastPostAt: resolvedLastPostAt,
         },
       });
 
