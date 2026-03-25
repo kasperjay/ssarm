@@ -23,7 +23,7 @@ export default function CopyButton({ text }: { text: string }) {
                     : "bg-white/5 text-white/40 border-white/5 hover:border-white/20 hover:text-white/60"
                 }`}
         >
-            {copied ? "COPIED_TO_BUFFER" : "COPY_ACCESS_LINK"}
+            {copied ? "Copied Link" : "Copy Access Link"}
         </button>
     );
 }

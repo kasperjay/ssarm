@@ -20,7 +20,7 @@
   /* Accents - Vibrant & Sophisticated */
   --accent: #00f2ff;          /* Electric Cyan */
   --accent-secondary: #7000ff; /* Updated - Premium Purple */
-  --accent-warm: #ff2d55;      /* Vibrant Pink */
+  --accent-warm: #bf5af2;      /* Premium Purple - Vibrant and sophisticated */
   --highlight: #ffffff;       /* Pure White Highlight */
   
   /* Semantic */
@@ -91,11 +91,11 @@
   }
 
   .neon-glow-purple {
-    box-shadow: 0 0 30px -5px rgba(191, 90, 242, 0.3), 0 0 10px -4px rgba(191, 90, 242, 0.2);
+    box-shadow: 0 0 30px -5px rgba(112, 0, 255, 0.3), 0 0 10px -4px rgba(112, 0, 255, 0.2);
   }
 
   .neon-glow-pink {
-    box-shadow: 0 0 30px -5px rgba(255, 45, 85, 0.3), 0 0 10px -4px rgba(255, 45, 85, 0.2);
+    box-shadow: 0 0 30px -5px rgba(191, 90, 242, 0.3), 0 0 10px -4px rgba(191, 90, 242, 0.2);
   }
 
   .organic-card {

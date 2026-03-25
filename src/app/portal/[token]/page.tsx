@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import FeedbackForm from "./components/FeedbackForm";
 import CompletionRating from "./components/CompletionRating";
 import { GlassCard } from "@/components/GlassCard";
-import { formatRelativeDate } from "@/lib/utils";
+import { formatRelativeDate, formatTime } from "@/lib/utils";
+import AudioPlayer from "@/app/projects/components/AudioPlayer";
+import { submitFeedback } from "./actions";
 
 export default async function CustomerPortalPage({
     params,
@@ -44,7 +46,7 @@ export default async function CustomerPortalPage({
                         <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tighter text-white">
                             {project.title || "Project Review"}
                         </h1>
-                        <div className="h-px w-24 bg-accent/30 shadow-[0_0_10px_rgba(255,0,128,0.5)]" />
+                        <div className="h-px w-24 bg-accent/30 shadow-[0_0_10px_rgba(0,242,255,0.4)]" />
                         <p className="text-lg text-white/40 max-w-2xl mx-auto font-medium leading-relaxed">
                             Welcome, <span className="text-white/80 uppercase tracking-widest">{project.artist.name}</span>. 
                             Access your latest session files, download final masters, and share your feedback.
@@ -93,6 +95,26 @@ export default async function CustomerPortalPage({
                                                     </div>
                                                 </div>
                                             </GlassCard>
+                                            {file.mimeType.startsWith("audio/") && (
+                                                <AudioPlayer
+                                                    fileUrl={file.url}
+                                                    fileId={file.id}
+                                                    projectId={project.id}
+                                                    token={token}
+                                                    feedbacks={project.feedbacks
+                                                        .filter(fb => fb.fileId === file.id)
+                                                        .map(fb => ({
+                                                            id: fb.id,
+                                                            timestamp: fb.timestamp || 0,
+                                                            content: fb.content
+                                                        }))
+                                                    }
+                                                    onAddFeedback={async (content, timestamp) => {
+                                                        "use server";
+                                                        await submitFeedback(project.id, token, content, file.id, timestamp);
+                                                    }}
+                                                />
+                                            )}
                                         </a>
                                     ))}
                                 </div>
@@ -143,6 +165,26 @@ export default async function CustomerPortalPage({
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                                                 </div>
                                             </GlassCard>
+                                            {file.mimeType.startsWith("audio/") && (
+                                                <AudioPlayer
+                                                    fileUrl={file.url}
+                                                    fileId={file.id}
+                                                    projectId={project.id}
+                                                    token={token}
+                                                    feedbacks={project.feedbacks
+                                                        .filter(fb => fb.fileId === file.id)
+                                                        .map(fb => ({
+                                                            id: fb.id,
+                                                            timestamp: fb.timestamp || 0,
+                                                            content: fb.content
+                                                        }))
+                                                    }
+                                                    onAddFeedback={async (content, timestamp) => {
+                                                        "use server";
+                                                        await submitFeedback(project.id, token, content, file.id, timestamp);
+                                                    }}
+                                                />
+                                            )}
                                         </a>
                                     ))}
                                 </div>
@@ -173,6 +215,11 @@ export default async function CustomerPortalPage({
                                                     <div key={fb.id} className={`p-5 rounded-2xl border transition-all ${fb.resolved ? 'bg-black/20 border-white/5 opacity-30 grayscale' : 'bg-white/4 border-white/10 group/item'}`}>
                                                         <div className="flex justify-between items-start mb-2">
                                                              <span className="text-xs font-sans font-bold text-white/20 uppercase tracking-widest">{formatRelativeDate(fb.createdAt)}</span>
+                                                             {fb.timestamp !== null && (
+                                                                <span className="text-[10px] font-bold text-accent uppercase tracking-widest">
+                                                                    [{formatTime(fb.timestamp)}]
+                                                                </span>
+                                                             )}
                                                         </div>
                                                         <p className="text-xs font-medium text-white/60 leading-relaxed italic">&quot;{fb.content}&quot;</p>
                                                         {fb.resolved && (

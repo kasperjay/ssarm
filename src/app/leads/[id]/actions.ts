@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { LeadStatus } from "local-prisma-client";
 import { generateReachoutDrafts } from "@/lib/reachout";
@@ -535,6 +536,35 @@ export async function updateArtistHandle(state: {
   });
 
   revalidatePath(`/leads/${lead.id}`);
+}
+
+export async function trashLeadAction(formData: FormData) {
+  const leadId = formData.get("leadId");
+  if (typeof leadId !== "string") return;
+
+  const lead = await prisma.lead.findUnique({
+    where: { id: leadId },
+    select: { artistId: true },
+  });
+
+  if (!lead) return;
+
+  // First delete the lead (and its messages/activities via cascade)
+  await prisma.lead.delete({
+    where: { id: leadId },
+  });
+
+  // Then attempt to delete the artist to completely scrub them.
+  try {
+    await prisma.artist.delete({
+      where: { id: lead.artistId },
+    });
+  } catch (err) {
+    console.error(`[trashLeadAction] Failed to delete artist:`, err);
+  }
+
+  revalidatePath("/leads/desk");
+  redirect("/");
 }
 
 export async function updateArtistName(state: {

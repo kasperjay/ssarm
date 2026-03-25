@@ -232,7 +232,9 @@ exports.Prisma.ProjectFeedbackScalarFieldEnum = {
   projectId: 'projectId',
   content: 'content',
   resolved: 'resolved',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  fileId: 'fileId',
+  timestamp: 'timestamp'
 };
 
 exports.Prisma.SortOrder = {

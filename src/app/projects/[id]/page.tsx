@@ -5,10 +5,13 @@ import FileUploadArea from "../components/FileUploadArea";
 import CopyButton from "../components/CopyButton";
 import VisibilityToggle from "../components/VisibilityToggle";
 import ResolveButton from "../components/ResolveButton";
+import DeleteProjectButton from "../components/DeleteProjectButton";
 import { Navbar } from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
 import { StatusPill } from "@/components/StatusPill";
-import { formatRelativeDate } from "@/lib/utils";
+import { formatRelativeDate, formatTime } from "@/lib/utils";
+import AudioPlayer from "../components/AudioPlayer";
+import { addProjectFeedback } from "../actions";
 
 export default async function ProjectDetailPage({
   params,
@@ -47,6 +50,9 @@ export default async function ProjectDetailPage({
                   {project.title || `Project Alpha`}
                 </h1>
                 <StatusPill status={project.status} />
+                <div className="ml-auto md:ml-4">
+                    <DeleteProjectButton projectId={project.id} isDetail={true} />
+                </div>
               </div>
               <p className="text-white/40 text-sm max-w-lg font-medium leading-relaxed">
                 Project overview for <span className="text-accent font-bold uppercase tracking-widest">{project.artist.name}</span>. 
@@ -57,7 +63,7 @@ export default async function ProjectDetailPage({
             <GlassCard className="p-6! border-accent/20 bg-accent/2 min-w-[320px] shadow-2xl">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">
-                  Secure Portal
+                  Client Portal
                 </span>
                 <CopyButton text={portalUrl} />
               </div>
@@ -76,7 +82,7 @@ export default async function ProjectDetailPage({
               </div>
               <div className="flex items-center gap-2 text-xs text-white/20 font-bold uppercase tracking-widest italic px-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-accent/40"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                Portal visibility is currently active
+                Portal is currently active
               </div>
             </GlassCard>
           </div>
@@ -122,9 +128,31 @@ export default async function ProjectDetailPage({
                         "use server";
                         await deleteFileFromProject(file.id, project.id);
                       }}>
-                        <button className="text-[9px] font-bold text-red-500/40 hover:text-red-500 uppercase tracking-widest p-2 transition-colors">Delete</button>
+                        <button className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all group/delbtn">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/delbtn:animate-pulse"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                          Delete
+                        </button>
                       </form>
                     </div>
+                    {file.mimeType.startsWith("audio/") && (
+                        <AudioPlayer
+                            fileUrl={file.url}
+                            fileId={file.id}
+                            projectId={project.id}
+                            feedbacks={project.feedbacks
+                                .filter(fb => fb.fileId === file.id)
+                                .map(fb => ({
+                                    id: fb.id,
+                                    timestamp: fb.timestamp || 0,
+                                    content: fb.content
+                                }))
+                            }
+                            onAddFeedback={async (content, timestamp) => {
+                                "use server";
+                                await addProjectFeedback(project.id, content, file.id, timestamp);
+                            }}
+                        />
+                    )}
                   </GlassCard>
                 ))}
               </div>
@@ -167,9 +195,31 @@ export default async function ProjectDetailPage({
                         "use server";
                         await deleteFileFromProject(file.id, project.id);
                       }}>
-                        <button className="text-[9px] font-bold text-red-500/40 hover:text-red-500 uppercase tracking-widest p-2 transition-colors">DELETE</button>
+                        <button className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all group/delbtn">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/delbtn:animate-pulse"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                          DELETE
+                        </button>
                       </form>
                     </div>
+                    {file.mimeType.startsWith("audio/") && (
+                        <AudioPlayer
+                            fileUrl={`/uploads/${file.key}`}
+                            fileId={file.id}
+                            projectId={project.id}
+                            feedbacks={project.feedbacks
+                                .filter(fb => fb.fileId === file.id)
+                                .map(fb => ({
+                                    id: fb.id,
+                                    timestamp: fb.timestamp || 0,
+                                    content: fb.content
+                                }))
+                            }
+                            onAddFeedback={async (content, timestamp) => {
+                                "use server";
+                                await addProjectFeedback(project.id, content, file.id, timestamp);
+                            }}
+                        />
+                    )}
                   </GlassCard>
                 ))}
               </div>
@@ -217,6 +267,11 @@ export default async function ProjectDetailPage({
                         <span className="text-xs font-sans font-bold text-white/20 uppercase tracking-widest">
                           {formatRelativeDate(fb.createdAt)}
                         </span>
+                        {fb.timestamp !== null && (
+                            <span className="text-[10px] font-bold text-accent uppercase tracking-widest">
+                                [{formatTime(fb.timestamp)}]
+                            </span>
+                        )}
                         {!fb.resolved && <ResolveButton feedbackId={fb.id} projectId={project.id} />}
                       </div>
                       <p className="text-sm font-medium leading-relaxed text-white/70 italic">&quot;{fb.content}&quot;</p>
@@ -233,6 +288,16 @@ export default async function ProjectDetailPage({
             </GlassCard>
           </div>
 
+          {/* Danger Zone */}
+          <div className="mt-20 pt-10 border-t border-red-500/10">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-8 rounded-[32px] bg-red-500/5 border border-red-500/10">
+              <div className="space-y-1 text-center md:text-left">
+                <h3 className="text-red-500 font-bold uppercase tracking-[0.2em] text-sm">Danger Zone</h3>
+                <p className="text-white/40 text-xs font-medium uppercase tracking-widest">Compromise or terminate this project node permanently.</p>
+              </div>
+              <DeleteProjectButton projectId={project.id} isDetail={true} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

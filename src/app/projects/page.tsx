@@ -5,6 +5,7 @@ import CreateProjectForm from "./components/CreateProjectForm";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { StatusPill } from "@/components/StatusPill";
+import DeleteProjectButton from "./components/DeleteProjectButton";
 
 export default async function ProjectsDashboard() {
     const projects = await getProjects();
@@ -91,12 +92,15 @@ export default async function ProjectsDashboard() {
                                                             {project.feedbacks.length}
                                                         </div>
                                                     </div>
-                                                    {project.feedbacks.length > 0 && (
-                                                        <span className="flex items-center gap-2 text-xs font-bold text-red-500 uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
-                                                            <div className="h-1 w-1 rounded-full bg-red-500 animate-pulse" />
-                                                            Needs Review
-                                                        </span>
-                                                    )}
+                                                    <div className="flex items-center gap-3">
+                                                        {project.feedbacks.length > 0 && (
+                                                            <span className="flex items-center gap-2 text-xs font-bold text-red-500 uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+                                                                <div className="h-1 w-1 rounded-full bg-red-500 animate-pulse" />
+                                                                Needs Review
+                                                            </span>
+                                                        )}
+                                                        <DeleteProjectButton projectId={project.id} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </GlassCard>

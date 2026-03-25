@@ -11,6 +11,7 @@ export default function CreateProjectForm({
     artists: { id: string; name: string }[];
 }) {
     const [loading, setLoading] = useState(false);
+    const [artistSelect, setArtistSelect] = useState("");
     const router = useRouter();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -19,10 +20,11 @@ export default function CreateProjectForm({
 
         const formData = new FormData(e.currentTarget);
         const artistId = formData.get("artistId") as string;
+        const customArtistName = formData.get("customArtistName") as string | undefined;
         const title = formData.get("title") as string;
 
         try {
-            const project = await createProject(artistId, title);
+            const project = await createProject(artistId, title, customArtistName);
             router.push(`/projects/${project.id}`);
         } catch (error) {
             console.error(error);
@@ -39,16 +41,19 @@ export default function CreateProjectForm({
                     htmlFor="artistId"
                     className="block text-xs font-bold uppercase tracking-[0.3em] text-white/30 ml-1"
                 >
-                    Target_Entity
+                    Target Artist
                 </label>
                 <div className="relative group/select">
                     <select
                         id="artistId"
                         name="artistId"
                         required
+                        value={artistSelect}
+                        onChange={(e) => setArtistSelect(e.target.value)}
                         className="w-full rounded-2xl border border-white/10 bg-white/2 p-4 pr-12 text-[13px] font-bold tracking-tight focus:border-accent focus:outline-none text-white/80 appearance-none transition-all cursor-pointer hover:bg-white/5 shadow-inner"
                     >
-                        <option value="" className="bg-[#0c0c0c] text-white/40">-- DISCOVERED_UNIT --</option>
+                        <option value="" disabled className="bg-[#0c0c0c] text-white/40">-- Select an Artist --</option>
+                        <option value="custom" className="bg-[#0c0c0c] text-accent">++ NEW CUSTOM ARTIST ++</option>
                         {artists.map((artist) => (
                             <option key={artist.id} value={artist.id} className="bg-[#0c0c0c] text-white">
                                 {artist.name}
@@ -61,18 +66,34 @@ export default function CreateProjectForm({
                 </div>
             </div>
 
+            {artistSelect === "custom" && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <label htmlFor="customArtistName" className="block text-xs font-bold uppercase tracking-[0.3em] text-accent ml-1">
+                        New Artist Name
+                    </label>
+                    <input
+                        type="text"
+                        id="customArtistName"
+                        name="customArtistName"
+                        required
+                        placeholder="Enter custom artist name..."
+                        className="w-full rounded-2xl border border-accent/20 bg-accent/5 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/20"
+                    />
+                </div>
+            )}
+
             <div className="space-y-2">
                 <label
                     htmlFor="title"
                     className="block text-xs font-bold uppercase tracking-[0.3em] text-white/30 ml-1"
                 >
-                    Strategic_Title
+                    Project Title
                 </label>
                 <input
                     type="text"
                     id="title"
                     name="title"
-                    placeholder="e.g. ALPHA_TRANSMISSION_01"
+                    placeholder="e.g. EP Release Campaign"
                     className="w-full rounded-2xl border border-white/10 bg-white/2 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/10"
                 />
             </div>
@@ -85,7 +106,7 @@ export default function CreateProjectForm({
                     size="lg"
                     className="w-full justify-center text-xs! tracking-[0.3em]! font-bold!"
                 >
-                    {loading ? "INITIALIZING..." : "INITIALIZE_PROJECT"}
+                    {loading ? "Creating..." : "Create Project"}
                 </NeonButton>
             </div>
         </form>

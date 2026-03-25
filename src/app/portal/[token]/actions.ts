@@ -3,11 +3,13 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function submitFeedback(projectId: string, token: string, content: string) {
+export async function submitFeedback(projectId: string, token: string, content: string, fileId?: string, timestamp?: number) {
   await prisma.projectFeedback.create({
     data: {
       projectId,
       content,
+      fileId: fileId || null,
+      timestamp: timestamp || null,
     },
   });
 

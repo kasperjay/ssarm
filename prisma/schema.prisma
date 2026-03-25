@@ -170,6 +170,7 @@ model ProjectFile {
   createdAt DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  feedbacks ProjectFeedback[]
 }
 
 model ProjectFeedback {
@@ -180,4 +181,8 @@ model ProjectFeedback {
   createdAt DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  fileId    String?
+  timestamp Float?    // Time in seconds
+  file      ProjectFile? @relation(fields: [fileId], references: [id], onDelete: Cascade)
 }

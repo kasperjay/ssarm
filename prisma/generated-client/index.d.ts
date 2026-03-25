@@ -1789,6 +1789,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type ProjectFileCountOutputType
+   */
+
+  export type ProjectFileCountOutputType = {
+    feedbacks: number
+  }
+
+  export type ProjectFileCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    feedbacks?: boolean | ProjectFileCountOutputTypeCountFeedbacksArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ProjectFileCountOutputType without action
+   */
+  export type ProjectFileCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectFileCountOutputType
+     */
+    select?: ProjectFileCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ProjectFileCountOutputType without action
+   */
+  export type ProjectFileCountOutputTypeCountFeedbacksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProjectFeedbackWhereInput
+  }
+
+
+  /**
    * Models
    */
 
@@ -10237,6 +10268,8 @@ export namespace Prisma {
     isPublic?: boolean
     createdAt?: boolean
     project?: boolean | ProjectDefaultArgs<ExtArgs>
+    feedbacks?: boolean | ProjectFile$feedbacksArgs<ExtArgs>
+    _count?: boolean | ProjectFileCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["projectFile"]>
 
   export type ProjectFileSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -10283,6 +10316,8 @@ export namespace Prisma {
   export type ProjectFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "name" | "url" | "key" | "size" | "mimeType" | "type" | "isPublic" | "createdAt", ExtArgs["result"]["projectFile"]>
   export type ProjectFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
+    feedbacks?: boolean | ProjectFile$feedbacksArgs<ExtArgs>
+    _count?: boolean | ProjectFileCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProjectFileIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
@@ -10295,6 +10330,7 @@ export namespace Prisma {
     name: "ProjectFile"
     objects: {
       project: Prisma.$ProjectPayload<ExtArgs>
+      feedbacks: Prisma.$ProjectFeedbackPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -10702,6 +10738,7 @@ export namespace Prisma {
   export interface Prisma__ProjectFileClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    feedbacks<T extends ProjectFile$feedbacksArgs<ExtArgs> = {}>(args?: Subset<T, ProjectFile$feedbacksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectFeedbackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11137,6 +11174,30 @@ export namespace Prisma {
   }
 
   /**
+   * ProjectFile.feedbacks
+   */
+  export type ProjectFile$feedbacksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectFeedback
+     */
+    select?: ProjectFeedbackSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectFeedback
+     */
+    omit?: ProjectFeedbackOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectFeedbackInclude<ExtArgs> | null
+    where?: ProjectFeedbackWhereInput
+    orderBy?: ProjectFeedbackOrderByWithRelationInput | ProjectFeedbackOrderByWithRelationInput[]
+    cursor?: ProjectFeedbackWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProjectFeedbackScalarFieldEnum | ProjectFeedbackScalarFieldEnum[]
+  }
+
+  /**
    * ProjectFile without action
    */
   export type ProjectFileDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11161,8 +11222,18 @@ export namespace Prisma {
 
   export type AggregateProjectFeedback = {
     _count: ProjectFeedbackCountAggregateOutputType | null
+    _avg: ProjectFeedbackAvgAggregateOutputType | null
+    _sum: ProjectFeedbackSumAggregateOutputType | null
     _min: ProjectFeedbackMinAggregateOutputType | null
     _max: ProjectFeedbackMaxAggregateOutputType | null
+  }
+
+  export type ProjectFeedbackAvgAggregateOutputType = {
+    timestamp: number | null
+  }
+
+  export type ProjectFeedbackSumAggregateOutputType = {
+    timestamp: number | null
   }
 
   export type ProjectFeedbackMinAggregateOutputType = {
@@ -11171,6 +11242,8 @@ export namespace Prisma {
     content: string | null
     resolved: boolean | null
     createdAt: Date | null
+    fileId: string | null
+    timestamp: number | null
   }
 
   export type ProjectFeedbackMaxAggregateOutputType = {
@@ -11179,6 +11252,8 @@ export namespace Prisma {
     content: string | null
     resolved: boolean | null
     createdAt: Date | null
+    fileId: string | null
+    timestamp: number | null
   }
 
   export type ProjectFeedbackCountAggregateOutputType = {
@@ -11187,9 +11262,19 @@ export namespace Prisma {
     content: number
     resolved: number
     createdAt: number
+    fileId: number
+    timestamp: number
     _all: number
   }
 
+
+  export type ProjectFeedbackAvgAggregateInputType = {
+    timestamp?: true
+  }
+
+  export type ProjectFeedbackSumAggregateInputType = {
+    timestamp?: true
+  }
 
   export type ProjectFeedbackMinAggregateInputType = {
     id?: true
@@ -11197,6 +11282,8 @@ export namespace Prisma {
     content?: true
     resolved?: true
     createdAt?: true
+    fileId?: true
+    timestamp?: true
   }
 
   export type ProjectFeedbackMaxAggregateInputType = {
@@ -11205,6 +11292,8 @@ export namespace Prisma {
     content?: true
     resolved?: true
     createdAt?: true
+    fileId?: true
+    timestamp?: true
   }
 
   export type ProjectFeedbackCountAggregateInputType = {
@@ -11213,6 +11302,8 @@ export namespace Prisma {
     content?: true
     resolved?: true
     createdAt?: true
+    fileId?: true
+    timestamp?: true
     _all?: true
   }
 
@@ -11254,6 +11345,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: ProjectFeedbackAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProjectFeedbackSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ProjectFeedbackMinAggregateInputType
@@ -11284,6 +11387,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ProjectFeedbackCountAggregateInputType | true
+    _avg?: ProjectFeedbackAvgAggregateInputType
+    _sum?: ProjectFeedbackSumAggregateInputType
     _min?: ProjectFeedbackMinAggregateInputType
     _max?: ProjectFeedbackMaxAggregateInputType
   }
@@ -11294,7 +11399,11 @@ export namespace Prisma {
     content: string
     resolved: boolean
     createdAt: Date
+    fileId: string | null
+    timestamp: number | null
     _count: ProjectFeedbackCountAggregateOutputType | null
+    _avg: ProjectFeedbackAvgAggregateOutputType | null
+    _sum: ProjectFeedbackSumAggregateOutputType | null
     _min: ProjectFeedbackMinAggregateOutputType | null
     _max: ProjectFeedbackMaxAggregateOutputType | null
   }
@@ -11319,7 +11428,10 @@ export namespace Prisma {
     content?: boolean
     resolved?: boolean
     createdAt?: boolean
+    fileId?: boolean
+    timestamp?: boolean
     project?: boolean | ProjectDefaultArgs<ExtArgs>
+    file?: boolean | ProjectFeedback$fileArgs<ExtArgs>
   }, ExtArgs["result"]["projectFeedback"]>
 
   export type ProjectFeedbackSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -11328,7 +11440,10 @@ export namespace Prisma {
     content?: boolean
     resolved?: boolean
     createdAt?: boolean
+    fileId?: boolean
+    timestamp?: boolean
     project?: boolean | ProjectDefaultArgs<ExtArgs>
+    file?: boolean | ProjectFeedback$fileArgs<ExtArgs>
   }, ExtArgs["result"]["projectFeedback"]>
 
   export type ProjectFeedbackSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -11337,7 +11452,10 @@ export namespace Prisma {
     content?: boolean
     resolved?: boolean
     createdAt?: boolean
+    fileId?: boolean
+    timestamp?: boolean
     project?: boolean | ProjectDefaultArgs<ExtArgs>
+    file?: boolean | ProjectFeedback$fileArgs<ExtArgs>
   }, ExtArgs["result"]["projectFeedback"]>
 
   export type ProjectFeedbackSelectScalar = {
@@ -11346,23 +11464,29 @@ export namespace Prisma {
     content?: boolean
     resolved?: boolean
     createdAt?: boolean
+    fileId?: boolean
+    timestamp?: boolean
   }
 
-  export type ProjectFeedbackOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "content" | "resolved" | "createdAt", ExtArgs["result"]["projectFeedback"]>
+  export type ProjectFeedbackOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "content" | "resolved" | "createdAt" | "fileId" | "timestamp", ExtArgs["result"]["projectFeedback"]>
   export type ProjectFeedbackInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
+    file?: boolean | ProjectFeedback$fileArgs<ExtArgs>
   }
   export type ProjectFeedbackIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
+    file?: boolean | ProjectFeedback$fileArgs<ExtArgs>
   }
   export type ProjectFeedbackIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
+    file?: boolean | ProjectFeedback$fileArgs<ExtArgs>
   }
 
   export type $ProjectFeedbackPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ProjectFeedback"
     objects: {
       project: Prisma.$ProjectPayload<ExtArgs>
+      file: Prisma.$ProjectFilePayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -11370,6 +11494,8 @@ export namespace Prisma {
       content: string
       resolved: boolean
       createdAt: Date
+      fileId: string | null
+      timestamp: number | null
     }, ExtArgs["result"]["projectFeedback"]>
     composites: {}
   }
@@ -11765,6 +11891,7 @@ export namespace Prisma {
   export interface Prisma__ProjectFeedbackClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    file<T extends ProjectFeedback$fileArgs<ExtArgs> = {}>(args?: Subset<T, ProjectFeedback$fileArgs<ExtArgs>>): Prisma__ProjectFileClient<$Result.GetResult<Prisma.$ProjectFilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11799,6 +11926,8 @@ export namespace Prisma {
     readonly content: FieldRef<"ProjectFeedback", 'String'>
     readonly resolved: FieldRef<"ProjectFeedback", 'Boolean'>
     readonly createdAt: FieldRef<"ProjectFeedback", 'DateTime'>
+    readonly fileId: FieldRef<"ProjectFeedback", 'String'>
+    readonly timestamp: FieldRef<"ProjectFeedback", 'Float'>
   }
     
 
@@ -12195,6 +12324,25 @@ export namespace Prisma {
   }
 
   /**
+   * ProjectFeedback.file
+   */
+  export type ProjectFeedback$fileArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectFile
+     */
+    select?: ProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectFile
+     */
+    omit?: ProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectFileInclude<ExtArgs> | null
+    where?: ProjectFileWhereInput
+  }
+
+  /**
    * ProjectFeedback without action
    */
   export type ProjectFeedbackDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12363,7 +12511,9 @@ export namespace Prisma {
     projectId: 'projectId',
     content: 'content',
     resolved: 'resolved',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    fileId: 'fileId',
+    timestamp: 'timestamp'
   };
 
   export type ProjectFeedbackScalarFieldEnum = (typeof ProjectFeedbackScalarFieldEnum)[keyof typeof ProjectFeedbackScalarFieldEnum]
@@ -13137,6 +13287,7 @@ export namespace Prisma {
     isPublic?: BoolFilter<"ProjectFile"> | boolean
     createdAt?: DateTimeFilter<"ProjectFile"> | Date | string
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+    feedbacks?: ProjectFeedbackListRelationFilter
   }
 
   export type ProjectFileOrderByWithRelationInput = {
@@ -13151,6 +13302,7 @@ export namespace Prisma {
     isPublic?: SortOrder
     createdAt?: SortOrder
     project?: ProjectOrderByWithRelationInput
+    feedbacks?: ProjectFeedbackOrderByRelationAggregateInput
   }
 
   export type ProjectFileWhereUniqueInput = Prisma.AtLeast<{
@@ -13168,6 +13320,7 @@ export namespace Prisma {
     isPublic?: BoolFilter<"ProjectFile"> | boolean
     createdAt?: DateTimeFilter<"ProjectFile"> | Date | string
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+    feedbacks?: ProjectFeedbackListRelationFilter
   }, "id">
 
   export type ProjectFileOrderByWithAggregationInput = {
@@ -13213,7 +13366,10 @@ export namespace Prisma {
     content?: StringFilter<"ProjectFeedback"> | string
     resolved?: BoolFilter<"ProjectFeedback"> | boolean
     createdAt?: DateTimeFilter<"ProjectFeedback"> | Date | string
+    fileId?: StringNullableFilter<"ProjectFeedback"> | string | null
+    timestamp?: FloatNullableFilter<"ProjectFeedback"> | number | null
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+    file?: XOR<ProjectFileNullableScalarRelationFilter, ProjectFileWhereInput> | null
   }
 
   export type ProjectFeedbackOrderByWithRelationInput = {
@@ -13222,7 +13378,10 @@ export namespace Prisma {
     content?: SortOrder
     resolved?: SortOrder
     createdAt?: SortOrder
+    fileId?: SortOrderInput | SortOrder
+    timestamp?: SortOrderInput | SortOrder
     project?: ProjectOrderByWithRelationInput
+    file?: ProjectFileOrderByWithRelationInput
   }
 
   export type ProjectFeedbackWhereUniqueInput = Prisma.AtLeast<{
@@ -13234,7 +13393,10 @@ export namespace Prisma {
     content?: StringFilter<"ProjectFeedback"> | string
     resolved?: BoolFilter<"ProjectFeedback"> | boolean
     createdAt?: DateTimeFilter<"ProjectFeedback"> | Date | string
+    fileId?: StringNullableFilter<"ProjectFeedback"> | string | null
+    timestamp?: FloatNullableFilter<"ProjectFeedback"> | number | null
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+    file?: XOR<ProjectFileNullableScalarRelationFilter, ProjectFileWhereInput> | null
   }, "id">
 
   export type ProjectFeedbackOrderByWithAggregationInput = {
@@ -13243,9 +13405,13 @@ export namespace Prisma {
     content?: SortOrder
     resolved?: SortOrder
     createdAt?: SortOrder
+    fileId?: SortOrderInput | SortOrder
+    timestamp?: SortOrderInput | SortOrder
     _count?: ProjectFeedbackCountOrderByAggregateInput
+    _avg?: ProjectFeedbackAvgOrderByAggregateInput
     _max?: ProjectFeedbackMaxOrderByAggregateInput
     _min?: ProjectFeedbackMinOrderByAggregateInput
+    _sum?: ProjectFeedbackSumOrderByAggregateInput
   }
 
   export type ProjectFeedbackScalarWhereWithAggregatesInput = {
@@ -13257,6 +13423,8 @@ export namespace Prisma {
     content?: StringWithAggregatesFilter<"ProjectFeedback"> | string
     resolved?: BoolWithAggregatesFilter<"ProjectFeedback"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"ProjectFeedback"> | Date | string
+    fileId?: StringNullableWithAggregatesFilter<"ProjectFeedback"> | string | null
+    timestamp?: FloatNullableWithAggregatesFilter<"ProjectFeedback"> | number | null
   }
 
   export type ArtistCreateInput = {
@@ -13954,6 +14122,7 @@ export namespace Prisma {
     isPublic?: boolean
     createdAt?: Date | string
     project: ProjectCreateNestedOneWithoutFilesInput
+    feedbacks?: ProjectFeedbackCreateNestedManyWithoutFileInput
   }
 
   export type ProjectFileUncheckedCreateInput = {
@@ -13967,6 +14136,7 @@ export namespace Prisma {
     type?: $Enums.FileType
     isPublic?: boolean
     createdAt?: Date | string
+    feedbacks?: ProjectFeedbackUncheckedCreateNestedManyWithoutFileInput
   }
 
   export type ProjectFileUpdateInput = {
@@ -13980,6 +14150,7 @@ export namespace Prisma {
     isPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     project?: ProjectUpdateOneRequiredWithoutFilesNestedInput
+    feedbacks?: ProjectFeedbackUpdateManyWithoutFileNestedInput
   }
 
   export type ProjectFileUncheckedUpdateInput = {
@@ -13993,6 +14164,7 @@ export namespace Prisma {
     type?: EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
     isPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    feedbacks?: ProjectFeedbackUncheckedUpdateManyWithoutFileNestedInput
   }
 
   export type ProjectFileCreateManyInput = {
@@ -14038,7 +14210,9 @@ export namespace Prisma {
     content: string
     resolved?: boolean
     createdAt?: Date | string
+    timestamp?: number | null
     project: ProjectCreateNestedOneWithoutFeedbacksInput
+    file?: ProjectFileCreateNestedOneWithoutFeedbacksInput
   }
 
   export type ProjectFeedbackUncheckedCreateInput = {
@@ -14047,6 +14221,8 @@ export namespace Prisma {
     content: string
     resolved?: boolean
     createdAt?: Date | string
+    fileId?: string | null
+    timestamp?: number | null
   }
 
   export type ProjectFeedbackUpdateInput = {
@@ -14054,7 +14230,9 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     resolved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
     project?: ProjectUpdateOneRequiredWithoutFeedbacksNestedInput
+    file?: ProjectFileUpdateOneWithoutFeedbacksNestedInput
   }
 
   export type ProjectFeedbackUncheckedUpdateInput = {
@@ -14063,6 +14241,8 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     resolved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    fileId?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type ProjectFeedbackCreateManyInput = {
@@ -14071,6 +14251,8 @@ export namespace Prisma {
     content: string
     resolved?: boolean
     createdAt?: Date | string
+    fileId?: string | null
+    timestamp?: number | null
   }
 
   export type ProjectFeedbackUpdateManyMutationInput = {
@@ -14078,6 +14260,7 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     resolved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type ProjectFeedbackUncheckedUpdateManyInput = {
@@ -14086,6 +14269,8 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     resolved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    fileId?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -14823,12 +15008,23 @@ export namespace Prisma {
     _max?: NestedEnumFileTypeFilter<$PrismaModel>
   }
 
+  export type ProjectFileNullableScalarRelationFilter = {
+    is?: ProjectFileWhereInput | null
+    isNot?: ProjectFileWhereInput | null
+  }
+
   export type ProjectFeedbackCountOrderByAggregateInput = {
     id?: SortOrder
     projectId?: SortOrder
     content?: SortOrder
     resolved?: SortOrder
     createdAt?: SortOrder
+    fileId?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type ProjectFeedbackAvgOrderByAggregateInput = {
+    timestamp?: SortOrder
   }
 
   export type ProjectFeedbackMaxOrderByAggregateInput = {
@@ -14837,6 +15033,8 @@ export namespace Prisma {
     content?: SortOrder
     resolved?: SortOrder
     createdAt?: SortOrder
+    fileId?: SortOrder
+    timestamp?: SortOrder
   }
 
   export type ProjectFeedbackMinOrderByAggregateInput = {
@@ -14845,6 +15043,12 @@ export namespace Prisma {
     content?: SortOrder
     resolved?: SortOrder
     createdAt?: SortOrder
+    fileId?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type ProjectFeedbackSumOrderByAggregateInput = {
+    timestamp?: SortOrder
   }
 
   export type ArtistCreatetagsInput = {
@@ -15339,6 +15543,20 @@ export namespace Prisma {
     connect?: ProjectWhereUniqueInput
   }
 
+  export type ProjectFeedbackCreateNestedManyWithoutFileInput = {
+    create?: XOR<ProjectFeedbackCreateWithoutFileInput, ProjectFeedbackUncheckedCreateWithoutFileInput> | ProjectFeedbackCreateWithoutFileInput[] | ProjectFeedbackUncheckedCreateWithoutFileInput[]
+    connectOrCreate?: ProjectFeedbackCreateOrConnectWithoutFileInput | ProjectFeedbackCreateOrConnectWithoutFileInput[]
+    createMany?: ProjectFeedbackCreateManyFileInputEnvelope
+    connect?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+  }
+
+  export type ProjectFeedbackUncheckedCreateNestedManyWithoutFileInput = {
+    create?: XOR<ProjectFeedbackCreateWithoutFileInput, ProjectFeedbackUncheckedCreateWithoutFileInput> | ProjectFeedbackCreateWithoutFileInput[] | ProjectFeedbackUncheckedCreateWithoutFileInput[]
+    connectOrCreate?: ProjectFeedbackCreateOrConnectWithoutFileInput | ProjectFeedbackCreateOrConnectWithoutFileInput[]
+    createMany?: ProjectFeedbackCreateManyFileInputEnvelope
+    connect?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -15359,10 +15577,44 @@ export namespace Prisma {
     update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutFilesInput, ProjectUpdateWithoutFilesInput>, ProjectUncheckedUpdateWithoutFilesInput>
   }
 
+  export type ProjectFeedbackUpdateManyWithoutFileNestedInput = {
+    create?: XOR<ProjectFeedbackCreateWithoutFileInput, ProjectFeedbackUncheckedCreateWithoutFileInput> | ProjectFeedbackCreateWithoutFileInput[] | ProjectFeedbackUncheckedCreateWithoutFileInput[]
+    connectOrCreate?: ProjectFeedbackCreateOrConnectWithoutFileInput | ProjectFeedbackCreateOrConnectWithoutFileInput[]
+    upsert?: ProjectFeedbackUpsertWithWhereUniqueWithoutFileInput | ProjectFeedbackUpsertWithWhereUniqueWithoutFileInput[]
+    createMany?: ProjectFeedbackCreateManyFileInputEnvelope
+    set?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+    disconnect?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+    delete?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+    connect?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+    update?: ProjectFeedbackUpdateWithWhereUniqueWithoutFileInput | ProjectFeedbackUpdateWithWhereUniqueWithoutFileInput[]
+    updateMany?: ProjectFeedbackUpdateManyWithWhereWithoutFileInput | ProjectFeedbackUpdateManyWithWhereWithoutFileInput[]
+    deleteMany?: ProjectFeedbackScalarWhereInput | ProjectFeedbackScalarWhereInput[]
+  }
+
+  export type ProjectFeedbackUncheckedUpdateManyWithoutFileNestedInput = {
+    create?: XOR<ProjectFeedbackCreateWithoutFileInput, ProjectFeedbackUncheckedCreateWithoutFileInput> | ProjectFeedbackCreateWithoutFileInput[] | ProjectFeedbackUncheckedCreateWithoutFileInput[]
+    connectOrCreate?: ProjectFeedbackCreateOrConnectWithoutFileInput | ProjectFeedbackCreateOrConnectWithoutFileInput[]
+    upsert?: ProjectFeedbackUpsertWithWhereUniqueWithoutFileInput | ProjectFeedbackUpsertWithWhereUniqueWithoutFileInput[]
+    createMany?: ProjectFeedbackCreateManyFileInputEnvelope
+    set?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+    disconnect?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+    delete?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+    connect?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+    update?: ProjectFeedbackUpdateWithWhereUniqueWithoutFileInput | ProjectFeedbackUpdateWithWhereUniqueWithoutFileInput[]
+    updateMany?: ProjectFeedbackUpdateManyWithWhereWithoutFileInput | ProjectFeedbackUpdateManyWithWhereWithoutFileInput[]
+    deleteMany?: ProjectFeedbackScalarWhereInput | ProjectFeedbackScalarWhereInput[]
+  }
+
   export type ProjectCreateNestedOneWithoutFeedbacksInput = {
     create?: XOR<ProjectCreateWithoutFeedbacksInput, ProjectUncheckedCreateWithoutFeedbacksInput>
     connectOrCreate?: ProjectCreateOrConnectWithoutFeedbacksInput
     connect?: ProjectWhereUniqueInput
+  }
+
+  export type ProjectFileCreateNestedOneWithoutFeedbacksInput = {
+    create?: XOR<ProjectFileCreateWithoutFeedbacksInput, ProjectFileUncheckedCreateWithoutFeedbacksInput>
+    connectOrCreate?: ProjectFileCreateOrConnectWithoutFeedbacksInput
+    connect?: ProjectFileWhereUniqueInput
   }
 
   export type ProjectUpdateOneRequiredWithoutFeedbacksNestedInput = {
@@ -15371,6 +15623,16 @@ export namespace Prisma {
     upsert?: ProjectUpsertWithoutFeedbacksInput
     connect?: ProjectWhereUniqueInput
     update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutFeedbacksInput, ProjectUpdateWithoutFeedbacksInput>, ProjectUncheckedUpdateWithoutFeedbacksInput>
+  }
+
+  export type ProjectFileUpdateOneWithoutFeedbacksNestedInput = {
+    create?: XOR<ProjectFileCreateWithoutFeedbacksInput, ProjectFileUncheckedCreateWithoutFeedbacksInput>
+    connectOrCreate?: ProjectFileCreateOrConnectWithoutFeedbacksInput
+    upsert?: ProjectFileUpsertWithoutFeedbacksInput
+    disconnect?: ProjectFileWhereInput | boolean
+    delete?: ProjectFileWhereInput | boolean
+    connect?: ProjectFileWhereUniqueInput
+    update?: XOR<XOR<ProjectFileUpdateToOneWithWhereWithoutFeedbacksInput, ProjectFileUpdateWithoutFeedbacksInput>, ProjectFileUncheckedUpdateWithoutFeedbacksInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -16648,6 +16910,7 @@ export namespace Prisma {
     type?: $Enums.FileType
     isPublic?: boolean
     createdAt?: Date | string
+    feedbacks?: ProjectFeedbackCreateNestedManyWithoutFileInput
   }
 
   export type ProjectFileUncheckedCreateWithoutProjectInput = {
@@ -16660,6 +16923,7 @@ export namespace Prisma {
     type?: $Enums.FileType
     isPublic?: boolean
     createdAt?: Date | string
+    feedbacks?: ProjectFeedbackUncheckedCreateNestedManyWithoutFileInput
   }
 
   export type ProjectFileCreateOrConnectWithoutProjectInput = {
@@ -16677,6 +16941,8 @@ export namespace Prisma {
     content: string
     resolved?: boolean
     createdAt?: Date | string
+    timestamp?: number | null
+    file?: ProjectFileCreateNestedOneWithoutFeedbacksInput
   }
 
   export type ProjectFeedbackUncheckedCreateWithoutProjectInput = {
@@ -16684,6 +16950,8 @@ export namespace Prisma {
     content: string
     resolved?: boolean
     createdAt?: Date | string
+    fileId?: string | null
+    timestamp?: number | null
   }
 
   export type ProjectFeedbackCreateOrConnectWithoutProjectInput = {
@@ -16824,6 +17092,8 @@ export namespace Prisma {
     content?: StringFilter<"ProjectFeedback"> | string
     resolved?: BoolFilter<"ProjectFeedback"> | boolean
     createdAt?: DateTimeFilter<"ProjectFeedback"> | Date | string
+    fileId?: StringNullableFilter<"ProjectFeedback"> | string | null
+    timestamp?: FloatNullableFilter<"ProjectFeedback"> | number | null
   }
 
   export type ProjectCreateWithoutFilesInput = {
@@ -16855,6 +17125,34 @@ export namespace Prisma {
   export type ProjectCreateOrConnectWithoutFilesInput = {
     where: ProjectWhereUniqueInput
     create: XOR<ProjectCreateWithoutFilesInput, ProjectUncheckedCreateWithoutFilesInput>
+  }
+
+  export type ProjectFeedbackCreateWithoutFileInput = {
+    id?: string
+    content: string
+    resolved?: boolean
+    createdAt?: Date | string
+    timestamp?: number | null
+    project: ProjectCreateNestedOneWithoutFeedbacksInput
+  }
+
+  export type ProjectFeedbackUncheckedCreateWithoutFileInput = {
+    id?: string
+    projectId: string
+    content: string
+    resolved?: boolean
+    createdAt?: Date | string
+    timestamp?: number | null
+  }
+
+  export type ProjectFeedbackCreateOrConnectWithoutFileInput = {
+    where: ProjectFeedbackWhereUniqueInput
+    create: XOR<ProjectFeedbackCreateWithoutFileInput, ProjectFeedbackUncheckedCreateWithoutFileInput>
+  }
+
+  export type ProjectFeedbackCreateManyFileInputEnvelope = {
+    data: ProjectFeedbackCreateManyFileInput | ProjectFeedbackCreateManyFileInput[]
+    skipDuplicates?: boolean
   }
 
   export type ProjectUpsertWithoutFilesInput = {
@@ -16894,6 +17192,22 @@ export namespace Prisma {
     feedbacks?: ProjectFeedbackUncheckedUpdateManyWithoutProjectNestedInput
   }
 
+  export type ProjectFeedbackUpsertWithWhereUniqueWithoutFileInput = {
+    where: ProjectFeedbackWhereUniqueInput
+    update: XOR<ProjectFeedbackUpdateWithoutFileInput, ProjectFeedbackUncheckedUpdateWithoutFileInput>
+    create: XOR<ProjectFeedbackCreateWithoutFileInput, ProjectFeedbackUncheckedCreateWithoutFileInput>
+  }
+
+  export type ProjectFeedbackUpdateWithWhereUniqueWithoutFileInput = {
+    where: ProjectFeedbackWhereUniqueInput
+    data: XOR<ProjectFeedbackUpdateWithoutFileInput, ProjectFeedbackUncheckedUpdateWithoutFileInput>
+  }
+
+  export type ProjectFeedbackUpdateManyWithWhereWithoutFileInput = {
+    where: ProjectFeedbackScalarWhereInput
+    data: XOR<ProjectFeedbackUpdateManyMutationInput, ProjectFeedbackUncheckedUpdateManyWithoutFileInput>
+  }
+
   export type ProjectCreateWithoutFeedbacksInput = {
     id?: string
     title?: string | null
@@ -16923,6 +17237,37 @@ export namespace Prisma {
   export type ProjectCreateOrConnectWithoutFeedbacksInput = {
     where: ProjectWhereUniqueInput
     create: XOR<ProjectCreateWithoutFeedbacksInput, ProjectUncheckedCreateWithoutFeedbacksInput>
+  }
+
+  export type ProjectFileCreateWithoutFeedbacksInput = {
+    id?: string
+    name: string
+    url: string
+    key: string
+    size: number
+    mimeType: string
+    type?: $Enums.FileType
+    isPublic?: boolean
+    createdAt?: Date | string
+    project: ProjectCreateNestedOneWithoutFilesInput
+  }
+
+  export type ProjectFileUncheckedCreateWithoutFeedbacksInput = {
+    id?: string
+    projectId: string
+    name: string
+    url: string
+    key: string
+    size: number
+    mimeType: string
+    type?: $Enums.FileType
+    isPublic?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ProjectFileCreateOrConnectWithoutFeedbacksInput = {
+    where: ProjectFileWhereUniqueInput
+    create: XOR<ProjectFileCreateWithoutFeedbacksInput, ProjectFileUncheckedCreateWithoutFeedbacksInput>
   }
 
   export type ProjectUpsertWithoutFeedbacksInput = {
@@ -16960,6 +17305,43 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     files?: ProjectFileUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectFileUpsertWithoutFeedbacksInput = {
+    update: XOR<ProjectFileUpdateWithoutFeedbacksInput, ProjectFileUncheckedUpdateWithoutFeedbacksInput>
+    create: XOR<ProjectFileCreateWithoutFeedbacksInput, ProjectFileUncheckedCreateWithoutFeedbacksInput>
+    where?: ProjectFileWhereInput
+  }
+
+  export type ProjectFileUpdateToOneWithWhereWithoutFeedbacksInput = {
+    where?: ProjectFileWhereInput
+    data: XOR<ProjectFileUpdateWithoutFeedbacksInput, ProjectFileUncheckedUpdateWithoutFeedbacksInput>
+  }
+
+  export type ProjectFileUpdateWithoutFeedbacksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    type?: EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutFilesNestedInput
+  }
+
+  export type ProjectFileUncheckedUpdateWithoutFeedbacksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    type?: EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type LeadCreateManyArtistInput = {
@@ -17231,6 +17613,8 @@ export namespace Prisma {
     content: string
     resolved?: boolean
     createdAt?: Date | string
+    fileId?: string | null
+    timestamp?: number | null
   }
 
   export type ProjectFileUpdateWithoutProjectInput = {
@@ -17243,6 +17627,7 @@ export namespace Prisma {
     type?: EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
     isPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    feedbacks?: ProjectFeedbackUpdateManyWithoutFileNestedInput
   }
 
   export type ProjectFileUncheckedUpdateWithoutProjectInput = {
@@ -17255,6 +17640,7 @@ export namespace Prisma {
     type?: EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
     isPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    feedbacks?: ProjectFeedbackUncheckedUpdateManyWithoutFileNestedInput
   }
 
   export type ProjectFileUncheckedUpdateManyWithoutProjectInput = {
@@ -17274,6 +17660,8 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     resolved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
+    file?: ProjectFileUpdateOneWithoutFeedbacksNestedInput
   }
 
   export type ProjectFeedbackUncheckedUpdateWithoutProjectInput = {
@@ -17281,6 +17669,8 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     resolved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    fileId?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type ProjectFeedbackUncheckedUpdateManyWithoutProjectInput = {
@@ -17288,6 +17678,44 @@ export namespace Prisma {
     content?: StringFieldUpdateOperationsInput | string
     resolved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    fileId?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
+  }
+
+  export type ProjectFeedbackCreateManyFileInput = {
+    id?: string
+    projectId: string
+    content: string
+    resolved?: boolean
+    createdAt?: Date | string
+    timestamp?: number | null
+  }
+
+  export type ProjectFeedbackUpdateWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    resolved?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
+    project?: ProjectUpdateOneRequiredWithoutFeedbacksNestedInput
+  }
+
+  export type ProjectFeedbackUncheckedUpdateWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    resolved?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
+  }
+
+  export type ProjectFeedbackUncheckedUpdateManyWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    resolved?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
 

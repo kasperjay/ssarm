@@ -3,10 +3,19 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function createProject(artistId: string, title?: string) {
+export async function createProject(artistId: string, title?: string, customArtistName?: string) {
+    let finalArtistId = artistId;
+
+    if (artistId === "custom" && customArtistName) {
+        const newArtist = await prisma.artist.create({
+            data: { name: customArtistName }
+        });
+        finalArtistId = newArtist.id;
+    }
+
     const project = await prisma.project.create({
         data: {
-            artistId,
+            artistId: finalArtistId,
             title: title || null, // Will use default logic in UI if null
         },
     });
@@ -73,3 +82,19 @@ export async function updateFileVisibility(fileId: string, isPublic: boolean, pr
     });
     revalidatePath(`/projects/${projectId}`);
 }
+
+export async function addProjectFeedback(projectId: string, content: string, fileId?: string, timestamp?: number) {
+    await prisma.projectFeedback.create({
+        data: {
+            projectId,
+            content,
+            fileId: fileId || null,
+            timestamp: timestamp || null,
+        },
+    });
+    revalidatePath(`/projects/${projectId}`);
+    // Also revalidate portal if possible, but we don't have the token here easily 
+    // without a separate query. For now, let's assume the management side 
+    // update is enough or the portal token is unique and we can revalidate by tag if we had one.
+}
+

@@ -27,7 +27,7 @@ export default function VisibilityToggle({
                     : "bg-white/5 text-white/20 border-white/5 hover:border-white/10 hover:text-white/40"
                 }`}
         >
-            {isPending ? "Sycing..." : isPublic ? "PUBLIC_SECTOR" : "PRIVATE_NODE"}
+            {isPending ? "Syncing..." : isPublic ? "Public" : "Private"}
         </button>
     );
 }

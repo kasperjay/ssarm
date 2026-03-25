@@ -58,7 +58,7 @@ export default async function DraftsPage() {
                             </p>
                             <div className="mt-10">
                                 <Link href="/leads/discover">
-                                    <NeonButton variant="amber" size="lg" className="px-10! text-xs! tracking-[0.2em]! font-bold!">
+                                    <NeonButton variant="purple" size="lg" className="px-10! text-xs! tracking-[0.2em]! font-bold!">
                                         START SEARCH
                                     </NeonButton>
                                 </Link>

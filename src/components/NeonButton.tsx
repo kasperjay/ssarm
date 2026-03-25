@@ -2,7 +2,7 @@ import React from 'react';
 
 interface NeonButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children: React.ReactNode;
-    variant?: 'lime' | 'amber' | 'pink' | 'outline' | 'ghost'; // Updated variants
+    variant?: 'lime' | 'purple' | 'fuchsia' | 'outline' | 'ghost'; // Consistently Purple-themed
     size?: 'sm' | 'md' | 'lg';
 }
 
@@ -24,11 +24,11 @@ export function NeonButton({
             base: 'bg-surface-strong/80 text-white border-accent neon-glow border-[1px]',
             hover: 'hover:bg-accent hover:text-black hover:scale-[1.02]'
         },
-        amber: {
-            base: 'bg-surface-strong/80 text-white border-accent-secondary neon-glow-amber border-[1px]',
+        purple: {
+            base: 'bg-surface-strong/80 text-white border-accent-secondary neon-glow-purple border-[1px]',
             hover: 'hover:bg-accent-secondary hover:text-black hover:scale-[1.02]'
         },
-        pink: {
+        fuchsia: {
             base: 'bg-surface-strong/80 text-white border-accent-warm neon-glow-pink border-[1px]',
             hover: 'hover:bg-accent-warm hover:text-black hover:scale-[1.02]'
         },

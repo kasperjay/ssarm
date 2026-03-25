@@ -18,6 +18,7 @@ import {
   regenerateDraft,
   updateArtistHandle,
   updateLeadStatus,
+  trashLeadAction,
 } from "./actions";
 
 const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
@@ -111,7 +112,8 @@ export default async function LeadDetailPage({
   const { rPage, pPage } = await searchParams;
   const releasePage = parsePage(rPage);
   const postPage = parsePage(pPage);
-  const pageSize = 1;
+  const releasePageSize = 1;
+  const postPageSize = 6;
 
   let lead = await prisma.lead.findUnique({
     where: { id },
@@ -160,20 +162,20 @@ export default async function LeadDetailPage({
     prisma.release.findMany({
       where: { artistId: lead.artist.id },
       orderBy: [{ releaseDate: "desc" }, { createdAt: "desc" }],
-      skip: (releasePage - 1) * pageSize,
-      take: pageSize,
+      skip: (releasePage - 1) * releasePageSize,
+      take: releasePageSize,
     }),
     prisma.instagramPost.findMany({
       where: postWhere,
       orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
-      skip: (postPage - 1) * pageSize,
-      take: pageSize,
+      skip: (postPage - 1) * postPageSize,
+      take: postPageSize,
     }),
     prisma.release.count({ where: { artistId: lead.artist.id } }),
     prisma.instagramPost.count({ where: postWhere }),
   ]);
-  const releaseTotalPages = Math.max(1, Math.ceil(releaseCount / pageSize));
-  const postTotalPages = Math.max(1, Math.ceil(postCount / pageSize));
+  const releaseTotalPages = Math.max(1, Math.ceil(releaseCount / releasePageSize));
+  const postTotalPages = Math.max(1, Math.ceil(postCount / postPageSize));
   const featuredRelease = releaseRows[0] ?? null;
   const featuredPost = postRows[0] ?? null;
   const instagramAvatar = proxiedHelper(
@@ -225,6 +227,12 @@ export default async function LeadDetailPage({
               <a href={lead.artist.instagramProfileUrl || "#"} target="_blank" className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-accent-warm/20 hover:text-accent-warm transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
               </a>
+              <form action={trashLeadAction}>
+                <input type="hidden" name="leadId" value={lead.id} />
+                <button type="submit" className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:text-red-500 hover:border-red-500/50 text-white/50 transition-all" title="Trash Lead">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </form>
             </div>
           </div>
         </div>
@@ -235,56 +243,15 @@ export default async function LeadDetailPage({
           {/* Main Content Column */}
           <div className="space-y-12">
             
-             {/* Bio Section */}
-            <section className="space-y-6">
-              {(() => {
-                const rawBio = lead.artist.bio;
-                if (!rawBio) {
-                  return (
-                    <>
-                      <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">Social Bio</h2>
-                      <div className="text-xl text-white/30 leading-relaxed font-medium italic">No bio available.</div>
-                    </>
-                  );
-                }
-                // Detect external bio attribution suffix (e.g., "\n\n— [Last.fm]")
-                const attributionMatch = rawBio.match(/\n\n—\s*(\[Last\.fm\]|\[Discogs\])$/);
-                const attribution = attributionMatch?.[1] ?? null;
-                const bioContent = attribution ? rawBio.replace(/\n\n—\s*(\[Last\.fm\]|\[Discogs\])$/, "").trim() : rawBio.trim();
-                const isExternal = !!attribution;
-                const sourceLabel = attribution?.replace(/[\[\]]/g, "") ?? null;
-
-                return (
-                  <>
-                    <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">
-                      {isExternal ? `Artist Bio` : "Social Bio"}
-                    </h2>
-                    {isExternal ? (
-                      <div className="space-y-3">
-                        <p className="text-base text-white/60 leading-relaxed">{bioContent}</p>
-                        {sourceLabel && (
-                          <p className="text-xs font-bold uppercase tracking-widest text-accent/50">
-                            via {sourceLabel}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-xl text-white/70 leading-relaxed font-medium italic">
-                        &quot;{bioContent}&quot;
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </section>
-
             {/* Social Presence Section */}
             <section className="space-y-8">
-               <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">Social Presence</h2>
-               
-               {/* Top Stats Row */}
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <GlassCard className="p-8! bg-white/2 border-white/5 flex items-center gap-6">
+              <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">Social Presence</h2>
+              
+              <div className="grid grid-cols-1 xl:grid-cols-[1fr_minmax(0,1.2fr)] gap-8">
+                {/* Unified Social Details Block */}
+                <GlassCard className="p-8! bg-white/2 border-white/5 flex flex-col h-full">
+                  <div className="flex items-center justify-between gap-6 pb-6 border-b border-white/5 mb-6">
+                     <div className="flex items-center gap-6">
                         <div className="h-16 w-16 rounded-full border border-white/10 overflow-hidden relative shrink-0">
                            {instagramAvatar ? (
                                <img src={instagramAvatar} alt="Avatar" className="object-cover w-full h-full" />
@@ -298,50 +265,97 @@ export default async function LeadDetailPage({
                            <p className="text-xl font-bold text-white tracking-tight">@{lead.artist.instagramHandle || "unknown"}</p>
                            <p className="text-xs font-bold text-accent uppercase tracking-widest mt-1">{lead.artist.followerCount?.toLocaleString() || "0"} Followers</p>
                         </div>
-                  </GlassCard>
-
-                  <GlassCard className="p-8! bg-white/2 border-white/5 flex flex-col justify-center items-center text-center space-y-2">
-                      <p className="text-xs font-bold text-white/20 uppercase tracking-[0.3em]">Activity Status</p>
-                     <div className="text-3xl font-bold text-white tracking-tighter">
-                        {lead.artist.lastPostAt ? "ACTIVE" : "STALE"}
                      </div>
-                     <p className="text-xs font-bold text-accent uppercase tracking-widest">
-                        LAST POST: {formatRelativeDate(lead.artist.lastPostAt)}
-                     </p>
-                  </GlassCard>
-               </div>
-
-               {/* Recent Posts Grid */}
-               {postRows.length > 0 ? (
-                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-                   {postRows.map(post => (
-                     <div key={post.id} className="group relative aspect-square rounded-[32px] overflow-hidden border border-white/10 bg-white/5">
-                        {post.imageUrl ? (
-                           <img src={proxiedHelper(post.imageUrl)} alt="Instagram Post" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
-                        ) : (
-                           <div className="w-full h-full flex items-center justify-center bg-white/5">
-                               <p className="text-xs uppercase tracking-widest text-white/30 font-bold">No Image</p>
-                           </div>
-                        )}
-                        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                           <p className="text-xs text-white/80 line-clamp-3 italic mb-4">&quot;{post.caption}&quot;</p>
-                           <div className="flex items-center justify-between mt-auto">
-                              <p className="text-xs font-bold uppercase tracking-widest text-accent">{formatRelativeDate(post.postedAt)}</p>
-                              {post.url && (
-                                 <Link href={post.url} target="_blank" className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-accent hover:text-black transition-colors shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                 </Link>
-                              )}
-                           </div>
+                     <div className="text-right flex flex-col items-end">
+                        <div className="flex items-center gap-2">
+                           <div className={`h-2 w-2 rounded-full ${lead.artist.lastPostAt ? 'bg-accent' : 'bg-white/20'}`} />
+                           <p className="text-xs font-bold text-white/40 uppercase tracking-[0.3em]">
+                              {lead.artist.lastPostAt ? "ACTIVE" : "STALE"}
+                           </p>
                         </div>
+                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest mt-1">
+                           Last Post: {formatRelativeDate(lead.artist.lastPostAt)}
+                        </p>
                      </div>
-                   ))}
-                 </div>
-               ) : (
-                 <div className="py-12 border border-dashed border-white/10 rounded-[32px] text-center">
-                     <p className="text-xs font-bold uppercase text-white/20 tracking-widest">No Instagram posts found</p>
-                 </div>
-               )}
+                  </div>
+
+                  <div className="flex-1">
+                    {(() => {
+                      const rawBio = lead.artist.bio;
+                      if (!rawBio) {
+                        return <div className="text-sm text-white/30 leading-relaxed font-medium italic">No bio available.</div>;
+                      }
+                      const attributionMatch = rawBio.match(/\n\n—\s*(\[Last\.fm\]|\[Discogs\])$/);
+                      const attribution = attributionMatch?.[1] ?? null;
+                      const bioContent = attribution ? rawBio.replace(/\n\n—\s*(\[Last\.fm\]|\[Discogs\])$/, "").trim() : rawBio.trim();
+                      const sourceLabel = attribution?.replace(/[\[\]]/g, "") ?? null;
+
+                      return (
+                        <div className="space-y-3">
+                          <p className="text-sm text-white/70 leading-relaxed font-medium line-clamp-6">{bioContent}</p>
+                          {sourceLabel && (
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-accent/50">
+                              via {sourceLabel}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </GlassCard>
+
+                {/* Paginated Posts Carousel */}
+                <div className="flex flex-col h-full space-y-4">
+                  <div className="flex items-center justify-between">
+                     <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/40">Recent Posts</p>
+                     {postTotalPages > 1 && (
+                         <div className="flex gap-2 relative z-10">
+                             <Link href={`?pPage=${Math.max(1, postPage - 1)}`} scroll={false} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                             </Link>
+                             <Link href={`?pPage=${Math.min(postTotalPages, postPage + 1)}`} scroll={false} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                             </Link>
+                         </div>
+                     )}
+                  </div>
+                  
+                  <div className="flex-1 w-full relative">
+                     {postRows.length > 0 ? (
+                       <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory h-full pb-4 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                         {postRows.map(post => (
+                           <GlassCard key={post.id} className="min-w-[260px] w-[260px] p-4! bg-white/2 border-white/5 snap-center shrink-0 flex flex-col gap-4">
+                              <div className="w-full aspect-square rounded-2xl overflow-hidden bg-white/5 relative shrink-0">
+                                {post.imageUrl ? (
+                                   <img src={proxiedHelper(post.imageUrl)} alt="Instagram Post" className="object-cover w-full h-full" />
+                                ) : (
+                                   <div className="w-full h-full flex items-center justify-center bg-white/5">
+                                       <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold">No Image</p>
+                                   </div>
+                                )}
+                              </div>
+                              <div className="flex flex-col flex-1 h-full">
+                                 <p className="text-xs text-white/80 line-clamp-3 mb-2">&quot;{post.caption}&quot;</p>
+                                 <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-accent">{formatRelativeDate(post.postedAt)}</p>
+                                    {post.url && (
+                                       <Link href={post.url} target="_blank" className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent hover:text-black transition-colors shrink-0">
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                       </Link>
+                                    )}
+                                 </div>
+                              </div>
+                           </GlassCard>
+                         ))}
+                       </div>
+                     ) : (
+                       <div className="h-full w-full min-h-[200px] flex items-center justify-center border border-dashed border-white/10 rounded-[32px]">
+                           <p className="text-xs font-bold uppercase text-white/20 tracking-widest">No Instagram posts found</p>
+                       </div>
+                     )}
+                  </div>
+                </div>
+              </div>
             </section>
 
             {/* Top Releases Section */}
@@ -395,7 +409,67 @@ export default async function LeadDetailPage({
                         <p className="text-lg text-white/80 leading-relaxed font-serif italic pl-6 border-l-2 border-accent/30">
                           &quot;{message.body}&quot;
                         </p>
-                        <div className="flex items-center justify-end gap-4 pt-4 border-t border-white/5">
+                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                          <details className="relative group/details">
+                            <summary className="list-none cursor-pointer flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6 6-6" /></svg>
+                              Tune Variant
+                            </summary>
+                            <div className="absolute left-0 bottom-full mb-4 z-20 w-56 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl">
+                              <div className="group/tone relative">
+                                <div className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors cursor-default">
+                                  Change Tone
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                                </div>
+                                <div className="hidden group-hover/tone:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl animate-in fade-in slide-in-from-left-2 transition-all">
+                                  {["professional", "casual"].map((hint) => (
+                                    <form key={hint} action={regenerateDraft}>
+                                      <input type="hidden" name="leadId" value={lead.id} />
+                                      <input type="hidden" name="draftId" value={message.id} />
+                                      <input type="hidden" name="tone" value={message.tone || "Draft"} />
+                                      <input type="hidden" name="styleHint" value={`more ${hint}`} />
+                                      <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors">
+                                        more {hint}
+                                      </button>
+                                    </form>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="group/style relative mt-1">
+                                <div className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors cursor-default">
+                                  Change Style
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                                </div>
+                                <div className="hidden group-hover/style:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl animate-in fade-in slide-in-from-left-2 transition-all">
+                                  {["boring", "fun"].map((hint) => (
+                                    <form key={hint} action={regenerateDraft}>
+                                      <input type="hidden" name="leadId" value={lead.id} />
+                                      <input type="hidden" name="draftId" value={message.id} />
+                                      <input type="hidden" name="tone" value={message.tone || "Draft"} />
+                                      <input type="hidden" name="styleHint" value={`more ${hint}`} />
+                                      <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors">
+                                        more {hint}
+                                      </button>
+                                    </form>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="mt-1 border-t border-white/10 pt-1">
+                                <form action={regenerateDraft}>
+                                  <input type="hidden" name="leadId" value={lead.id} />
+                                  <input type="hidden" name="draftId" value={message.id} />
+                                  <input type="hidden" name="tone" value={message.tone || "Draft"} />
+                                  <input type="hidden" name="styleHint" value="more random" />
+                                  <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors">
+                                    randomize
+                                  </button>
+                                </form>
+                              </div>
+                            </div>
+                          </details>
+
                            <SendMessageModal
                               leadId={lead.id}
                                label="Send Message"
