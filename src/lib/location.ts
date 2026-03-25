@@ -46,8 +46,25 @@ const validLocation = (s: string | null | undefined): string | null => {
   if (!s) return null;
   const c = clean(s);
   if (c.length < 2 || c.length > 80) return null;
-  // Reject overly generic values
-  if (/^(worldwide|global|internet|earth|the world|everywhere)$/i.test(c)) return null;
+
+  // Reject overly generic or metaphorical values
+  const blacklist = [
+    "worldwide", "global", "internet", "earth", "world", "everywhere", 
+    "universe", "planet", "galaxy", "metaverse", "digital",
+    "concert hall", "halls of", "big stage", "small screen", "the road",
+    "studio", "bedroom", "basement", "garage", "dream", "nowhere"
+  ];
+
+  const lower = c.toLowerCase();
+  
+  // Check blacklist
+  if (blacklist.some(word => lower.includes(word))) return null;
+
+  // Most real locations are short (City) or structured (City, State)
+  // If it's more than 4 words and has no comma or digits, it's likely a sentence fragment
+  const words = c.split(/\s+/);
+  if (words.length > 4 && !c.includes(",") && !/\d/.test(c)) return null;
+
   return c;
 };
 

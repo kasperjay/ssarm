@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
+import { cleanArtistName } from "@/lib/utils";
 
 const ACTOR_VENUES = [
     { id: "spectral-soundworks/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
@@ -277,13 +278,17 @@ export default function DiscoverPage() {
                 const batch = selectedItems.slice(i, i + CONCURRENCY_LIMIT);
                 
                 await Promise.all(batch.map(async (item) => {
-                    const rawName = item.ownerUsername || item.owner?.username || item.owner?.full_name || item.username || item.artist || item.fullName || item.title || item.name || item.musician || item.band || item.artistName;
+                    const rawName = item.artist || item.artistName || item.band || item.musician || item.ownerUsername || item.owner?.username || item.owner?.full_name || item.username || item.fullName || item.title || item.name;
                     if (!rawName) {
                         console.log("Skipping item with no artist name:", item);
                         return;
                     }
 
-                    const artistName = rawName || "Unknown Artist";
+                    const artistName = cleanArtistName(rawName);
+                    if (!artistName) {
+                        console.log("Skipping item with empty cleaned name:", rawName);
+                        return;
+                    }
 
                     console.log(`Importing artist: ${artistName}`);
 
@@ -660,9 +665,10 @@ export default function DiscoverPage() {
                                         </thead>
                                         <tbody className="divide-y divide-white/2 space-y-2">
                                             {results.map((item, i) => {
-                                                const rawName = item.ownerUsername || item.username || item.artist || item.fullName || item.title || item.name || item.musician || item.band || item.artistName;
-                                                const isUnknown = !rawName;
-                                                const displayName = rawName || (item.shortCode ? `Post ${item.shortCode}` : "Unknown Artist");
+                                                const rawName = item.artist || item.artistName || item.band || item.musician || item.ownerUsername || item.username || item.fullName || item.title || item.name;
+                                                const artistName = cleanArtistName(rawName);
+                                                const isUnknown = !artistName;
+                                                const displayName = artistName || (item.shortCode ? `Post ${item.shortCode}` : "Unknown Artist");
                                                 const handle = item.ownerUsername || item.username || item.handle || item.instagramHandle || "No Handle";
                                                 const bioSnipppet = (item.biography || item.bio || item.description || item.caption || "").substring(0, 100);
                                                 const url = item.shortCode ? `https://www.instagram.com/p/${item.shortCode}` : (item.url || item.eventUrl || item.eventURL || item.link || "-");

@@ -46,6 +46,13 @@ if ! npx prisma migrate dev --name auto_migration_on_launch; then
     # but the logs will clearly show the failure.
 fi
 
-# 5. Start Next.js Development Server
+# 5. Start Next.js Development Server and Background Enrichment
 echo "🌐 Starting Next.js dev server on port $PORT..."
-npm run dev
+npm run dev &
+DEV_SERVER_PID=$!
+
+# Start the background enrichment runner
+bash scripts/launch-enrichment.sh &
+
+# Wait for the dev server to exit (e.g. when user hits Ctrl+C)
+wait $DEV_SERVER_PID

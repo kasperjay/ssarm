@@ -41,3 +41,27 @@ export const formatTime = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
+export const cleanArtistName = (name: string): string => {
+  if (!name) return "";
+  
+  // Remove common tour/event suffixes (case insensitive)
+  const noiseRegex = /\s+(?:Tour|World Tour|US Tour|Live|Live at .*|Spring|Summer|Fall|Winter|20\d{2}|Official|Music Video|Lyric Video|Audio|Visualizer|EP|LP|Album|Full Album|Deluxe|Remastered|feat\..*|ft\..*)\s*$/gi;
+  
+  let cleaned = name.replace(noiseRegex, "").trim();
+  
+  // Remove set times (e.g. @11:45 PM, @ 11:45, at 11:45, etc.)
+  const timeRegex = /\s*(?:@|at|at:|time:)?\s*\d{1,2}:\d{2}(?:\s*[ap]m)?\b/gi;
+  cleaned = cleaned.replace(timeRegex, "").trim();
+  
+  // Also common patterns like "Artist - Tour Name" or "Artist - Event"
+  if (cleaned.includes(" - ")) {
+    const parts = cleaned.split(" - ");
+    if (parts[1] && (parts[1].toLowerCase().includes("tour") || parts[1].toLowerCase().includes("live"))) {
+      cleaned = parts[0].trim();
+    }
+  }
+
+  // Final trim and cleanup
+  return cleaned.replace(/\s+/g, " ").trim();
+};
+

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cleanArtistName } from "@/lib/utils";
 
 export async function POST(request: Request) {
     try {
@@ -23,14 +24,18 @@ export async function POST(request: Request) {
 
         // Prepare a concise list to send to the LLM to save tokens
         const evaluationList = items.map((item, index) => {
-            const name = item.ownerUsername || item.username || item.fullName || item.title || item.name || item.artist || item.musician || item.band || item.artistName || "Unknown";
+            const rawName = item.artist || item.artistName || item.band || item.musician || item.ownerUsername || item.username || item.fullName || item.title || item.name || "Unknown";
+            const name = cleanArtistName(rawName);
             const desc = (item.biography || item.bio || item.description || item.caption || "").substring(0, 500);
-            return `[${index}] NAME: ${name} | DESC: ${desc}`;
+            return `[${index}] NAME: ${name} (Raw: ${rawName}) | DESC: ${desc}`;
         }).join("\n");
 
         // Let's refine the request to guarantee structured JSON output.
         const strictPrompt = `
-You are an expert music industry filter. Determine if each item is a valid live musical artist/band. Return false for DJs, comedy, trivia, podcasts, empty names, or generic events.
+You are an expert music industry filter. Determine if each item is a valid live musical artist/band. 
+
+CRITICAL: Return false for tour names (e.g., "The XYZ Tour"), generic events, venues, DJs, comedy, trivia, podcasts, or empty names. 
+If the NAME contains "Tour", "Live at", or "2024", and you cannot find a clear specific artist name in the description, return FALSE.
 
 Return a JSON object with a single key "results" containing an array of booleans corresponding exactly to the length and order of the provided list.
 

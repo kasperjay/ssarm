@@ -36,6 +36,10 @@ const getArg = (name) => {
 
 const hasFlag = (name) => process.argv.includes(name);
 
+// Base URL for API calls
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+
 // Configuration
 const STALE_INSTAGRAM_DAYS = 60;  // Posts older than 60 days
 const STALE_RELEASES_MONTHS = 6;  // No releases in 6 months
@@ -170,10 +174,8 @@ async function getArtistsToEnrich(options) {
 async function fixArtistLocations(options = {}) {
   const { limit = 100, dryRun = false, skipGoogle = false } = options;
 
-  // Dynamically import the TypeScript enrichment module via tsx
   // Because scripts/ is CJS, we use the ingest API as a bridge instead of
   // importing location.ts directly. This keeps the script dependency-light.
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   const artists = await prisma.artist.findMany({
     where: {
@@ -281,6 +283,8 @@ async function main() {
     total: artists.length,
     healthy: 0,
     needsRefresh: 0,
+    refreshed: 0,
+    failed: 0,
     staleInstagram: 0,
     staleReleases: 0,
     lowEngagement: 0,
@@ -301,6 +305,42 @@ async function main() {
           if (check.type === "stale_releases") results.staleReleases++;
           if (check.type === "low_engagement") results.lowEngagement++;
         }
+
+        if (!dryRun) {
+          try {
+            process.stdout.write(`  Refreshing artist "${artist.name}"... `);
+            const res = await fetch(`${baseUrl}/api/ingest`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                artist: {
+                  name: artist.name,
+                  instagramHandle: artist.instagramHandle,
+                  spotifyArtistId: artist.spotifyArtistId,
+                  officialSiteUrl: artist.officialSiteUrl,
+                },
+                // We want to force a fresh fetch from both Spotify and IG
+                skipInstagramFetch: false,
+                skipSpotifyFetch: false,
+              }),
+            });
+
+            if (res.ok) {
+              process.stdout.write("✓\n");
+              results.refreshed++;
+            } else {
+              const errText = await res.text();
+              process.stdout.write(`✗ (${res.status}: ${errText.substring(0, 80)})\n`);
+              results.failed++;
+            }
+
+            // Wait 1.5s between refreshes to avoid rate limits
+            await new Promise((r) => setTimeout(r, 1500));
+          } catch (apiError) {
+            process.stdout.write(`✗ (${apiError.message})\n`);
+            results.failed++;
+          }
+        }
       }
     } catch (error) {
       console.error(`Error checking artist ${artist.id}:`, error.message);
@@ -312,6 +352,10 @@ async function main() {
   console.log(`  Checked: ${results.total}`);
   console.log(`  Healthy: ${results.healthy}`);
   console.log(`  Needs Refresh: ${results.needsRefresh}`);
+  if (!dryRun) {
+    console.log(`    - Successfully Refreshed: ${results.refreshed}`);
+    if (results.failed > 0) console.log(`    - Failed to Refresh: ${results.failed}`);
+  }
   if (results.staleInstagram > 0) console.log(`    - Stale Instagram: ${results.staleInstagram}`);
   if (results.staleReleases > 0) console.log(`    - Stale Releases: ${results.staleReleases}`);
   if (results.lowEngagement > 0) console.log(`    - Low Engagement: ${results.lowEngagement}`);

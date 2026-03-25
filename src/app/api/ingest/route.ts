@@ -6,6 +6,7 @@ import { fetchSpotifyArtistProfile, fetchSpotifyReleases } from "@/lib/spotify";
 import { discoverInstagramHandle, discoverSpotifyArtistId } from "@/lib/google-search";
 import { resolveArtistEnrichment } from "@/lib/location";
 import { scoreLead } from "@/lib/scoring";
+import { cleanArtistName } from "@/lib/utils";
 import sharp from "sharp";
 
 type LeadStatus =
@@ -350,15 +351,16 @@ export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as LeadPayload;
 
-    if (!payload?.artist?.name) {
+    const name = cleanArtistName(payload.artist.name);
+
+    if (!name) {
       return NextResponse.json(
-        { error: "artist.name is required" },
+        { error: "artist.name is missing or invalid after cleaning" },
         { status: 400 }
       );
     }
 
     const {
-      name,
       instagramProfileUrl,
       instagramProfileImageUrl,
       spotifyArtistId,
