@@ -11,7 +11,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const token = process.env.APIFY_TOKEN || process.env.APIFY_ORG_TOKEN;
+        const token = process.env.APIFY_ORG_TOKEN || process.env.APIFY_TOKEN;
         if (!token) {
             return NextResponse.json(
                 { error: "APIFY_TOKEN or APIFY_ORG_TOKEN environment variable not set. Please add it to your .env file." },
