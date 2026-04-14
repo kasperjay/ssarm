@@ -52,7 +52,8 @@ const validLocation = (s: string | null | undefined): string | null => {
     "worldwide", "global", "internet", "earth", "world", "everywhere", 
     "universe", "planet", "galaxy", "metaverse", "digital",
     "concert hall", "halls of", "big stage", "small screen", "the road",
-    "studio", "bedroom", "basement", "garage", "dream", "nowhere"
+    "studio", "bedroom", "basement", "garage", "dream", "nowhere",
+    "mohawk", "come and take it"
   ];
 
   const lower = c.toLowerCase();
@@ -64,6 +65,10 @@ const validLocation = (s: string | null | undefined): string | null => {
   // If it's more than 4 words and has no comma or digits, it's likely a sentence fragment
   const words = c.split(/\s+/);
   if (words.length > 4 && !c.includes(",") && !/\d/.test(c)) return null;
+
+  // REJECT patterns like "Venue - Stage" if they don't have a comma (city, state signature)
+  // These are common in event data but rare in real city names.
+  if (c.includes(" - ") && !c.includes(",")) return null;
 
   return c;
 };
@@ -83,7 +88,7 @@ const stripHtml = (html: string) =>
 // ─────────────────────────────────────────────────────────────────────────────
 const fromRawFields = (raw: Record<string, unknown>): string | null => {
   const keys = [
-    "locationName", "city", "location", "address", "venueName",
+    "locationName", "city", "location", "address",
     "hometown", "hometown_location", "place", "region",
   ];
   for (const k of keys) {

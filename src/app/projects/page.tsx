@@ -18,7 +18,7 @@ export default async function ProjectsDashboard() {
     return (
         <div className="relative min-h-screen bg-transparent">
             
-            <div className="mx-auto max-w-7xl space-y-12 px-6 py-24">
+            <div className="mx-auto max-w-7xl space-y-8 md:space-y-12 px-4 md:px-6 py-12 md:py-24">
                 <header className="flex flex-col gap-8 relative">
                     <div className="absolute -top-24 -left-24 h-96 w-96 bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
                     
@@ -28,7 +28,7 @@ export default async function ProjectsDashboard() {
                                 <span className="transition-transform group-hover:-translate-x-1 text-lg leading-none">←</span> 
                                 Dashboard
                             </Link>
-                            <h1 className="font-display text-5xl font-bold tracking-tighter md:text-6xl lg:text-7xl text-white">
+                            <h1 className="font-display text-3xl font-bold tracking-tighter md:text-6xl lg:text-7xl text-white">
                                 Project <span className="premium-gradient-text italic">Management</span>
                             </h1>
                             <p className="text-white/40 text-sm max-w-lg font-medium leading-relaxed">
@@ -60,8 +60,8 @@ export default async function ProjectsDashboard() {
                                         href={`/projects/${project.id}`}
                                         className="block group"
                                     >
-                                        <GlassCard className="p-8! transition-all hover:bg-white/4 border-white/5 hover:border-accent/30 shadow-xl group-hover:-translate-y-1">
-                                            <div className="flex justify-between items-start gap-6">
+                                        <GlassCard className="p-6 md:p-8! transition-all hover:bg-white/4 border-white/5 hover:border-accent/30 shadow-xl group-hover:-translate-y-1">
+                                            <div className="flex flex-col sm:flex-row justify-between items-start gap-6">
                                                 <div className="space-y-4">
                                                     <div className="space-y-1">
                                                         <h2 className="text-2xl font-bold tracking-tight text-white group-hover:text-accent transition-colors">
@@ -80,7 +80,7 @@ export default async function ProjectsDashboard() {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-3">
+                                                <div className="flex flex-col sm:items-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                                                     <div className="flex items-center gap-4 px-4 py-2 rounded-xl bg-white/2 border border-white/5 text-xs font-bold uppercase tracking-widest text-white/40">
                                                         <div className="flex items-center gap-2">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
@@ -116,7 +116,7 @@ export default async function ProjectsDashboard() {
                             <div className="h-px flex-1 bg-white/5" />
                         </div>
                         
-                        <GlassCard className="p-8! border-accent/20 bg-accent/2">
+                        <GlassCard className="p-6 md:p-8! border-accent/20 bg-accent/2">
                             <h3 className="text-sm font-bold uppercase tracking-[0.2em] mb-6 text-white/60">Create New Project</h3>
                             <CreateProjectForm artists={artists} />
                         </GlassCard>

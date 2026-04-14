@@ -6,22 +6,42 @@ DB_CONTAINER="spectral-postgres"
 
 echo "🚀 Starting Spectral Soundworks Launch Sequence..."
 
-# 1. Check if Docker is running
-if ! docker info > /dev/null 2>&1; then
-    echo "❌ Error: Docker is not running. Please start Docker and try again."
+# 1. Detect container engine
+if command -v docker > /dev/null 2>&1 && docker info > /dev/null 2>&1; then
+    CMD="docker"
+    COMP="docker-compose"
+elif command -v podman > /dev/null 2>&1 && podman info > /dev/null 2>&1; then
+    CMD="podman"
+    COMP="podman-compose"
+else
+    echo "❌ Error: Neither Docker nor Podman is running or installed. Please start your container engine."
     exit 1
 fi
 
-# 2. Start PostgreSQL via docker-compose
-echo "🐘 Starting database container..."
-docker-compose up -d postgres
+echo "✅ Using $CMD with $COMP"
 
-# 3. Wait for database to be healthy
+# 2. Start PostgreSQL
+echo "🐘 Starting database container..."
+if ! command -v $COMP > /dev/null 2>&1; then
+    echo "⚠️ $COMP not found, running database directly via $CMD..."
+    $CMD volume create postgres_data || true
+    $CMD run -d --name $DB_CONTAINER \
+      -e POSTGRES_USER=postgres \
+      -e POSTGRES_PASSWORD=postgres \
+      -e POSTGRES_DB=spectral \
+      -p 5432:5432 \
+      -v postgres_data:/var/lib/postgresql/data \
+      postgres:16-alpine || true
+else
+    $COMP up -d postgres
+fi
+
+# 3. Wait for database to be actually responding
 echo "⏳ Waiting for database to be ready..."
 RETRIES=10
 while [ $RETRIES -gt 0 ]; do
-    if docker inspect -f {{.State.Health.Status}} $DB_CONTAINER | grep -q "healthy"; then
-        echo "✅ Database is healthy!"
+    if $CMD exec $DB_CONTAINER pg_isready -U postgres > /dev/null 2>&1; then
+        echo "✅ Database is ready!"
         break
     fi
     echo "   ...waiting ($RETRIES retries left)"
@@ -30,7 +50,7 @@ while [ $RETRIES -gt 0 ]; do
 done
 
 if [ $RETRIES -eq 0 ]; then
-    echo "⚠️ Warning: Database healthcheck timed out, but proceeding anyway..."
+    echo "⚠️ Warning: Database check timed out, but proceeding anyway..."
 fi
 
 # 4. Generate Prisma Client & Apply Migrations

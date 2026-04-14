@@ -38,7 +38,7 @@ export default function RootLayout({
 
         <Sidebar />
         
-        <main className="flex-1 relative z-0 min-h-screen">
+        <main className="flex-1 relative z-0 min-h-screen pb-24 md:pb-0 md:ml-24">
           {children}
         </main>
       </body>

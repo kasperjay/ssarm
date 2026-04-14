@@ -25,6 +25,7 @@
     "launch": "bash scripts/launch.sh",
     "db:backup": "docker exec spectral-postgres pg_dump -U postgres spectral > backup_$(date +%Y%m%d_%H%M%S).sql",
     "db:migrate": "prisma migrate dev"
+
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",

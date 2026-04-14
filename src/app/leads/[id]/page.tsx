@@ -191,10 +191,10 @@ export default async function LeadDetailPage({
       genre={lead.artist.genre}
     >
     <div className="relative min-h-screen bg-background text-foreground pb-20 selection:bg-accent/30 selection:text-white">
-      <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-12 pt-12">
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-6 md:gap-10 px-4 md:px-12 pt-6 md:pt-12">
         
         {/* Cinematic Artist Header */}
-        <div className="relative h-[400px] w-full rounded-[48px] overflow-hidden group shadow-2xl">
+        <div className="relative h-[240px] md:h-[400px] w-full rounded-3xl md:rounded-[48px] overflow-hidden group shadow-2xl">
           {spotifyImageUrl && (
             <Image
               src={spotifyImageUrl}
@@ -204,8 +204,8 @@ export default async function LeadDetailPage({
             />
           )}
           <div className="absolute inset-0 bg-linear-to-t from-[#0d0d12] via-[#0d0d12]/40 to-transparent" />
-          <div className="absolute inset-x-12 bottom-12 flex items-end justify-between gap-12">
-            <div className="space-y-4">
+          <div className="absolute inset-x-6 bottom-6 md:inset-x-12 md:bottom-12 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12">
+            <div className="space-y-4 w-full">
               <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-white/40 hover:text-accent transition-colors">
                  <span>← Back to Feed</span>
               </Link>
@@ -221,7 +221,7 @@ export default async function LeadDetailPage({
               </div>
             </div>
             <div className="flex items-center gap-4 pb-2">
-              <a href={lead.artist.spotifyArtistUrl || "#"} target="_blank" className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-accent/20 hover:text-accent transition-all">
+              <a href={lead.artist.spotifyArtistUrl || "#"} target="_blank" className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-accent/20 hover:text-accent transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
               </a>
               <a href={lead.artist.instagramProfileUrl || "#"} target="_blank" className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-accent-warm/20 hover:text-accent-warm transition-all">
@@ -249,10 +249,10 @@ export default async function LeadDetailPage({
               
               <div className="grid grid-cols-1 xl:grid-cols-[1fr_minmax(0,1.2fr)] gap-8">
                 {/* Unified Social Details Block */}
-                <GlassCard className="p-8! bg-white/2 border-white/5 flex flex-col h-full">
+                <GlassCard className="p-6 md:p-8! bg-white/2 border-white/5 flex flex-col h-full">
                   <div className="flex items-center justify-between gap-6 pb-6 border-b border-white/5 mb-6">
-                     <div className="flex items-center gap-6">
-                        <div className="h-16 w-16 rounded-full border border-white/10 overflow-hidden relative shrink-0">
+                     <div className="flex items-center gap-4 md:gap-6">
+                        <div className="h-12 w-12 md:h-16 md:w-16 rounded-full border border-white/10 overflow-hidden relative shrink-0">
                            {instagramAvatar ? (
                                <img src={instagramAvatar} alt="Avatar" className="object-cover w-full h-full" />
                            ) : (
@@ -262,8 +262,8 @@ export default async function LeadDetailPage({
                            )}
                         </div>
                         <div>
-                           <p className="text-xl font-bold text-white tracking-tight">@{lead.artist.instagramHandle || "unknown"}</p>
-                           <p className="text-xs font-bold text-accent uppercase tracking-widest mt-1">{lead.artist.followerCount?.toLocaleString() || "0"} Followers</p>
+                           <p className="text-lg md:text-xl font-bold text-white tracking-tight">@{lead.artist.instagramHandle || "unknown"}</p>
+                           <p className="text-[10px] md:text-xs font-bold text-accent uppercase tracking-widest mt-1">{lead.artist.followerCount?.toLocaleString() || "0"} Followers</p>
                         </div>
                      </div>
                      <div className="text-right flex flex-col items-end">
@@ -292,9 +292,9 @@ export default async function LeadDetailPage({
 
                       return (
                         <div className="space-y-3">
-                          <p className="text-sm text-white/70 leading-relaxed font-medium line-clamp-6">{bioContent}</p>
+                          <p className="text-xs md:text-sm text-white/70 leading-relaxed font-medium line-clamp-6 md:line-clamp-none">{bioContent}</p>
                           {sourceLabel && (
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-accent/50">
+                            <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-accent/50">
                               via {sourceLabel}
                             </p>
                           )}
@@ -362,7 +362,7 @@ export default async function LeadDetailPage({
             <section className="space-y-8">
                <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">Top Releases</h2>
                {featuredRelease ? (
-                  <GlassCard className="p-8! bg-white/2 border-white/5">
+                  <GlassCard className="p-6 md:p-8! bg-white/2 border-white/5">
                      <div className="flex flex-col md:flex-row gap-8 items-center">
                         <div className="h-40 w-40 rounded-3xl border border-white/10 overflow-hidden shrink-0 shadow-2xl">
                            <img src={proxiedHelper(featuredRelease.imageUrl)} alt={featuredRelease.title} className="object-cover w-full h-full" />
@@ -398,7 +398,7 @@ export default async function LeadDetailPage({
               </div>
               <div className="grid grid-cols-1 gap-6">
                 {lead.messages.filter(m => !m.selected).map((message) => (
-                  <GlassCard key={message.id} className="p-8! bg-white/2 border-white/5 hover:border-accent/20">
+                  <GlassCard key={message.id} className="p-6 md:p-8! bg-white/2 border-white/5 hover:border-accent/20">
                      <div className="flex flex-col gap-6">
                         <div className="flex items-center justify-between">
                            <span className="px-3 py-1 rounded-full bg-accent/10 text-xs font-bold text-accent uppercase tracking-widest border border-accent/20">
@@ -406,7 +406,7 @@ export default async function LeadDetailPage({
                            </span>
                            <DraftCopy text={message.body} />
                         </div>
-                        <p className="text-lg text-white/80 leading-relaxed font-serif italic pl-6 border-l-2 border-accent/30">
+                        <p className="text-base md:text-lg text-white/80 leading-relaxed font-serif italic pl-4 md:pl-6 border-l-2 border-accent/30">
                           &quot;{message.body}&quot;
                         </p>
                         <div className="flex items-center justify-between pt-4 border-t border-white/5">
@@ -487,15 +487,15 @@ export default async function LeadDetailPage({
           </div>
 
           {/* Right Sidebar Column */}
-          <aside className="space-y-12">
+          <aside className="space-y-12 pb-10 md:pb-0">
             
             {/* Meta Actions Card */}
-            <GlassCard className="p-8! bg-[#0d0d12] border-white/10" variant="strong">
+            <GlassCard className="p-6 md:p-8! bg-[#0d0d12] border-white/10" variant="strong">
               <div className="space-y-8">
                 <div className="space-y-2">
                   <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/20">Lead Score</p>
-                  <div className="flex items-end gap-3">
-                    <span className="text-5xl font-bold text-accent tracking-tighter">{score}%</span>
+                  <div className="flex items-end gap-2 md:gap-3">
+                    <span className="text-4xl md:text-5xl font-bold text-accent tracking-tighter">{score}%</span>
                      <span className="text-xs font-bold text-accent/40 uppercase tracking-widest mb-1">Relevance</span>
                   </div>
                 </div>

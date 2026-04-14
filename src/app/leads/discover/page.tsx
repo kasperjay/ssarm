@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
-import { cleanArtistName } from "@/lib/utils";
+import { cleanArtistName, isBunkEvent } from "@/lib/utils";
 
 const ACTOR_VENUES = [
     { id: "spectral-soundworks/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
@@ -190,7 +190,20 @@ export default function DiscoverPage() {
                         }
                         return [rawItem];
                     });
-                    setResults(flattened);
+
+                    // Filter out bunk events (noise like DJ sets, quizzo, etc.)
+                    const filtered = flattened.filter((item: any) => {
+                        const name = item.artist || item.artistName || item.band || item.musician || item.ownerUsername || item.username || item.fullName || item.title || item.name;
+                        const desc = item.biography || item.bio || item.description || item.caption || item.eventTitle || "";
+                        const isBunk = isBunkEvent(name, desc);
+                        if (isBunk) {
+                            console.log(`[DISCOVERY] Filtering bunk result: ${name}`);
+                        }
+                        return !isBunk;
+                    });
+
+                    console.log(`[DISCOVERY] Original: ${flattened.length}, Filtered: ${filtered.length}`);
+                    setResults(filtered);
                     setSelectedIndices(new Set());
                 } else {
                     setError(`Search ended with status: ${data.status.toLowerCase()}`);
@@ -361,8 +374,8 @@ export default function DiscoverPage() {
     };
 
     return (
-        <div className="relative min-h-screen bg-transparent pb-20 selection:bg-accent/30 selection:text-white">
-            <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6">
+        <div className="relative min-h-screen bg-transparent pb-32 selection:bg-accent/30 selection:text-white">
+            <div className="relative mx-auto flex max-w-6xl flex-col gap-6 md:gap-10 px-4 md:px-6">
                 
                 {/* Header Phase */}
                 <header className="flex flex-col gap-10">
@@ -382,7 +395,7 @@ export default function DiscoverPage() {
                                             Artist Search
                                         </p>
                                 </div>
-                                <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight premium-gradient-text pr-4">
+                                <h1 className="font-display text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight premium-gradient-text pr-4">
                                     Lead <span className="text-white/40 italic">Discovery</span>
                                 </h1>
                             </div>
@@ -402,8 +415,8 @@ export default function DiscoverPage() {
                     </div>
                 </header>
 
-                <main className="space-y-12 relative z-10">
-                    <GlassCard className="p-10!">
+                <main className="space-y-8 md:space-y-12 relative z-10">
+                    <GlassCard className="p-6 md:p-10!">
                         <div className="flex items-center gap-1 justify-between mb-10 p-1 bg-white/5 rounded-2xl border border-white/5">
                             <button
                                 onClick={() => setActiveTab("venues")}
@@ -429,7 +442,7 @@ export default function DiscoverPage() {
                                     <div className="h-px flex-1 ml-10 bg-white/5 hidden md:block" />
                                 </div>
 
-                                <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
+                                <div className="grid gap-8 md:gap-12 lg:grid-cols-[1fr_1.2fr]">
                                     <div className="space-y-8">
                                         <div className="space-y-4">
                                             <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Data Source</label>
@@ -472,7 +485,7 @@ export default function DiscoverPage() {
                                                 disabled={loading}
                                                 variant="lime"
                                                 size="lg"
-                                                className="w-full text-sm! font-bold! tracking-[0.2em]! py-8!"
+                                                className="w-full text-xs md:text-sm! font-bold! tracking-[0.2em]! py-6 md:py-8!"
                                             >
                                                 {loading ? "Searching..." : "Begin Artist Search"}
                                             </NeonButton>
@@ -514,7 +527,7 @@ export default function DiscoverPage() {
                                                 onFocus={() => setShowHistory(true)}
                                                 onBlur={() => setTimeout(() => setShowHistory(false), 200)}
                                                 placeholder="@handle or #hashtag"
-                                                className="relative w-full px-8 py-6 rounded-[32px] bg-black/40 border border-white/10 text-white text-3xl font-bold tracking-tight placeholder:text-white/5 focus:text-accent focus:border-accent focus:outline-none transition-all shadow-2xl"
+                                                className="relative w-full px-6 md:px-8 py-4 md:py-6 rounded-[24px] md:rounded-[32px] bg-black/40 border border-white/10 text-white text-xl md:text-3xl font-bold tracking-tight placeholder:text-white/5 focus:text-accent focus:border-accent focus:outline-none transition-all shadow-2xl"
                                             />
 
                                             {/* History Dropdown */}
@@ -555,12 +568,12 @@ export default function DiscoverPage() {
                                     
                                     <div className="space-y-4">
                                         <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Discovery Limit</label>
-                                        <div className="grid grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
                                             {[50, 100, 250, 500].map((limit) => (
                                                 <button
                                                     key={limit}
                                                     onClick={() => setExpectedResults(limit)}
-                                                    className={`px-4 py-4 rounded-2xl border text-[11px] font-bold uppercase tracking-[0.2em] transition-all ${expectedResults === limit ? "bg-accent/20 border-accent text-accent shadow-[0_0_20px_rgba(0,242,255,0.1)]" : "bg-white/2 border-white/5 text-white/40 hover:bg-white/5"}`}
+                                                    className={`px-3 md:px-4 py-3 md:py-4 rounded-xl md:rounded-2xl border text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] transition-all ${expectedResults === limit ? "bg-accent/20 border-accent text-accent shadow-[0_0_20px_rgba(0,242,255,0.1)]" : "bg-white/2 border-white/5 text-white/40 hover:bg-white/5"}`}
                                                 >
                                                     {limit} Items
                                                 </button>
@@ -568,13 +581,13 @@ export default function DiscoverPage() {
                                         </div>
                                     </div>
 
-                                    <div className="pt-6">
+                                    <div className="pt-4 md:pt-6">
                                         <NeonButton
                                             onClick={handleDiscover}
                                             disabled={loading}
                                             variant="lime"
                                             size="lg"
-                                            className="w-full text-sm! font-bold! tracking-[0.2em]! py-8!"
+                                            className="w-full text-xs md:text-sm! font-bold! tracking-[0.2em]! py-6 md:py-8!"
                                         >
                                             {loading ? "Searching..." : "Begin Artist Search"}
                                         </NeonButton>
@@ -615,20 +628,20 @@ export default function DiscoverPage() {
 
                     {!polling && results.length > 0 && (
                         <section className="space-y-8 animate-in fade-in duration-700">
-                            <div className="flex items-center justify-between border-b border-white/5 pb-8 mb-4">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-b border-white/5 pb-6 md:pb-8 mb-4">
                                 <div className="flex items-center gap-4">
                                     <div className="h-2 w-2 bg-accent neon-glow rounded-full" />
-                                     <h2 className="text-xl font-bold uppercase tracking-[0.2em] text-white/80">
+                                     <h2 className="text-lg md:text-xl font-bold uppercase tracking-[0.2em] text-white/80">
                                          Search Results <span className="text-accent/40 ml-2 font-sans">[{results.length}]</span>
                                      </h2>
                                 </div>
-                                <div className="flex gap-4">
+                                <div className="flex gap-2 md:gap-4 w-full sm:w-auto">
                                     <NeonButton
                                         onClick={handleSift}
                                         disabled={sifting}
                                         variant="outline"
                                         size="sm"
-                                        className="text-xs! tracking-[0.2em]! px-6!"
+                                        className="flex-1 sm:flex-none text-[10px] md:text-xs! tracking-[0.2em]! px-4 md:px-6!"
                                     >
                                         {sifting ? "Sifting..." : "Smart Selection"}
                                     </NeonButton>
@@ -637,9 +650,9 @@ export default function DiscoverPage() {
                                         disabled={selectedIndices.size === 0 || importing}
                                         variant="lime"
                                         size="sm"
-                                        className="text-xs! tracking-[0.2em]! px-6!"
+                                        className="flex-1 sm:flex-none text-[10px] md:text-xs! tracking-[0.2em]! px-4 md:px-6!"
                                     >
-                                        {importing ? `Importing [${importProgress}/${selectedIndices.size}]` : `Import Selected (${selectedIndices.size})`}
+                                        {importing ? `Import [${importProgress}]` : `Import (${selectedIndices.size})`}
                                     </NeonButton>
                                 </div>
                             </div>
@@ -649,7 +662,7 @@ export default function DiscoverPage() {
                                     <table className="w-full text-left">
                                         <thead className="bg-white/5 text-xs uppercase font-bold tracking-[0.3em] text-white/20">
                                             <tr>
-                                                <th className="px-8 py-6">
+                                                <th className="px-4 md:px-8 py-4 md:py-6">
                                                     <div className="flex items-center">
                                                         <input
                                                             type="checkbox"
@@ -660,7 +673,7 @@ export default function DiscoverPage() {
                                                     </div>
                                                 </th>
                                                 <th className="px-8 py-6">Artist</th>
-                                                <th className="px-8 py-6 text-right">Source</th>
+                                                <th className="px-4 md:px-8 py-4 md:py-6 text-right">Source</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/2 space-y-2">
@@ -678,7 +691,7 @@ export default function DiscoverPage() {
                                                         key={i}
                                                         className={`transition-all duration-300 group ${selectedIndices.has(i) ? "bg-accent/3" : "hover:bg-white/3"}`}
                                                     >
-                                                        <td className="px-8 py-6">
+                                                        <td className="px-4 md:px-8 py-4 md:py-6">
                                                             <div className="flex items-center">
                                                                 <input
                                                                     type="checkbox"
@@ -688,7 +701,7 @@ export default function DiscoverPage() {
                                                                 />
                                                             </div>
                                                         </td>
-                                                        <td className="px-8 py-6">
+                                                        <td className="px-4 md:px-8 py-4 md:py-6">
                                                              <div className="space-y-1">
                                                                  <div className="font-bold text-white/90 text-[14px] tracking-tight group-hover:text-accent transition-colors">{displayName}</div>
                                                                  {handle !== "No Handle" && (
@@ -696,7 +709,7 @@ export default function DiscoverPage() {
                                                                  )}
                                                              </div>
                                                          </td>
-                                                         <td className="px-8 py-6 text-right">
+                                                         <td className="px-4 md:px-8 py-4 md:py-6 text-right">
                                                             {isUnknown ? (
                                                                 <span className="text-xs font-bold text-white/10 uppercase tracking-widest">NO DATA</span>
                                                             ) : (

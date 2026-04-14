@@ -60,7 +60,7 @@ export function EditableArtistName({ artistId, initialName }: EditableArtistName
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
           disabled={isSaving}
-          className="text-6xl font-bold tracking-tight text-white leading-none capitalize bg-black/20 border border-white/20 rounded-2xl px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+          className="text-4xl md:text-6xl font-bold tracking-tight text-white leading-none capitalize bg-black/20 border border-white/20 rounded-2xl px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
         />
         {isSaving && (
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
@@ -70,8 +70,8 @@ export function EditableArtistName({ artistId, initialName }: EditableArtistName
   }
 
   return (
-    <div className="group flex items-center gap-4 relative w-fit">
-      <h1 className="text-6xl font-bold tracking-tight text-white leading-none capitalize">
+    <div className="group flex items-center gap-4 relative w-full md:w-fit">
+      <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white leading-tight md:leading-none capitalize">
         {name}
       </h1>
       <button
