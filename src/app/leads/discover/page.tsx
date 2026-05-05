@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
-import { cleanArtistName, isBunkEvent } from "@/lib/utils";
+import { cleanArtistName } from "@/lib/utils";
 
 const ACTOR_VENUES = [
     { id: "spectral-soundworks/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
@@ -45,6 +45,7 @@ export default function DiscoverPage() {
     const [error, setError] = useState<string | null>(null);
     const [searchHistory, setSearchHistory] = useState<string[]>([]);
     const [showHistory, setShowHistory] = useState(false);
+    const [siftMode, setSiftMode] = useState<"ai" | "fallback" | null>(null);
 
     useEffect(() => {
         const history = localStorage.getItem("ss_search_history");
@@ -93,10 +94,9 @@ export default function DiscoverPage() {
                     };
                 } else {
                     finalActorId = "apify/instagram-hashtag-scraper";
-                    // Standard hashtag scraper input
                     finalInput = {
                         hashtags: [cleanTerm],
-                        resultsLimit: expectedResults || 100
+                        maxPostsPerHashtag: expectedResults || 100
                     };
                 }
             } else {
@@ -190,20 +190,7 @@ export default function DiscoverPage() {
                         }
                         return [rawItem];
                     });
-
-                    // Filter out bunk events (noise like DJ sets, quizzo, etc.)
-                    const filtered = flattened.filter((item: any) => {
-                        const name = item.artist || item.artistName || item.band || item.musician || item.ownerUsername || item.username || item.fullName || item.title || item.name;
-                        const desc = item.biography || item.bio || item.description || item.caption || item.eventTitle || "";
-                        const isBunk = isBunkEvent(name, desc);
-                        if (isBunk) {
-                            console.log(`[DISCOVERY] Filtering bunk result: ${name}`);
-                        }
-                        return !isBunk;
-                    });
-
-                    console.log(`[DISCOVERY] Original: ${flattened.length}, Filtered: ${filtered.length}`);
-                    setResults(filtered);
+                    setResults(flattened);
                     setSelectedIndices(new Set());
                 } else {
                     setError(`Search ended with status: ${data.status.toLowerCase()}`);
@@ -243,20 +230,35 @@ export default function DiscoverPage() {
         try {
             setSifting(true);
             setError(null);
+            setSiftMode(null);
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 35000);
 
             const res = await fetch("/api/sift", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ items: results }),
+                signal: controller.signal,
             });
 
+            clearTimeout(timer);
+
             if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.detail || data.error || "Failed to sift results.");
+                const textBody = await res.text();
+                try {
+                    const data = JSON.parse(textBody);
+                    throw new Error(data.detail || data.error || "Failed to sift results.");
+                } catch {
+                    throw new Error(`Failed to sift results (${res.status}).`);
+                }
             }
 
             const data = await res.json();
-            const { results: aiResults } = data;
+            const { results: aiResults, mode } = data;
+            if (mode === "ai" || mode === "fallback") {
+                setSiftMode(mode);
+            }
 
             if (Array.isArray(aiResults)) {
                 const newSelection = new Set<number>();
@@ -268,7 +270,11 @@ export default function DiscoverPage() {
                 setSelectedIndices(newSelection);
             }
         } catch (err: any) {
-            setError(err.message);
+            if (err?.name === "AbortError") {
+                setError("Smart selection timed out. Try again or reduce result count.");
+            } else {
+                setError(err.message);
+            }
         } finally {
             setSifting(false);
         }
@@ -322,7 +328,6 @@ export default function DiscoverPage() {
                             instagramProfileImageUrl: item.ownerProfilePicUrl || item.owner?.profile_pic_url || item.profilePicUrl || item.avatarUrl || item.ownerProfileImageUrl || undefined,
                             bio: item.biography || item.owner?.biography || item.bio || item.description || item.caption || undefined,
                             followerCount: isNaN(Number(followerCount)) ? undefined : followerCount,
-                            location: item.locationName || item.city || item.address || item.location || item.venueName || undefined,
                         },
                         lead: {
                             status: "NEW",
@@ -374,11 +379,16 @@ export default function DiscoverPage() {
     };
 
     return (
-        <div className="relative min-h-screen bg-transparent pb-32 selection:bg-accent/30 selection:text-white">
-            <div className="relative mx-auto flex max-w-6xl flex-col gap-6 md:gap-10 px-4 md:px-6">
+        <div className="relative min-h-screen bg-transparent pb-20 selection:bg-accent/30 selection:text-white">
+            <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6">
                 
                 {/* Header Phase */}
                 <header className="flex flex-col gap-10">
+                    {error && (
+                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium">
+                            {error}
+                        </div>
+                    )}
                     <div className="flex flex-wrap items-end justify-between gap-12 border-b border-white/5 pb-12">
                         <div className="space-y-6">
                             <Link 
@@ -395,7 +405,7 @@ export default function DiscoverPage() {
                                             Artist Search
                                         </p>
                                 </div>
-                                <h1 className="font-display text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight premium-gradient-text pr-4">
+                                <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight premium-gradient-text pr-4">
                                     Lead <span className="text-white/40 italic">Discovery</span>
                                 </h1>
                             </div>
@@ -415,18 +425,21 @@ export default function DiscoverPage() {
                     </div>
                 </header>
 
-                <main className="space-y-8 md:space-y-12 relative z-10">
-                    <GlassCard className="p-6 md:p-10!">
+                <main className="space-y-12 relative z-10">
+                    {error && (
+                        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm font-medium text-red-100"></div>
+                    )}
+                    <GlassCard className="p-10!">
                         <div className="flex items-center gap-1 justify-between mb-10 p-1 bg-white/5 rounded-2xl border border-white/5">
                             <button
                                 onClick={() => setActiveTab("venues")}
-                                className={`flex-1 py-3 px-6 rounded-xl text-xs font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "venues" ? "bg-accent text-white shadow-lg" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
+                                className={`flex-1 py-3 px-6 rounded-xl text-xs font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "venues" ? "bg-accent text-black neon-glow" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
                             >
                                 Venue Calendars
                             </button>
                             <button
                                 onClick={() => setActiveTab("tags")}
-                                className={`flex-1 py-3 px-6 rounded-xl text-xs font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "tags" ? "bg-accent text-white shadow-lg" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
+                                className={`flex-1 py-3 px-6 rounded-xl text-xs font-bold uppercase tracking-[0.2em] transition-all ${activeTab === "tags" ? "bg-accent text-black neon-glow" : "text-white/40 hover:text-white/60 hover:bg-white/5"}`}
                             >
                                 Instagram Tags
                             </button>
@@ -442,7 +455,7 @@ export default function DiscoverPage() {
                                     <div className="h-px flex-1 ml-10 bg-white/5 hidden md:block" />
                                 </div>
 
-                                <div className="grid gap-8 md:gap-12 lg:grid-cols-[1fr_1.2fr]">
+                                <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
                                     <div className="space-y-8">
                                         <div className="space-y-4">
                                             <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Data Source</label>
@@ -474,21 +487,19 @@ export default function DiscoverPage() {
                                                 <input
                                                     type="text"
                                                     placeholder="Enter Custom Source ID..."
-                                                    className="mt-4 w-full rounded-2xl border border-white/10 bg-white/2 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/10"
+                                                    className="mt-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/10"
                                                     onChange={(e) => setActorId(e.target.value)}
                                                 />
                                             )}
                                         </div>
                                         <div className="pt-4">
-                                            <NeonButton
+                                            <button
                                                 onClick={handleDiscover}
                                                 disabled={loading}
-                                                variant="lime"
-                                                size="lg"
-                                                className="w-full text-xs md:text-sm! font-bold! tracking-[0.2em]! py-6 md:py-8!"
+                                                className="w-full rounded-2xl font-bold uppercase tracking-[0.2em] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 px-8 py-8 text-sm bg-accent text-black neon-glow hover:bg-accent/90 hover:scale-[1.02] border-2 border-accent"
                                             >
                                                 {loading ? "Searching..." : "Begin Artist Search"}
-                                            </NeonButton>
+                                            </button>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
@@ -506,92 +517,57 @@ export default function DiscoverPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div className="space-y-10 animate-in fade-in duration-700">
                                 <div className="flex items-center justify-between pb-6 border-b border-white/5">
                                     <div className="flex items-center gap-4">
                                         <div className="h-2 w-2 bg-accent neon-glow rounded-full animate-pulse" />
-                                        <h2 className="text-xl font-bold uppercase tracking-widest text-white/80">Tag Search</h2>
-                                    </div>
-                                    <div className="h-px flex-1 ml-10 bg-white/5 hidden md:block" />
+                                     <h2 className="text-xl font-bold uppercase tracking-[0.2em] text-white/80">
+                                         Tag Search <span className="text-accent/40 ml-2 font-sans">[1]</span>
+                                     </h2>
                                 </div>
-
-                                <div className="space-y-8 max-w-2xl">
-                                    <div className="space-y-4">
-                                        <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Target Hashtag</label>
-                                        <div className="relative group/hashtag">
-                                            <div className="absolute -inset-0.5 bg-accent/5 rounded-[32px] blur-sm opacity-0 group-hover/hashtag:opacity-100 transition-opacity" />
-                                            <input
-                                                type="text"
-                                                value={instagramTag}
-                                                onChange={(e) => setInstagramTag(e.target.value)}
-                                                onFocus={() => setShowHistory(true)}
-                                                onBlur={() => setTimeout(() => setShowHistory(false), 200)}
-                                                placeholder="@handle or #hashtag"
-                                                className="relative w-full px-6 md:px-8 py-4 md:py-6 rounded-[24px] md:rounded-[32px] bg-black/40 border border-white/10 text-white text-xl md:text-3xl font-bold tracking-tight placeholder:text-white/5 focus:text-accent focus:border-accent focus:outline-none transition-all shadow-2xl"
-                                            />
-
-                                            {/* History Dropdown */}
-                                            {showHistory && searchHistory.length > 0 && (
-                                                <div className="absolute left-0 right-0 top-full mt-4 z-50 overflow-hidden rounded-[24px] border border-white/10 bg-[#0d0d12]/95 backdrop-blur-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-                                                    <div className="p-2">
-                                                        <div className="px-4 py-2 border-b border-white/5 mb-1">
-                                                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/20">Recently Searched</span>
-                                                        </div>
-                                                        {searchHistory.map((term, i) => (
-                                                            <button
-                                                                key={i}
-                                                                onClick={() => {
-                                                                    setInstagramTag(term);
-                                                                    setShowHistory(false);
-                                                                }}
-                                                                className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/5 hover:text-accent text-[14px] font-bold tracking-tight text-white/60 transition-all group/item"
-                                                            >
-                                                                <span>{term}</span>
-                                                                <span className="text-[9px] font-bold uppercase tracking-widest text-white/10 opacity-0 group-hover/item:opacity-100 transition-opacity">Search</span>
-                                                            </button>
-                                                        ))}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSearchHistory([]);
-                                                                localStorage.removeItem("ss_search_history");
-                                                            }}
-                                                            className="w-full mt-1 px-4 py-2 text-xs font-bold uppercase tracking-widest text-white/10 hover:text-red-400/40 text-center transition-colors"
-                                                        >
-                                                            Clear History
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Instagram Tag or @handle</label>
+                                    <div className="relative group/textarea">
+                                        <div className="absolute -inset-0.5 bg-accent/5 rounded-[24px] blur-sm opacity-0 group-hover/textarea:opacity-100 transition-opacity" />
+                                        <input
+                                            type="text"
+                                            value={instagramTag}
+                                            onChange={(e) => setInstagramTag(e.target.value)}
+                                            onKeyDown={(e) => e.key === "Enter" && handleDiscover()}
+                                            className="relative h-[56px] w-full rounded-[24px] border border-white/10 bg-black/40 p-6 text-[12px] font-sans font-medium text-white/70 focus:text-accent focus:border-accent focus:outline-none transition-all"
+                                            placeholder="#austinmusic or @username"
+                                        />
                                     </div>
-                                    
-                                    <div className="space-y-4">
-                                        <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Discovery Limit</label>
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-                                            {[50, 100, 250, 500].map((limit) => (
-                                                <button
-                                                    key={limit}
-                                                    onClick={() => setExpectedResults(limit)}
-                                                    className={`px-3 md:px-4 py-3 md:py-4 rounded-xl md:rounded-2xl border text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] transition-all ${expectedResults === limit ? "bg-accent/20 border-accent text-accent shadow-[0_0_20px_rgba(0,242,255,0.1)]" : "bg-white/2 border-white/5 text-white/40 hover:bg-white/5"}`}
-                                                >
-                                                    {limit} Items
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4 md:pt-6">
-                                        <NeonButton
-                                            onClick={handleDiscover}
-                                            disabled={loading}
-                                            variant="lime"
-                                            size="lg"
-                                            className="w-full text-xs md:text-sm! font-bold! tracking-[0.2em]! py-6 md:py-8!"
-                                        >
-                                            {loading ? "Searching..." : "Begin Artist Search"}
-                                        </NeonButton>
-                                    </div>
+                                </div>
+                                <div className="pt-4">
+                                    <button
+                                        onClick={handleDiscover}
+                                        disabled={loading}
+                                        className="w-full rounded-2xl font-bold uppercase tracking-[0.2em] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 px-8 py-8 text-sm bg-accent text-black neon-glow hover:bg-accent/90 hover:scale-[1.02] border-2 border-accent"
+                                    >
+                                        {loading ? "Searching..." : "Begin Artist Search"}
+                                    </button>
+                                </div>
+                                <div className="flex gap-4 pt-4">
+                                    <NeonButton
+                                        onClick={handleSift}
+                                        disabled={sifting}
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-xs! tracking-[0.2em]! px-6!"
+                                    >
+                                        {sifting ? "Sifting..." : "Smart Selection"}
+                                    </NeonButton>
+                                    <NeonButton
+                                        onClick={handleImport}
+                                        disabled={selectedIndices.size === 0 || importing}
+                                        variant="lime"
+                                        size="sm"
+                                        className="text-xs! tracking-[0.2em]! px-6!"
+                                    >
+                                        {importing ? `Importing [${importProgress}/${selectedIndices.size}]` : `Import Selected (${selectedIndices.size})`}
+                                    </NeonButton>
                                 </div>
                             </div>
                         )}
@@ -628,20 +604,20 @@ export default function DiscoverPage() {
 
                     {!polling && results.length > 0 && (
                         <section className="space-y-8 animate-in fade-in duration-700">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-b border-white/5 pb-6 md:pb-8 mb-4">
+                            <div className="flex items-center justify-between border-b border-white/5 pb-8 mb-4">
                                 <div className="flex items-center gap-4">
                                     <div className="h-2 w-2 bg-accent neon-glow rounded-full" />
-                                     <h2 className="text-lg md:text-xl font-bold uppercase tracking-[0.2em] text-white/80">
+                                     <h2 className="text-xl font-bold uppercase tracking-[0.2em] text-white/80">
                                          Search Results <span className="text-accent/40 ml-2 font-sans">[{results.length}]</span>
                                      </h2>
                                 </div>
-                                <div className="flex gap-2 md:gap-4 w-full sm:w-auto">
+                                <div className="flex gap-4">
                                     <NeonButton
                                         onClick={handleSift}
                                         disabled={sifting}
                                         variant="outline"
                                         size="sm"
-                                        className="flex-1 sm:flex-none text-[10px] md:text-xs! tracking-[0.2em]! px-4 md:px-6!"
+                                        className="text-xs! tracking-[0.2em]! px-6!"
                                     >
                                         {sifting ? "Sifting..." : "Smart Selection"}
                                     </NeonButton>
@@ -650,19 +626,25 @@ export default function DiscoverPage() {
                                         disabled={selectedIndices.size === 0 || importing}
                                         variant="lime"
                                         size="sm"
-                                        className="flex-1 sm:flex-none text-[10px] md:text-xs! tracking-[0.2em]! px-4 md:px-6!"
+                                        className="text-xs! tracking-[0.2em]! px-6!"
                                     >
-                                        {importing ? `Import [${importProgress}]` : `Import (${selectedIndices.size})`}
+                                        {importing ? `Importing [${importProgress}/${selectedIndices.size}]` : `Import Selected (${selectedIndices.size})`}
                                     </NeonButton>
                                 </div>
                             </div>
+
+                            {siftMode && (
+                                <div className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-white/40">
+                                    Smart selection mode: <span className="text-accent">{siftMode === "ai" ? "AI" : "Fallback"}</span>
+                                </div>
+                            )}
 
                             <div className="overflow-hidden rounded-[40px] border border-white/5 bg-white/2 backdrop-blur-md shadow-2xl">
                                 <div className="overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-left">
                                         <thead className="bg-white/5 text-xs uppercase font-bold tracking-[0.3em] text-white/20">
                                             <tr>
-                                                <th className="px-4 md:px-8 py-4 md:py-6">
+                                                <th className="px-8 py-6">
                                                     <div className="flex items-center">
                                                         <input
                                                             type="checkbox"
@@ -673,7 +655,7 @@ export default function DiscoverPage() {
                                                     </div>
                                                 </th>
                                                 <th className="px-8 py-6">Artist</th>
-                                                <th className="px-4 md:px-8 py-4 md:py-6 text-right">Source</th>
+                                                <th className="px-8 py-6 text-right">Source</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/2 space-y-2">
@@ -691,7 +673,7 @@ export default function DiscoverPage() {
                                                         key={i}
                                                         className={`transition-all duration-300 group ${selectedIndices.has(i) ? "bg-accent/3" : "hover:bg-white/3"}`}
                                                     >
-                                                        <td className="px-4 md:px-8 py-4 md:py-6">
+                                                        <td className="px-8 py-6">
                                                             <div className="flex items-center">
                                                                 <input
                                                                     type="checkbox"
@@ -701,7 +683,7 @@ export default function DiscoverPage() {
                                                                 />
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 md:px-8 py-4 md:py-6">
+                                                        <td className="px-8 py-6">
                                                              <div className="space-y-1">
                                                                  <div className="font-bold text-white/90 text-[14px] tracking-tight group-hover:text-accent transition-colors">{displayName}</div>
                                                                  {handle !== "No Handle" && (
@@ -709,7 +691,7 @@ export default function DiscoverPage() {
                                                                  )}
                                                              </div>
                                                          </td>
-                                                         <td className="px-4 md:px-8 py-4 md:py-6 text-right">
+                                                         <td className="px-8 py-6 text-right">
                                                             {isUnknown ? (
                                                                 <span className="text-xs font-bold text-white/10 uppercase tracking-widest">NO DATA</span>
                                                             ) : (

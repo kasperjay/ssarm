@@ -237,9 +237,31 @@ exports.Prisma.ProjectFeedbackScalarFieldEnum = {
   timestamp: 'timestamp'
 };
 
+exports.Prisma.ProjectInvoiceScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  invoiceNumber: 'invoiceNumber',
+  issuedAt: 'issuedAt',
+  dueAt: 'dueAt',
+  currency: 'currency',
+  lineItems: 'lineItems',
+  subtotalCents: 'subtotalCents',
+  taxCents: 'taxCents',
+  totalCents: 'totalCents',
+  notes: 'notes',
+  stripePaymentUrl: 'stripePaymentUrl',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -250,6 +272,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 exports.LeadStatus = exports.$Enums.LeadStatus = {
   NEW: 'NEW',
@@ -288,7 +316,8 @@ exports.Prisma.ModelName = {
   Activity: 'Activity',
   Project: 'Project',
   ProjectFile: 'ProjectFile',
-  ProjectFeedback: 'ProjectFeedback'
+  ProjectFeedback: 'ProjectFeedback',
+  ProjectInvoice: 'ProjectInvoice'
 };
 
 /**

@@ -12,11 +12,13 @@ export default function CreateProjectForm({
 }) {
     const [loading, setLoading] = useState(false);
     const [artistSelect, setArtistSelect] = useState("");
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setLoading(true);
+        setError(null);
 
         const formData = new FormData(e.currentTarget);
         const artistId = formData.get("artistId") as string;
@@ -25,10 +27,13 @@ export default function CreateProjectForm({
 
         try {
             const project = await createProject(artistId, title, customArtistName);
+            if (!project?.id) {
+                throw new Error("Project was created but no project ID was returned");
+            }
             router.push(`/projects/${project.id}`);
         } catch (error) {
             console.error(error);
-            alert("Failed to create project");
+            setError(error instanceof Error ? error.message : "Failed to create project");
         } finally {
             setLoading(false);
         }
@@ -50,12 +55,12 @@ export default function CreateProjectForm({
                         required
                         value={artistSelect}
                         onChange={(e) => setArtistSelect(e.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-white/2 p-4 pr-12 text-[13px] font-bold tracking-tight focus:border-accent focus:outline-none text-white/80 appearance-none transition-all cursor-pointer hover:bg-white/5 shadow-inner"
+                        className="w-full rounded-2xl border border-white/10 bg-[#0b0b10] p-4 pr-12 text-[13px] font-bold tracking-tight focus:border-accent focus:outline-none text-white/95 appearance-none transition-all cursor-pointer hover:bg-[#111118] shadow-inner"
                     >
-                        <option value="" disabled className="bg-[#0c0c0c] text-white/40">-- Select an Artist --</option>
-                        <option value="custom" className="bg-[#0c0c0c] text-accent">++ NEW CUSTOM ARTIST ++</option>
+                        <option value="" disabled className="bg-[#0b0b10] text-white/55">-- Select an Artist --</option>
+                        <option value="custom" className="bg-[#0b0b10] text-accent">++ NEW CUSTOM ARTIST ++</option>
                         {artists.map((artist) => (
-                            <option key={artist.id} value={artist.id} className="bg-[#0c0c0c] text-white">
+                            <option key={artist.id} value={artist.id} className="bg-[#0b0b10] text-white">
                                 {artist.name}
                             </option>
                         ))}
@@ -77,7 +82,7 @@ export default function CreateProjectForm({
                         name="customArtistName"
                         required
                         placeholder="Enter custom artist name..."
-                        className="w-full rounded-2xl border border-accent/20 bg-accent/5 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/20"
+                        className="w-full rounded-2xl border border-accent/20 bg-black/40 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/20"
                     />
                 </div>
             )}
@@ -94,9 +99,17 @@ export default function CreateProjectForm({
                     id="title"
                     name="title"
                     placeholder="e.g. EP Release Campaign"
-                    className="w-full rounded-2xl border border-white/10 bg-white/2 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/10"
+                    className="w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/10"
                 />
             </div>
+
+            {error && (
+                <div className="pt-4">
+                    <div className="bg-red-500/60 text-white p-3 rounded-2xl text-center text-xs">
+                        {error}
+                    </div>
+                </div>
+            )}
 
             <div className="pt-4">
                 <NeonButton

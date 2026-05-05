@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["spectral-soundworks-kkkkrash.zocomputer.io", "kkkkrash.zo.computer"],
   images: {
     remotePatterns: [
       {

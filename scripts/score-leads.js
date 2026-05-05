@@ -43,17 +43,30 @@ const hasFlag = (name) => process.argv.includes(name);
 // Scoring weights & thresholds (total = 100)
 const SCORING_CONFIG = {
   WEIGHTS: {
-    followerCount: 20,    // 0-20: scaled by 10k followers
-    recency: 15,          // 0-15: based on lastPostAt
-    releaseCount: 15,     // 0-15: count of releases
-    dataCompleteness: 15, // 0-15: profile fields filled
-    engagement: 10,       // 0-10: post count, profile bio quality
-    genreBonus: 25,       // 0-25: prioritized by genre type
+    proximity: 35,       // TOP PRIORITY — Austin/TX (35 pts max)
+    genreBonus: 25,     // Metal, Rock, Hip-Hop, Rap (25 pts)
+    followerCount: 20,  // Small/Medium only — caps at ~20k (20 pts max)
+    recency: 10,        // Last post recency (10 pts)
+    releaseCount: 10,   // Number of releases (10 pts)
+    dataCompleteness: 10, // Profile filled (10 pts)
+    engagement: 5,      // Contact signals (5 pts)
   },
   FOLLOWER_THRESHOLD: 10000, // 10k followers = max points
-  RECENCY_DAYS: 180,         // Posts within 180 days = full points
-  MIN_RELEASES: 3,           // 3+ releases for full points
+  RECENCY_DAYS: 180,        // Posts within 180 days = full points
+  MIN_RELEASES: 3,          // 3+ releases for full points
   QUALIFIED_THRESHOLD: 60,   // Score >= 60 suggests QUALIFIED status
+  // Geo-priority tiers
+  AUSTIN_AREA_CITIES: [
+    "austin", "round rock", "pflugerville", "cedar park", "georgetown",
+    "san marcos", "kyle", "buda", "dripping springs", "hutto", "manor", "lakeway",
+    "beecave", "westlake", "rollingwood", "spicewood", "bastrop", "lockhart",
+    "elgin", "taylor", "del valle", "atx",
+  ],
+  TEXAS_CITIES: [
+    "texas", "tx", "san antonio", "houston", "dallas", "fort worth", "elpaso",
+    "amarillo", "laredo", "lubbock", "waco", "tyler", "beaumont", "port arthur",
+    "corpus christi", "midland", "odessa", "abilene", "college station",
+  ],
 };
 
 function calculateFollowerScore(followerCount) {
@@ -107,6 +120,22 @@ function calculateEngagementScore(artist) {
   return Math.min(engagementPoints, SCORING_CONFIG.WEIGHTS.engagement);
 }
 
+function calculateProximityScore(artist) {
+  if (!artist.city) return 0;
+
+  const city = artist.city.toLowerCase().trim();
+  const isAustinArea = SCORING_CONFIG.AUSTIN_AREA_CITIES.includes(city);
+  const isTexas = SCORING_CONFIG.TEXAS_CITIES.includes(city);
+
+  if (isAustinArea) {
+    return SCORING_CONFIG.WEIGHTS.proximity;
+  } else if (isTexas) {
+    return Math.round(SCORING_CONFIG.WEIGHTS.proximity / 2);
+  } else {
+    return 0;
+  }
+}
+
 function calculateGenreBonus(artist) {
   if (!artist.genre) return 0;
   const genreStr = artist.genre.toLowerCase().trim();
@@ -136,9 +165,10 @@ async function calculateLeadScore(lead) {
   const releaseScore = calculateReleaseScore(releaseCount);
   const completenessScore = calculateDataCompletenessScore(artist);
   const engagementScore = calculateEngagementScore(artist);
+  const proximityScore = calculateProximityScore(artist);
   const genreBonus = calculateGenreBonus(artist);
 
-  const totalScore = followerScore + recencyScore + releaseScore + completenessScore + engagementScore + genreBonus;
+  const totalScore = followerScore + recencyScore + releaseScore + completenessScore + engagementScore + proximityScore + genreBonus;
 
   // Generate human-readable rationale
   const rationales = [];
@@ -158,6 +188,9 @@ async function calculateLeadScore(lead) {
   if (engagementScore > 0) {
     rationales.push(`engagement signals (${engagementScore}pts)`);
   }
+  if (proximityScore > 0) {
+    rationales.push(`proximity to Austin/TX (${proximityScore}pts)`);
+  }
   if (genreBonus > 0) {
     rationales.push(`genre "${artist.genre}" (${genreBonus}pts)`);
   }
@@ -175,6 +208,7 @@ async function calculateLeadScore(lead) {
       releaseScore,
       completenessScore,
       engagementScore,
+      proximityScore,
       genreBonus,
     },
   };

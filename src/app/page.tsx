@@ -104,9 +104,9 @@ export default async function Home(props: {
   return (
     <div className="relative min-h-screen bg-transparent text-white pb-20 selection:bg-accent/30 selection:text-white">
       
-      <div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-12 pt-12">
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-6 sm:gap-8 md:gap-12 px-4 sm:px-6 md:px-12 pt-6 sm:pt-8 md:pt-12">
         {/* V2 Hero Banner */}
-        <div className="relative h-[320px] w-full rounded-[48px] overflow-hidden group shadow-2xl bg-[#0d0d12] border border-white/5">
+        <div className="relative h-[200px] sm:h-[280px] md:h-[320px] w-full rounded-2xl sm:rounded-3xl md:rounded-[48px] overflow-hidden group shadow-2xl bg-[#0d0d12] border border-white/5">
           {/* Premium CSS Hero Background */}
           <div className="absolute inset-0 bg-linear-to-br from-accent/20 via-transparent to-accent-secondary/20 transition-transform duration-1000 group-hover:scale-110" />
           <div className="absolute inset-0 opacity-40" style={{ 
@@ -115,7 +115,7 @@ export default async function Home(props: {
           }} />
           
           {/* Animated Spectral Elements */}
-          <div className="absolute right-12 inset-y-0 flex items-center gap-1.5 opacity-20 group-hover:opacity-40 transition-opacity duration-700">
+          <div className="absolute right-4 sm:right-12 inset-y-0 flex items-center gap-1.5 opacity-20 group-hover:opacity-40 transition-opacity duration-700">
             {[...Array(12)].map((_, i) => (
               <div 
                 key={i} 
@@ -130,13 +130,13 @@ export default async function Home(props: {
           </div>
 
           <div className="absolute inset-0 bg-linear-to-r from-[#0d0d12] via-[#0d0d12]/60 to-transparent" />
-          <div className="absolute inset-x-12 bottom-12 max-w-2xl space-y-4">
-             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold uppercase tracking-widest backdrop-blur-md">
+          <div className="absolute inset-x-4 sm:inset-x-12 bottom-6 sm:bottom-12 max-w-2xl space-y-2 sm:space-y-4">
+             <div className="inline-flex items-center gap-2 px-2 sm:px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-[10px] sm:text-xs font-bold uppercase tracking-widest backdrop-blur-md">
                <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                Lead Intelligence Active
              </div>
-             <h1 className="text-5xl font-bold tracking-tight text-white leading-tight">
-               Dashboard: <br /> <span className="premium-gradient-text">Leads</span>
+             <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+               Dashboard: <br className="hidden sm:block" /> <span className="premium-gradient-text">Leads</span>
              </h1>
           </div>
         </div>
@@ -164,11 +164,11 @@ export default async function Home(props: {
                <div className="absolute inset-0 bg-linear-to-b from-accent-secondary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                <div className="p-8 h-full flex flex-col justify-between relative z-10">
                 <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-accent-secondary shadow-xl border border-white/5 group-hover:bg-accent-secondary/20 group-hover:text-white transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-white">Message Drafts</h3>
-                  <p className="text-sm text-white/40 leading-relaxed font-medium">Review and send pending outreach.</p>
+                  <h3 className="text-xl font-bold text-white">Artist / Contact Management</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium">Filter and sort all generated leads.</p>
                 </div>
               </div>
               <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-accent-secondary/10 blur-3xl rounded-full" />

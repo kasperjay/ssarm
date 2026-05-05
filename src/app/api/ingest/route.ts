@@ -493,16 +493,31 @@ export async function POST(request: Request) {
     const computedAccent = resolvedSpotifyImageUrl
       ? await extractAccentFromImage(resolvedSpotifyImageUrl)
       : null;
+
+    // Fallback: extract from Instagram profile pic if Spotify extraction failed
+    const igProfileUrl = scrapedInstagramProfile?.profileImageUrl ?? existingArtist?.instagramProfileImageUrl;
+    const igAccent = !computedAccent && igProfileUrl
+      ? await extractAccentFromImage(igProfileUrl)
+      : null;
+
+    if (!computedAccent && igAccent) {
+      console.log(`[Ingest] Accent: Spotify image failed, used IG profile image for ${name}`);
+    } else if (!computedAccent && !igAccent) {
+      console.warn(`[Ingest] Accent: No image source available for ${name} (spotify=${!!resolvedSpotifyImageUrl}, ig=${!!igProfileUrl})`);
+    }
+
     const resolvedSpotifyAccent =
-      spotifyAccent ?? computedAccent?.accent ?? existingArtist?.spotifyAccent ?? null;
+      spotifyAccent ?? computedAccent?.accent ?? igAccent?.accent ?? existingArtist?.spotifyAccent ?? null;
     const resolvedSpotifyAccentStrong =
       spotifyAccentStrong ??
       computedAccent?.accentStrong ??
+      igAccent?.accentStrong ??
       existingArtist?.spotifyAccentStrong ??
       resolvedSpotifyAccent;
     const resolvedSpotifyHighlight =
       spotifyHighlight ??
       computedAccent?.highlight ??
+      igAccent?.highlight ??
       existingArtist?.spotifyHighlight ??
       resolvedSpotifyAccent;
     const derivedEmails = extractEmailsFromTextSafe(

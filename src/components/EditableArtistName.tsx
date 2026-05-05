@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { updateArtistName } from "@/app/leads/[id]/actions";
 
 interface EditableArtistNameProps {
@@ -12,6 +13,7 @@ export function EditableArtistName({ artistId, initialName }: EditableArtistName
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(initialName);
   const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -30,6 +32,7 @@ export function EditableArtistName({ artistId, initialName }: EditableArtistName
     try {
       setIsSaving(true);
       await updateArtistName({ artistId, name: name.trim() });
+      router.refresh();
       setIsEditing(false);
     } catch (err) {
       console.error("Failed to update artist name", err);
@@ -60,7 +63,7 @@ export function EditableArtistName({ artistId, initialName }: EditableArtistName
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
           disabled={isSaving}
-          className="text-4xl md:text-6xl font-bold tracking-tight text-white leading-none capitalize bg-black/20 border border-white/20 rounded-2xl px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+          className="text-6xl font-bold tracking-tight text-white leading-none capitalize bg-black/20 border border-white/20 rounded-2xl px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
         />
         {isSaving && (
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
@@ -70,8 +73,8 @@ export function EditableArtistName({ artistId, initialName }: EditableArtistName
   }
 
   return (
-    <div className="group flex items-center gap-4 relative w-full md:w-fit">
-      <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white leading-tight md:leading-none capitalize">
+    <div className="group flex items-center gap-4 relative w-fit">
+      <h1 className="text-6xl font-bold tracking-tight text-white leading-none capitalize">
         {name}
       </h1>
       <button

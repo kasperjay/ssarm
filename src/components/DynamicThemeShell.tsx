@@ -49,6 +49,16 @@ function rgbToHex({ r, g, b }: RGB) {
     return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
 }
 
+function hexToRgb(hex: string): RGB | null {
+    const cleaned = hex.replace(/^#/, "");
+    if (!/^[0-9a-fA-F]{6}$/.test(cleaned)) return null;
+    return {
+        r: parseInt(cleaned.slice(0, 2), 16),
+        g: parseInt(cleaned.slice(2, 4), 16),
+        b: parseInt(cleaned.slice(4, 6), 16),
+    };
+}
+
 function luminance({ r, g, b }: RGB) {
     const toLinear = (c: number) => {
         const s = c / 255;
@@ -188,13 +198,21 @@ interface Props {
     imageUrl: string | null;
     artistName: string;
     genre?: string | null;
+    accentColors?: {
+        accent?: string | null;
+        accentStrong?: string | null;
+        highlight?: string | null;
+        secondary?: string | null;
+    } | null;
     children: React.ReactNode;
 }
 
-export function DynamicThemeShell({ imageUrl, artistName, genre, children }: Props) {
+const DEFAULT_ACCENT = "#00f2ff";
+
+export function DynamicThemeShell({ imageUrl, artistName, genre, accentColors, children }: Props) {
     const shellRef = useRef<HTMLDivElement>(null);
     const fontInjected = useRef(false);
-    const themeApplied = useRef(false);
+    const accentsStored = useRef(false);
 
     const applyFont = useCallback(() => {
         if (fontInjected.current) return;
@@ -215,41 +233,83 @@ export function DynamicThemeShell({ imageUrl, artistName, genre, children }: Pro
         fontInjected.current = true;
     }, [artistName, genre]);
 
-    const applyPalette = useCallback((palette: RGB[]) => {
-        if (!shellRef.current || themeApplied.current) return;
-        const theme = buildTheme(palette);
-        for (const [key, val] of Object.entries(theme)) {
-            shellRef.current.style.setProperty(key, val);
+    const applyStoredAccents = useCallback(() => {
+        if (!shellRef.current || accentsStored.current) return;
+        if (!accentColors) return;
+
+        // When an image URL is present, palette extraction drives the full theme
+        // (accent, accent-strong, highlight, background, surface, etc.).
+        // Stored accent values must NOT be applied in this case — they would
+        // override the palette with stale Spotify colors and ruin the vibe.
+        if (imageUrl) return;
+
+        const { accent, accentStrong, highlight, secondary } = accentColors;
+        if (!accent && !accentStrong && !highlight) return;
+
+        const shell = shellRef.current;
+
+        if (accent) shell.style.setProperty("--accent", accent);
+        if (accentStrong) {
+            shell.style.setProperty("--accent-strong", accentStrong);
+            if (!secondary) {
+                const rgb = hexToRgb(accentStrong);
+                if (rgb) {
+                    const darkened = darken(rgb, 0.15);
+                    shell.style.setProperty("--accent-secondary", rgbToHex(darkened));
+                }
+            }
         }
-        shellRef.current.style.backgroundColor = theme["--background"];
-        themeApplied.current = true;
-    }, []);
+        if (highlight) shell.style.setProperty("--highlight", highlight);
+        if (secondary) shell.style.setProperty("--accent-secondary", secondary);
+
+        // Build background/foreground from accent — only when no image palette.
+        if (accent) {
+            const rgb = hexToRgb(accent);
+            if (rgb) {
+                const bg = darken(rgb, 0.82);
+                const fg = lighten(rgb, 0.65);
+                const surface = darken(rgb, 0.75);
+                shell.style.setProperty("--background", rgbToHex(bg));
+                shell.style.setProperty("--foreground", rgbToHex(fg));
+                shell.style.setProperty("--surface", rgbToHex(surface));
+                const glassBase = `rgba(${surface.r}, ${surface.g}, ${surface.b}, 0.65)`;
+                const glassStrong = `rgba(${surface.r}, ${surface.g}, ${surface.b}, 0.85)`;
+                shell.style.setProperty("--surface-glass", glassBase);
+                shell.style.setProperty("--surface-glass-strong", glassStrong);
+            }
+        }
+
+        accentsStored.current = true;
+        console.log("[Shell] Applied stored accents:", accentColors);
+    }, [accentColors, imageUrl]);
 
     useEffect(() => {
         applyFont();
+        applyStoredAccents();
         if (!imageUrl) return;
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
             try {
                 const palette = extractPalette(img);
-                if (palette.length > 0) applyPalette(palette);
+                if (palette.length > 0) {
+                    const theme = buildTheme(palette);
+                    for (const [key, val] of Object.entries(theme)) {
+                        shellRef.current?.style.setProperty(key, val);
+                    }
+                }
             } catch {
-                // CORS-tainted canvas — font still applies, palette skipped
+                // CORS or extraction failure — stored accents already applied
             }
         };
         img.src = imageUrl;
-    }, [imageUrl, applyFont, applyPalette]);
+    }, [imageUrl, applyFont, applyStoredAccents]);
 
     return (
         <div
             ref={shellRef}
             className="relative min-h-screen pb-20 transition-colors duration-700"
-            style={{
-                fontFamily: "var(--font-sans)",
-                background: "var(--background)",
-                color: "var(--foreground)",
-            }}
+            style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
         >
             {children}
         </div>

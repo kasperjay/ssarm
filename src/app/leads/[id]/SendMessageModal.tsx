@@ -43,9 +43,7 @@ export default function SendMessageModal({
     setError(null);
     startTransition(async () => {
       const result = await sendMessage({ leadId, body, source });
-      if (result?.ok) {
-        setOpen(false);
-      } else {
+      if (!result?.ok) {
         setError(result?.error || "An unexpected error occurred.");
       }
     });

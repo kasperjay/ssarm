@@ -58,6 +58,11 @@ export type ProjectFile = $Result.DefaultSelection<Prisma.$ProjectFilePayload>
  * 
  */
 export type ProjectFeedback = $Result.DefaultSelection<Prisma.$ProjectFeedbackPayload>
+/**
+ * Model ProjectInvoice
+ * 
+ */
+export type ProjectInvoice = $Result.DefaultSelection<Prisma.$ProjectInvoicePayload>
 
 /**
  * Enums
@@ -330,6 +335,16 @@ export class PrismaClient<
     * ```
     */
   get projectFeedback(): Prisma.ProjectFeedbackDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.projectInvoice`: Exposes CRUD operations for the **ProjectInvoice** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProjectInvoices
+    * const projectInvoices = await prisma.projectInvoice.findMany()
+    * ```
+    */
+  get projectInvoice(): Prisma.ProjectInvoiceDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -772,7 +787,8 @@ export namespace Prisma {
     Activity: 'Activity',
     Project: 'Project',
     ProjectFile: 'ProjectFile',
-    ProjectFeedback: 'ProjectFeedback'
+    ProjectFeedback: 'ProjectFeedback',
+    ProjectInvoice: 'ProjectInvoice'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -788,7 +804,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "artist" | "lead" | "release" | "instagramPost" | "messageDraft" | "activity" | "project" | "projectFile" | "projectFeedback"
+      modelProps: "artist" | "lead" | "release" | "instagramPost" | "messageDraft" | "activity" | "project" | "projectFile" | "projectFeedback" | "projectInvoice"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1458,6 +1474,80 @@ export namespace Prisma {
           }
         }
       }
+      ProjectInvoice: {
+        payload: Prisma.$ProjectInvoicePayload<ExtArgs>
+        fields: Prisma.ProjectInvoiceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProjectInvoiceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProjectInvoiceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>
+          }
+          findFirst: {
+            args: Prisma.ProjectInvoiceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProjectInvoiceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>
+          }
+          findMany: {
+            args: Prisma.ProjectInvoiceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>[]
+          }
+          create: {
+            args: Prisma.ProjectInvoiceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>
+          }
+          createMany: {
+            args: Prisma.ProjectInvoiceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProjectInvoiceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>[]
+          }
+          delete: {
+            args: Prisma.ProjectInvoiceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>
+          }
+          update: {
+            args: Prisma.ProjectInvoiceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>
+          }
+          deleteMany: {
+            args: Prisma.ProjectInvoiceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProjectInvoiceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ProjectInvoiceUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>[]
+          }
+          upsert: {
+            args: Prisma.ProjectInvoiceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectInvoicePayload>
+          }
+          aggregate: {
+            args: Prisma.ProjectInvoiceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProjectInvoice>
+          }
+          groupBy: {
+            args: Prisma.ProjectInvoiceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProjectInvoiceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProjectInvoiceCountArgs<ExtArgs>
+            result: $Utils.Optional<ProjectInvoiceCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1575,6 +1665,7 @@ export namespace Prisma {
     project?: ProjectOmit
     projectFile?: ProjectFileOmit
     projectFeedback?: ProjectFeedbackOmit
+    projectInvoice?: ProjectInvoiceOmit
   }
 
   /* Types for Logging */
@@ -9060,6 +9151,7 @@ export namespace Prisma {
     artist?: boolean | ArtistDefaultArgs<ExtArgs>
     files?: boolean | Project$filesArgs<ExtArgs>
     feedbacks?: boolean | Project$feedbacksArgs<ExtArgs>
+    invoice?: boolean | Project$invoiceArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
 
@@ -9106,6 +9198,7 @@ export namespace Prisma {
     artist?: boolean | ArtistDefaultArgs<ExtArgs>
     files?: boolean | Project$filesArgs<ExtArgs>
     feedbacks?: boolean | Project$feedbacksArgs<ExtArgs>
+    invoice?: boolean | Project$invoiceArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProjectIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9121,6 +9214,7 @@ export namespace Prisma {
       artist: Prisma.$ArtistPayload<ExtArgs>
       files: Prisma.$ProjectFilePayload<ExtArgs>[]
       feedbacks: Prisma.$ProjectFeedbackPayload<ExtArgs>[]
+      invoice: Prisma.$ProjectInvoicePayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -9529,6 +9623,7 @@ export namespace Prisma {
     artist<T extends ArtistDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ArtistDefaultArgs<ExtArgs>>): Prisma__ArtistClient<$Result.GetResult<Prisma.$ArtistPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     files<T extends Project$filesArgs<ExtArgs> = {}>(args?: Subset<T, Project$filesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectFilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     feedbacks<T extends Project$feedbacksArgs<ExtArgs> = {}>(args?: Subset<T, Project$feedbacksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectFeedbackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    invoice<T extends Project$invoiceArgs<ExtArgs> = {}>(args?: Subset<T, Project$invoiceArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -10008,6 +10103,25 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ProjectFeedbackScalarFieldEnum | ProjectFeedbackScalarFieldEnum[]
+  }
+
+  /**
+   * Project.invoice
+   */
+  export type Project$invoiceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    where?: ProjectInvoiceWhereInput
   }
 
   /**
@@ -12362,6 +12476,1232 @@ export namespace Prisma {
 
 
   /**
+   * Model ProjectInvoice
+   */
+
+  export type AggregateProjectInvoice = {
+    _count: ProjectInvoiceCountAggregateOutputType | null
+    _avg: ProjectInvoiceAvgAggregateOutputType | null
+    _sum: ProjectInvoiceSumAggregateOutputType | null
+    _min: ProjectInvoiceMinAggregateOutputType | null
+    _max: ProjectInvoiceMaxAggregateOutputType | null
+  }
+
+  export type ProjectInvoiceAvgAggregateOutputType = {
+    subtotalCents: number | null
+    taxCents: number | null
+    totalCents: number | null
+  }
+
+  export type ProjectInvoiceSumAggregateOutputType = {
+    subtotalCents: number | null
+    taxCents: number | null
+    totalCents: number | null
+  }
+
+  export type ProjectInvoiceMinAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    invoiceNumber: string | null
+    issuedAt: Date | null
+    dueAt: Date | null
+    currency: string | null
+    subtotalCents: number | null
+    taxCents: number | null
+    totalCents: number | null
+    notes: string | null
+    stripePaymentUrl: string | null
+    paidAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ProjectInvoiceMaxAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    invoiceNumber: string | null
+    issuedAt: Date | null
+    dueAt: Date | null
+    currency: string | null
+    subtotalCents: number | null
+    taxCents: number | null
+    totalCents: number | null
+    notes: string | null
+    stripePaymentUrl: string | null
+    paidAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ProjectInvoiceCountAggregateOutputType = {
+    id: number
+    projectId: number
+    invoiceNumber: number
+    issuedAt: number
+    dueAt: number
+    currency: number
+    lineItems: number
+    subtotalCents: number
+    taxCents: number
+    totalCents: number
+    notes: number
+    stripePaymentUrl: number
+    paidAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ProjectInvoiceAvgAggregateInputType = {
+    subtotalCents?: true
+    taxCents?: true
+    totalCents?: true
+  }
+
+  export type ProjectInvoiceSumAggregateInputType = {
+    subtotalCents?: true
+    taxCents?: true
+    totalCents?: true
+  }
+
+  export type ProjectInvoiceMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    invoiceNumber?: true
+    issuedAt?: true
+    dueAt?: true
+    currency?: true
+    subtotalCents?: true
+    taxCents?: true
+    totalCents?: true
+    notes?: true
+    stripePaymentUrl?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ProjectInvoiceMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    invoiceNumber?: true
+    issuedAt?: true
+    dueAt?: true
+    currency?: true
+    subtotalCents?: true
+    taxCents?: true
+    totalCents?: true
+    notes?: true
+    stripePaymentUrl?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ProjectInvoiceCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    invoiceNumber?: true
+    issuedAt?: true
+    dueAt?: true
+    currency?: true
+    lineItems?: true
+    subtotalCents?: true
+    taxCents?: true
+    totalCents?: true
+    notes?: true
+    stripePaymentUrl?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ProjectInvoiceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProjectInvoice to aggregate.
+     */
+    where?: ProjectInvoiceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProjectInvoices to fetch.
+     */
+    orderBy?: ProjectInvoiceOrderByWithRelationInput | ProjectInvoiceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProjectInvoiceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProjectInvoices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProjectInvoices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProjectInvoices
+    **/
+    _count?: true | ProjectInvoiceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProjectInvoiceAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProjectInvoiceSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProjectInvoiceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProjectInvoiceMaxAggregateInputType
+  }
+
+  export type GetProjectInvoiceAggregateType<T extends ProjectInvoiceAggregateArgs> = {
+        [P in keyof T & keyof AggregateProjectInvoice]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProjectInvoice[P]>
+      : GetScalarType<T[P], AggregateProjectInvoice[P]>
+  }
+
+
+
+
+  export type ProjectInvoiceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProjectInvoiceWhereInput
+    orderBy?: ProjectInvoiceOrderByWithAggregationInput | ProjectInvoiceOrderByWithAggregationInput[]
+    by: ProjectInvoiceScalarFieldEnum[] | ProjectInvoiceScalarFieldEnum
+    having?: ProjectInvoiceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProjectInvoiceCountAggregateInputType | true
+    _avg?: ProjectInvoiceAvgAggregateInputType
+    _sum?: ProjectInvoiceSumAggregateInputType
+    _min?: ProjectInvoiceMinAggregateInputType
+    _max?: ProjectInvoiceMaxAggregateInputType
+  }
+
+  export type ProjectInvoiceGroupByOutputType = {
+    id: string
+    projectId: string
+    invoiceNumber: string
+    issuedAt: Date
+    dueAt: Date | null
+    currency: string
+    lineItems: JsonValue
+    subtotalCents: number
+    taxCents: number
+    totalCents: number
+    notes: string | null
+    stripePaymentUrl: string | null
+    paidAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ProjectInvoiceCountAggregateOutputType | null
+    _avg: ProjectInvoiceAvgAggregateOutputType | null
+    _sum: ProjectInvoiceSumAggregateOutputType | null
+    _min: ProjectInvoiceMinAggregateOutputType | null
+    _max: ProjectInvoiceMaxAggregateOutputType | null
+  }
+
+  type GetProjectInvoiceGroupByPayload<T extends ProjectInvoiceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProjectInvoiceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProjectInvoiceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProjectInvoiceGroupByOutputType[P]>
+            : GetScalarType<T[P], ProjectInvoiceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProjectInvoiceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    invoiceNumber?: boolean
+    issuedAt?: boolean
+    dueAt?: boolean
+    currency?: boolean
+    lineItems?: boolean
+    subtotalCents?: boolean
+    taxCents?: boolean
+    totalCents?: boolean
+    notes?: boolean
+    stripePaymentUrl?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["projectInvoice"]>
+
+  export type ProjectInvoiceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    invoiceNumber?: boolean
+    issuedAt?: boolean
+    dueAt?: boolean
+    currency?: boolean
+    lineItems?: boolean
+    subtotalCents?: boolean
+    taxCents?: boolean
+    totalCents?: boolean
+    notes?: boolean
+    stripePaymentUrl?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["projectInvoice"]>
+
+  export type ProjectInvoiceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    invoiceNumber?: boolean
+    issuedAt?: boolean
+    dueAt?: boolean
+    currency?: boolean
+    lineItems?: boolean
+    subtotalCents?: boolean
+    taxCents?: boolean
+    totalCents?: boolean
+    notes?: boolean
+    stripePaymentUrl?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["projectInvoice"]>
+
+  export type ProjectInvoiceSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    invoiceNumber?: boolean
+    issuedAt?: boolean
+    dueAt?: boolean
+    currency?: boolean
+    lineItems?: boolean
+    subtotalCents?: boolean
+    taxCents?: boolean
+    totalCents?: boolean
+    notes?: boolean
+    stripePaymentUrl?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ProjectInvoiceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "invoiceNumber" | "issuedAt" | "dueAt" | "currency" | "lineItems" | "subtotalCents" | "taxCents" | "totalCents" | "notes" | "stripePaymentUrl" | "paidAt" | "createdAt" | "updatedAt", ExtArgs["result"]["projectInvoice"]>
+  export type ProjectInvoiceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type ProjectInvoiceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type ProjectInvoiceIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $ProjectInvoicePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProjectInvoice"
+    objects: {
+      project: Prisma.$ProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      projectId: string
+      invoiceNumber: string
+      issuedAt: Date
+      dueAt: Date | null
+      currency: string
+      lineItems: Prisma.JsonValue
+      subtotalCents: number
+      taxCents: number
+      totalCents: number
+      notes: string | null
+      stripePaymentUrl: string | null
+      paidAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["projectInvoice"]>
+    composites: {}
+  }
+
+  type ProjectInvoiceGetPayload<S extends boolean | null | undefined | ProjectInvoiceDefaultArgs> = $Result.GetResult<Prisma.$ProjectInvoicePayload, S>
+
+  type ProjectInvoiceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProjectInvoiceFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ProjectInvoiceCountAggregateInputType | true
+    }
+
+  export interface ProjectInvoiceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProjectInvoice'], meta: { name: 'ProjectInvoice' } }
+    /**
+     * Find zero or one ProjectInvoice that matches the filter.
+     * @param {ProjectInvoiceFindUniqueArgs} args - Arguments to find a ProjectInvoice
+     * @example
+     * // Get one ProjectInvoice
+     * const projectInvoice = await prisma.projectInvoice.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProjectInvoiceFindUniqueArgs>(args: SelectSubset<T, ProjectInvoiceFindUniqueArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ProjectInvoice that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ProjectInvoiceFindUniqueOrThrowArgs} args - Arguments to find a ProjectInvoice
+     * @example
+     * // Get one ProjectInvoice
+     * const projectInvoice = await prisma.projectInvoice.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProjectInvoiceFindUniqueOrThrowArgs>(args: SelectSubset<T, ProjectInvoiceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProjectInvoice that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectInvoiceFindFirstArgs} args - Arguments to find a ProjectInvoice
+     * @example
+     * // Get one ProjectInvoice
+     * const projectInvoice = await prisma.projectInvoice.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProjectInvoiceFindFirstArgs>(args?: SelectSubset<T, ProjectInvoiceFindFirstArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProjectInvoice that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectInvoiceFindFirstOrThrowArgs} args - Arguments to find a ProjectInvoice
+     * @example
+     * // Get one ProjectInvoice
+     * const projectInvoice = await prisma.projectInvoice.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProjectInvoiceFindFirstOrThrowArgs>(args?: SelectSubset<T, ProjectInvoiceFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ProjectInvoices that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectInvoiceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProjectInvoices
+     * const projectInvoices = await prisma.projectInvoice.findMany()
+     * 
+     * // Get first 10 ProjectInvoices
+     * const projectInvoices = await prisma.projectInvoice.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const projectInvoiceWithIdOnly = await prisma.projectInvoice.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProjectInvoiceFindManyArgs>(args?: SelectSubset<T, ProjectInvoiceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ProjectInvoice.
+     * @param {ProjectInvoiceCreateArgs} args - Arguments to create a ProjectInvoice.
+     * @example
+     * // Create one ProjectInvoice
+     * const ProjectInvoice = await prisma.projectInvoice.create({
+     *   data: {
+     *     // ... data to create a ProjectInvoice
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProjectInvoiceCreateArgs>(args: SelectSubset<T, ProjectInvoiceCreateArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ProjectInvoices.
+     * @param {ProjectInvoiceCreateManyArgs} args - Arguments to create many ProjectInvoices.
+     * @example
+     * // Create many ProjectInvoices
+     * const projectInvoice = await prisma.projectInvoice.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProjectInvoiceCreateManyArgs>(args?: SelectSubset<T, ProjectInvoiceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProjectInvoices and returns the data saved in the database.
+     * @param {ProjectInvoiceCreateManyAndReturnArgs} args - Arguments to create many ProjectInvoices.
+     * @example
+     * // Create many ProjectInvoices
+     * const projectInvoice = await prisma.projectInvoice.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProjectInvoices and only return the `id`
+     * const projectInvoiceWithIdOnly = await prisma.projectInvoice.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProjectInvoiceCreateManyAndReturnArgs>(args?: SelectSubset<T, ProjectInvoiceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ProjectInvoice.
+     * @param {ProjectInvoiceDeleteArgs} args - Arguments to delete one ProjectInvoice.
+     * @example
+     * // Delete one ProjectInvoice
+     * const ProjectInvoice = await prisma.projectInvoice.delete({
+     *   where: {
+     *     // ... filter to delete one ProjectInvoice
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProjectInvoiceDeleteArgs>(args: SelectSubset<T, ProjectInvoiceDeleteArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ProjectInvoice.
+     * @param {ProjectInvoiceUpdateArgs} args - Arguments to update one ProjectInvoice.
+     * @example
+     * // Update one ProjectInvoice
+     * const projectInvoice = await prisma.projectInvoice.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProjectInvoiceUpdateArgs>(args: SelectSubset<T, ProjectInvoiceUpdateArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ProjectInvoices.
+     * @param {ProjectInvoiceDeleteManyArgs} args - Arguments to filter ProjectInvoices to delete.
+     * @example
+     * // Delete a few ProjectInvoices
+     * const { count } = await prisma.projectInvoice.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProjectInvoiceDeleteManyArgs>(args?: SelectSubset<T, ProjectInvoiceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProjectInvoices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectInvoiceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProjectInvoices
+     * const projectInvoice = await prisma.projectInvoice.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProjectInvoiceUpdateManyArgs>(args: SelectSubset<T, ProjectInvoiceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProjectInvoices and returns the data updated in the database.
+     * @param {ProjectInvoiceUpdateManyAndReturnArgs} args - Arguments to update many ProjectInvoices.
+     * @example
+     * // Update many ProjectInvoices
+     * const projectInvoice = await prisma.projectInvoice.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ProjectInvoices and only return the `id`
+     * const projectInvoiceWithIdOnly = await prisma.projectInvoice.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProjectInvoiceUpdateManyAndReturnArgs>(args: SelectSubset<T, ProjectInvoiceUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ProjectInvoice.
+     * @param {ProjectInvoiceUpsertArgs} args - Arguments to update or create a ProjectInvoice.
+     * @example
+     * // Update or create a ProjectInvoice
+     * const projectInvoice = await prisma.projectInvoice.upsert({
+     *   create: {
+     *     // ... data to create a ProjectInvoice
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProjectInvoice we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProjectInvoiceUpsertArgs>(args: SelectSubset<T, ProjectInvoiceUpsertArgs<ExtArgs>>): Prisma__ProjectInvoiceClient<$Result.GetResult<Prisma.$ProjectInvoicePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ProjectInvoices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectInvoiceCountArgs} args - Arguments to filter ProjectInvoices to count.
+     * @example
+     * // Count the number of ProjectInvoices
+     * const count = await prisma.projectInvoice.count({
+     *   where: {
+     *     // ... the filter for the ProjectInvoices we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProjectInvoiceCountArgs>(
+      args?: Subset<T, ProjectInvoiceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProjectInvoiceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProjectInvoice.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectInvoiceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProjectInvoiceAggregateArgs>(args: Subset<T, ProjectInvoiceAggregateArgs>): Prisma.PrismaPromise<GetProjectInvoiceAggregateType<T>>
+
+    /**
+     * Group by ProjectInvoice.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectInvoiceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProjectInvoiceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProjectInvoiceGroupByArgs['orderBy'] }
+        : { orderBy?: ProjectInvoiceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProjectInvoiceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProjectInvoiceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProjectInvoice model
+   */
+  readonly fields: ProjectInvoiceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProjectInvoice.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProjectInvoiceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProjectInvoice model
+   */
+  interface ProjectInvoiceFieldRefs {
+    readonly id: FieldRef<"ProjectInvoice", 'String'>
+    readonly projectId: FieldRef<"ProjectInvoice", 'String'>
+    readonly invoiceNumber: FieldRef<"ProjectInvoice", 'String'>
+    readonly issuedAt: FieldRef<"ProjectInvoice", 'DateTime'>
+    readonly dueAt: FieldRef<"ProjectInvoice", 'DateTime'>
+    readonly currency: FieldRef<"ProjectInvoice", 'String'>
+    readonly lineItems: FieldRef<"ProjectInvoice", 'Json'>
+    readonly subtotalCents: FieldRef<"ProjectInvoice", 'Int'>
+    readonly taxCents: FieldRef<"ProjectInvoice", 'Int'>
+    readonly totalCents: FieldRef<"ProjectInvoice", 'Int'>
+    readonly notes: FieldRef<"ProjectInvoice", 'String'>
+    readonly stripePaymentUrl: FieldRef<"ProjectInvoice", 'String'>
+    readonly paidAt: FieldRef<"ProjectInvoice", 'DateTime'>
+    readonly createdAt: FieldRef<"ProjectInvoice", 'DateTime'>
+    readonly updatedAt: FieldRef<"ProjectInvoice", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProjectInvoice findUnique
+   */
+  export type ProjectInvoiceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectInvoice to fetch.
+     */
+    where: ProjectInvoiceWhereUniqueInput
+  }
+
+  /**
+   * ProjectInvoice findUniqueOrThrow
+   */
+  export type ProjectInvoiceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectInvoice to fetch.
+     */
+    where: ProjectInvoiceWhereUniqueInput
+  }
+
+  /**
+   * ProjectInvoice findFirst
+   */
+  export type ProjectInvoiceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectInvoice to fetch.
+     */
+    where?: ProjectInvoiceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProjectInvoices to fetch.
+     */
+    orderBy?: ProjectInvoiceOrderByWithRelationInput | ProjectInvoiceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProjectInvoices.
+     */
+    cursor?: ProjectInvoiceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProjectInvoices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProjectInvoices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProjectInvoices.
+     */
+    distinct?: ProjectInvoiceScalarFieldEnum | ProjectInvoiceScalarFieldEnum[]
+  }
+
+  /**
+   * ProjectInvoice findFirstOrThrow
+   */
+  export type ProjectInvoiceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectInvoice to fetch.
+     */
+    where?: ProjectInvoiceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProjectInvoices to fetch.
+     */
+    orderBy?: ProjectInvoiceOrderByWithRelationInput | ProjectInvoiceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProjectInvoices.
+     */
+    cursor?: ProjectInvoiceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProjectInvoices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProjectInvoices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProjectInvoices.
+     */
+    distinct?: ProjectInvoiceScalarFieldEnum | ProjectInvoiceScalarFieldEnum[]
+  }
+
+  /**
+   * ProjectInvoice findMany
+   */
+  export type ProjectInvoiceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectInvoices to fetch.
+     */
+    where?: ProjectInvoiceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProjectInvoices to fetch.
+     */
+    orderBy?: ProjectInvoiceOrderByWithRelationInput | ProjectInvoiceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProjectInvoices.
+     */
+    cursor?: ProjectInvoiceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProjectInvoices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProjectInvoices.
+     */
+    skip?: number
+    distinct?: ProjectInvoiceScalarFieldEnum | ProjectInvoiceScalarFieldEnum[]
+  }
+
+  /**
+   * ProjectInvoice create
+   */
+  export type ProjectInvoiceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProjectInvoice.
+     */
+    data: XOR<ProjectInvoiceCreateInput, ProjectInvoiceUncheckedCreateInput>
+  }
+
+  /**
+   * ProjectInvoice createMany
+   */
+  export type ProjectInvoiceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProjectInvoices.
+     */
+    data: ProjectInvoiceCreateManyInput | ProjectInvoiceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProjectInvoice createManyAndReturn
+   */
+  export type ProjectInvoiceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * The data used to create many ProjectInvoices.
+     */
+    data: ProjectInvoiceCreateManyInput | ProjectInvoiceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProjectInvoice update
+   */
+  export type ProjectInvoiceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProjectInvoice.
+     */
+    data: XOR<ProjectInvoiceUpdateInput, ProjectInvoiceUncheckedUpdateInput>
+    /**
+     * Choose, which ProjectInvoice to update.
+     */
+    where: ProjectInvoiceWhereUniqueInput
+  }
+
+  /**
+   * ProjectInvoice updateMany
+   */
+  export type ProjectInvoiceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProjectInvoices.
+     */
+    data: XOR<ProjectInvoiceUpdateManyMutationInput, ProjectInvoiceUncheckedUpdateManyInput>
+    /**
+     * Filter which ProjectInvoices to update
+     */
+    where?: ProjectInvoiceWhereInput
+    /**
+     * Limit how many ProjectInvoices to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProjectInvoice updateManyAndReturn
+   */
+  export type ProjectInvoiceUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * The data used to update ProjectInvoices.
+     */
+    data: XOR<ProjectInvoiceUpdateManyMutationInput, ProjectInvoiceUncheckedUpdateManyInput>
+    /**
+     * Filter which ProjectInvoices to update
+     */
+    where?: ProjectInvoiceWhereInput
+    /**
+     * Limit how many ProjectInvoices to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProjectInvoice upsert
+   */
+  export type ProjectInvoiceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProjectInvoice to update in case it exists.
+     */
+    where: ProjectInvoiceWhereUniqueInput
+    /**
+     * In case the ProjectInvoice found by the `where` argument doesn't exist, create a new ProjectInvoice with this data.
+     */
+    create: XOR<ProjectInvoiceCreateInput, ProjectInvoiceUncheckedCreateInput>
+    /**
+     * In case the ProjectInvoice was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProjectInvoiceUpdateInput, ProjectInvoiceUncheckedUpdateInput>
+  }
+
+  /**
+   * ProjectInvoice delete
+   */
+  export type ProjectInvoiceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+    /**
+     * Filter which ProjectInvoice to delete.
+     */
+    where: ProjectInvoiceWhereUniqueInput
+  }
+
+  /**
+   * ProjectInvoice deleteMany
+   */
+  export type ProjectInvoiceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProjectInvoices to delete
+     */
+    where?: ProjectInvoiceWhereInput
+    /**
+     * Limit how many ProjectInvoices to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProjectInvoice without action
+   */
+  export type ProjectInvoiceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectInvoice
+     */
+    select?: ProjectInvoiceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectInvoice
+     */
+    omit?: ProjectInvoiceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectInvoiceInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -12519,12 +13859,40 @@ export namespace Prisma {
   export type ProjectFeedbackScalarFieldEnum = (typeof ProjectFeedbackScalarFieldEnum)[keyof typeof ProjectFeedbackScalarFieldEnum]
 
 
+  export const ProjectInvoiceScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    invoiceNumber: 'invoiceNumber',
+    issuedAt: 'issuedAt',
+    dueAt: 'dueAt',
+    currency: 'currency',
+    lineItems: 'lineItems',
+    subtotalCents: 'subtotalCents',
+    taxCents: 'taxCents',
+    totalCents: 'totalCents',
+    notes: 'notes',
+    stripePaymentUrl: 'stripePaymentUrl',
+    paidAt: 'paidAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ProjectInvoiceScalarFieldEnum = (typeof ProjectInvoiceScalarFieldEnum)[keyof typeof ProjectInvoiceScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const QueryMode: {
@@ -12541,6 +13909,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -12664,6 +14041,20 @@ export namespace Prisma {
    * Reference to a field of type 'FileType[]'
    */
   export type ListEnumFileTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FileType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
   /**
    * Deep Input Types
@@ -13205,6 +14596,7 @@ export namespace Prisma {
     artist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
     files?: ProjectFileListRelationFilter
     feedbacks?: ProjectFeedbackListRelationFilter
+    invoice?: XOR<ProjectInvoiceNullableScalarRelationFilter, ProjectInvoiceWhereInput> | null
   }
 
   export type ProjectOrderByWithRelationInput = {
@@ -13220,6 +14612,7 @@ export namespace Prisma {
     artist?: ArtistOrderByWithRelationInput
     files?: ProjectFileOrderByRelationAggregateInput
     feedbacks?: ProjectFeedbackOrderByRelationAggregateInput
+    invoice?: ProjectInvoiceOrderByWithRelationInput
   }
 
   export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -13238,6 +14631,7 @@ export namespace Prisma {
     artist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
     files?: ProjectFileListRelationFilter
     feedbacks?: ProjectFeedbackListRelationFilter
+    invoice?: XOR<ProjectInvoiceNullableScalarRelationFilter, ProjectInvoiceWhereInput> | null
   }, "id" | "portalToken">
 
   export type ProjectOrderByWithAggregationInput = {
@@ -13425,6 +14819,113 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"ProjectFeedback"> | Date | string
     fileId?: StringNullableWithAggregatesFilter<"ProjectFeedback"> | string | null
     timestamp?: FloatNullableWithAggregatesFilter<"ProjectFeedback"> | number | null
+  }
+
+  export type ProjectInvoiceWhereInput = {
+    AND?: ProjectInvoiceWhereInput | ProjectInvoiceWhereInput[]
+    OR?: ProjectInvoiceWhereInput[]
+    NOT?: ProjectInvoiceWhereInput | ProjectInvoiceWhereInput[]
+    id?: StringFilter<"ProjectInvoice"> | string
+    projectId?: StringFilter<"ProjectInvoice"> | string
+    invoiceNumber?: StringFilter<"ProjectInvoice"> | string
+    issuedAt?: DateTimeFilter<"ProjectInvoice"> | Date | string
+    dueAt?: DateTimeNullableFilter<"ProjectInvoice"> | Date | string | null
+    currency?: StringFilter<"ProjectInvoice"> | string
+    lineItems?: JsonFilter<"ProjectInvoice">
+    subtotalCents?: IntFilter<"ProjectInvoice"> | number
+    taxCents?: IntFilter<"ProjectInvoice"> | number
+    totalCents?: IntFilter<"ProjectInvoice"> | number
+    notes?: StringNullableFilter<"ProjectInvoice"> | string | null
+    stripePaymentUrl?: StringNullableFilter<"ProjectInvoice"> | string | null
+    paidAt?: DateTimeNullableFilter<"ProjectInvoice"> | Date | string | null
+    createdAt?: DateTimeFilter<"ProjectInvoice"> | Date | string
+    updatedAt?: DateTimeFilter<"ProjectInvoice"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+  }
+
+  export type ProjectInvoiceOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    invoiceNumber?: SortOrder
+    issuedAt?: SortOrder
+    dueAt?: SortOrderInput | SortOrder
+    currency?: SortOrder
+    lineItems?: SortOrder
+    subtotalCents?: SortOrder
+    taxCents?: SortOrder
+    totalCents?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    stripePaymentUrl?: SortOrderInput | SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    project?: ProjectOrderByWithRelationInput
+  }
+
+  export type ProjectInvoiceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    projectId?: string
+    AND?: ProjectInvoiceWhereInput | ProjectInvoiceWhereInput[]
+    OR?: ProjectInvoiceWhereInput[]
+    NOT?: ProjectInvoiceWhereInput | ProjectInvoiceWhereInput[]
+    invoiceNumber?: StringFilter<"ProjectInvoice"> | string
+    issuedAt?: DateTimeFilter<"ProjectInvoice"> | Date | string
+    dueAt?: DateTimeNullableFilter<"ProjectInvoice"> | Date | string | null
+    currency?: StringFilter<"ProjectInvoice"> | string
+    lineItems?: JsonFilter<"ProjectInvoice">
+    subtotalCents?: IntFilter<"ProjectInvoice"> | number
+    taxCents?: IntFilter<"ProjectInvoice"> | number
+    totalCents?: IntFilter<"ProjectInvoice"> | number
+    notes?: StringNullableFilter<"ProjectInvoice"> | string | null
+    stripePaymentUrl?: StringNullableFilter<"ProjectInvoice"> | string | null
+    paidAt?: DateTimeNullableFilter<"ProjectInvoice"> | Date | string | null
+    createdAt?: DateTimeFilter<"ProjectInvoice"> | Date | string
+    updatedAt?: DateTimeFilter<"ProjectInvoice"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+  }, "id" | "projectId">
+
+  export type ProjectInvoiceOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    invoiceNumber?: SortOrder
+    issuedAt?: SortOrder
+    dueAt?: SortOrderInput | SortOrder
+    currency?: SortOrder
+    lineItems?: SortOrder
+    subtotalCents?: SortOrder
+    taxCents?: SortOrder
+    totalCents?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    stripePaymentUrl?: SortOrderInput | SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ProjectInvoiceCountOrderByAggregateInput
+    _avg?: ProjectInvoiceAvgOrderByAggregateInput
+    _max?: ProjectInvoiceMaxOrderByAggregateInput
+    _min?: ProjectInvoiceMinOrderByAggregateInput
+    _sum?: ProjectInvoiceSumOrderByAggregateInput
+  }
+
+  export type ProjectInvoiceScalarWhereWithAggregatesInput = {
+    AND?: ProjectInvoiceScalarWhereWithAggregatesInput | ProjectInvoiceScalarWhereWithAggregatesInput[]
+    OR?: ProjectInvoiceScalarWhereWithAggregatesInput[]
+    NOT?: ProjectInvoiceScalarWhereWithAggregatesInput | ProjectInvoiceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ProjectInvoice"> | string
+    projectId?: StringWithAggregatesFilter<"ProjectInvoice"> | string
+    invoiceNumber?: StringWithAggregatesFilter<"ProjectInvoice"> | string
+    issuedAt?: DateTimeWithAggregatesFilter<"ProjectInvoice"> | Date | string
+    dueAt?: DateTimeNullableWithAggregatesFilter<"ProjectInvoice"> | Date | string | null
+    currency?: StringWithAggregatesFilter<"ProjectInvoice"> | string
+    lineItems?: JsonWithAggregatesFilter<"ProjectInvoice">
+    subtotalCents?: IntWithAggregatesFilter<"ProjectInvoice"> | number
+    taxCents?: IntWithAggregatesFilter<"ProjectInvoice"> | number
+    totalCents?: IntWithAggregatesFilter<"ProjectInvoice"> | number
+    notes?: StringNullableWithAggregatesFilter<"ProjectInvoice"> | string | null
+    stripePaymentUrl?: StringNullableWithAggregatesFilter<"ProjectInvoice"> | string | null
+    paidAt?: DateTimeNullableWithAggregatesFilter<"ProjectInvoice"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ProjectInvoice"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ProjectInvoice"> | Date | string
   }
 
   export type ArtistCreateInput = {
@@ -14032,6 +15533,7 @@ export namespace Prisma {
     artist: ArtistCreateNestedOneWithoutProjectsInput
     files?: ProjectFileCreateNestedManyWithoutProjectInput
     feedbacks?: ProjectFeedbackCreateNestedManyWithoutProjectInput
+    invoice?: ProjectInvoiceCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateInput = {
@@ -14046,6 +15548,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     files?: ProjectFileUncheckedCreateNestedManyWithoutProjectInput
     feedbacks?: ProjectFeedbackUncheckedCreateNestedManyWithoutProjectInput
+    invoice?: ProjectInvoiceUncheckedCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectUpdateInput = {
@@ -14060,6 +15563,7 @@ export namespace Prisma {
     artist?: ArtistUpdateOneRequiredWithoutProjectsNestedInput
     files?: ProjectFileUpdateManyWithoutProjectNestedInput
     feedbacks?: ProjectFeedbackUpdateManyWithoutProjectNestedInput
+    invoice?: ProjectInvoiceUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateInput = {
@@ -14074,6 +15578,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     files?: ProjectFileUncheckedUpdateManyWithoutProjectNestedInput
     feedbacks?: ProjectFeedbackUncheckedUpdateManyWithoutProjectNestedInput
+    invoice?: ProjectInvoiceUncheckedUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectCreateManyInput = {
@@ -14271,6 +15776,131 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     fileId?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
+  }
+
+  export type ProjectInvoiceCreateInput = {
+    id?: string
+    invoiceNumber: string
+    issuedAt?: Date | string
+    dueAt?: Date | string | null
+    currency?: string
+    lineItems: JsonNullValueInput | InputJsonValue
+    subtotalCents: number
+    taxCents?: number
+    totalCents: number
+    notes?: string | null
+    stripePaymentUrl?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    project: ProjectCreateNestedOneWithoutInvoiceInput
+  }
+
+  export type ProjectInvoiceUncheckedCreateInput = {
+    id?: string
+    projectId: string
+    invoiceNumber: string
+    issuedAt?: Date | string
+    dueAt?: Date | string | null
+    currency?: string
+    lineItems: JsonNullValueInput | InputJsonValue
+    subtotalCents: number
+    taxCents?: number
+    totalCents: number
+    notes?: string | null
+    stripePaymentUrl?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProjectInvoiceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    invoiceNumber?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currency?: StringFieldUpdateOperationsInput | string
+    lineItems?: JsonNullValueInput | InputJsonValue
+    subtotalCents?: IntFieldUpdateOperationsInput | number
+    taxCents?: IntFieldUpdateOperationsInput | number
+    totalCents?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutInvoiceNestedInput
+  }
+
+  export type ProjectInvoiceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    invoiceNumber?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currency?: StringFieldUpdateOperationsInput | string
+    lineItems?: JsonNullValueInput | InputJsonValue
+    subtotalCents?: IntFieldUpdateOperationsInput | number
+    taxCents?: IntFieldUpdateOperationsInput | number
+    totalCents?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectInvoiceCreateManyInput = {
+    id?: string
+    projectId: string
+    invoiceNumber: string
+    issuedAt?: Date | string
+    dueAt?: Date | string | null
+    currency?: string
+    lineItems: JsonNullValueInput | InputJsonValue
+    subtotalCents: number
+    taxCents?: number
+    totalCents: number
+    notes?: string | null
+    stripePaymentUrl?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProjectInvoiceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    invoiceNumber?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currency?: StringFieldUpdateOperationsInput | string
+    lineItems?: JsonNullValueInput | InputJsonValue
+    subtotalCents?: IntFieldUpdateOperationsInput | number
+    taxCents?: IntFieldUpdateOperationsInput | number
+    totalCents?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectInvoiceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    invoiceNumber?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currency?: StringFieldUpdateOperationsInput | string
+    lineItems?: JsonNullValueInput | InputJsonValue
+    subtotalCents?: IntFieldUpdateOperationsInput | number
+    taxCents?: IntFieldUpdateOperationsInput | number
+    totalCents?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -14850,6 +16480,11 @@ export namespace Prisma {
     none?: ProjectFeedbackWhereInput
   }
 
+  export type ProjectInvoiceNullableScalarRelationFilter = {
+    is?: ProjectInvoiceWhereInput | null
+    isNot?: ProjectInvoiceWhereInput | null
+  }
+
   export type ProjectFileOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -15049,6 +16684,119 @@ export namespace Prisma {
 
   export type ProjectFeedbackSumOrderByAggregateInput = {
     timestamp?: SortOrder
+  }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type ProjectInvoiceCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    invoiceNumber?: SortOrder
+    issuedAt?: SortOrder
+    dueAt?: SortOrder
+    currency?: SortOrder
+    lineItems?: SortOrder
+    subtotalCents?: SortOrder
+    taxCents?: SortOrder
+    totalCents?: SortOrder
+    notes?: SortOrder
+    stripePaymentUrl?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProjectInvoiceAvgOrderByAggregateInput = {
+    subtotalCents?: SortOrder
+    taxCents?: SortOrder
+    totalCents?: SortOrder
+  }
+
+  export type ProjectInvoiceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    invoiceNumber?: SortOrder
+    issuedAt?: SortOrder
+    dueAt?: SortOrder
+    currency?: SortOrder
+    subtotalCents?: SortOrder
+    taxCents?: SortOrder
+    totalCents?: SortOrder
+    notes?: SortOrder
+    stripePaymentUrl?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProjectInvoiceMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    invoiceNumber?: SortOrder
+    issuedAt?: SortOrder
+    dueAt?: SortOrder
+    currency?: SortOrder
+    subtotalCents?: SortOrder
+    taxCents?: SortOrder
+    totalCents?: SortOrder
+    notes?: SortOrder
+    stripePaymentUrl?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProjectInvoiceSumOrderByAggregateInput = {
+    subtotalCents?: SortOrder
+    taxCents?: SortOrder
+    totalCents?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type ArtistCreatetagsInput = {
@@ -15455,6 +17203,12 @@ export namespace Prisma {
     connect?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
   }
 
+  export type ProjectInvoiceCreateNestedOneWithoutProjectInput = {
+    create?: XOR<ProjectInvoiceCreateWithoutProjectInput, ProjectInvoiceUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: ProjectInvoiceCreateOrConnectWithoutProjectInput
+    connect?: ProjectInvoiceWhereUniqueInput
+  }
+
   export type ProjectFileUncheckedCreateNestedManyWithoutProjectInput = {
     create?: XOR<ProjectFileCreateWithoutProjectInput, ProjectFileUncheckedCreateWithoutProjectInput> | ProjectFileCreateWithoutProjectInput[] | ProjectFileUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: ProjectFileCreateOrConnectWithoutProjectInput | ProjectFileCreateOrConnectWithoutProjectInput[]
@@ -15467,6 +17221,12 @@ export namespace Prisma {
     connectOrCreate?: ProjectFeedbackCreateOrConnectWithoutProjectInput | ProjectFeedbackCreateOrConnectWithoutProjectInput[]
     createMany?: ProjectFeedbackCreateManyProjectInputEnvelope
     connect?: ProjectFeedbackWhereUniqueInput | ProjectFeedbackWhereUniqueInput[]
+  }
+
+  export type ProjectInvoiceUncheckedCreateNestedOneWithoutProjectInput = {
+    create?: XOR<ProjectInvoiceCreateWithoutProjectInput, ProjectInvoiceUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: ProjectInvoiceCreateOrConnectWithoutProjectInput
+    connect?: ProjectInvoiceWhereUniqueInput
   }
 
   export type EnumProjectStatusFieldUpdateOperationsInput = {
@@ -15509,6 +17269,16 @@ export namespace Prisma {
     deleteMany?: ProjectFeedbackScalarWhereInput | ProjectFeedbackScalarWhereInput[]
   }
 
+  export type ProjectInvoiceUpdateOneWithoutProjectNestedInput = {
+    create?: XOR<ProjectInvoiceCreateWithoutProjectInput, ProjectInvoiceUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: ProjectInvoiceCreateOrConnectWithoutProjectInput
+    upsert?: ProjectInvoiceUpsertWithoutProjectInput
+    disconnect?: ProjectInvoiceWhereInput | boolean
+    delete?: ProjectInvoiceWhereInput | boolean
+    connect?: ProjectInvoiceWhereUniqueInput
+    update?: XOR<XOR<ProjectInvoiceUpdateToOneWithWhereWithoutProjectInput, ProjectInvoiceUpdateWithoutProjectInput>, ProjectInvoiceUncheckedUpdateWithoutProjectInput>
+  }
+
   export type ProjectFileUncheckedUpdateManyWithoutProjectNestedInput = {
     create?: XOR<ProjectFileCreateWithoutProjectInput, ProjectFileUncheckedCreateWithoutProjectInput> | ProjectFileCreateWithoutProjectInput[] | ProjectFileUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: ProjectFileCreateOrConnectWithoutProjectInput | ProjectFileCreateOrConnectWithoutProjectInput[]
@@ -15535,6 +17305,16 @@ export namespace Prisma {
     update?: ProjectFeedbackUpdateWithWhereUniqueWithoutProjectInput | ProjectFeedbackUpdateWithWhereUniqueWithoutProjectInput[]
     updateMany?: ProjectFeedbackUpdateManyWithWhereWithoutProjectInput | ProjectFeedbackUpdateManyWithWhereWithoutProjectInput[]
     deleteMany?: ProjectFeedbackScalarWhereInput | ProjectFeedbackScalarWhereInput[]
+  }
+
+  export type ProjectInvoiceUncheckedUpdateOneWithoutProjectNestedInput = {
+    create?: XOR<ProjectInvoiceCreateWithoutProjectInput, ProjectInvoiceUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: ProjectInvoiceCreateOrConnectWithoutProjectInput
+    upsert?: ProjectInvoiceUpsertWithoutProjectInput
+    disconnect?: ProjectInvoiceWhereInput | boolean
+    delete?: ProjectInvoiceWhereInput | boolean
+    connect?: ProjectInvoiceWhereUniqueInput
+    update?: XOR<XOR<ProjectInvoiceUpdateToOneWithWhereWithoutProjectInput, ProjectInvoiceUpdateWithoutProjectInput>, ProjectInvoiceUncheckedUpdateWithoutProjectInput>
   }
 
   export type ProjectCreateNestedOneWithoutFilesInput = {
@@ -15633,6 +17413,20 @@ export namespace Prisma {
     delete?: ProjectFileWhereInput | boolean
     connect?: ProjectFileWhereUniqueInput
     update?: XOR<XOR<ProjectFileUpdateToOneWithWhereWithoutFeedbacksInput, ProjectFileUpdateWithoutFeedbacksInput>, ProjectFileUncheckedUpdateWithoutFeedbacksInput>
+  }
+
+  export type ProjectCreateNestedOneWithoutInvoiceInput = {
+    create?: XOR<ProjectCreateWithoutInvoiceInput, ProjectUncheckedCreateWithoutInvoiceInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutInvoiceInput
+    connect?: ProjectWhereUniqueInput
+  }
+
+  export type ProjectUpdateOneRequiredWithoutInvoiceNestedInput = {
+    create?: XOR<ProjectCreateWithoutInvoiceInput, ProjectUncheckedCreateWithoutInvoiceInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutInvoiceInput
+    upsert?: ProjectUpsertWithoutInvoiceInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutInvoiceInput, ProjectUpdateWithoutInvoiceInput>, ProjectUncheckedUpdateWithoutInvoiceInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -15919,6 +17713,29 @@ export namespace Prisma {
     _min?: NestedEnumFileTypeFilter<$PrismaModel>
     _max?: NestedEnumFileTypeFilter<$PrismaModel>
   }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type LeadCreateWithoutArtistInput = {
     id?: string
@@ -16031,6 +17848,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     files?: ProjectFileCreateNestedManyWithoutProjectInput
     feedbacks?: ProjectFeedbackCreateNestedManyWithoutProjectInput
+    invoice?: ProjectInvoiceCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutArtistInput = {
@@ -16044,6 +17862,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     files?: ProjectFileUncheckedCreateNestedManyWithoutProjectInput
     feedbacks?: ProjectFeedbackUncheckedCreateNestedManyWithoutProjectInput
+    invoice?: ProjectInvoiceUncheckedCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutArtistInput = {
@@ -16964,6 +18783,45 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ProjectInvoiceCreateWithoutProjectInput = {
+    id?: string
+    invoiceNumber: string
+    issuedAt?: Date | string
+    dueAt?: Date | string | null
+    currency?: string
+    lineItems: JsonNullValueInput | InputJsonValue
+    subtotalCents: number
+    taxCents?: number
+    totalCents: number
+    notes?: string | null
+    stripePaymentUrl?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProjectInvoiceUncheckedCreateWithoutProjectInput = {
+    id?: string
+    invoiceNumber: string
+    issuedAt?: Date | string
+    dueAt?: Date | string | null
+    currency?: string
+    lineItems: JsonNullValueInput | InputJsonValue
+    subtotalCents: number
+    taxCents?: number
+    totalCents: number
+    notes?: string | null
+    stripePaymentUrl?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProjectInvoiceCreateOrConnectWithoutProjectInput = {
+    where: ProjectInvoiceWhereUniqueInput
+    create: XOR<ProjectInvoiceCreateWithoutProjectInput, ProjectInvoiceUncheckedCreateWithoutProjectInput>
+  }
+
   export type ArtistUpsertWithoutProjectsInput = {
     update: XOR<ArtistUpdateWithoutProjectsInput, ArtistUncheckedUpdateWithoutProjectsInput>
     create: XOR<ArtistCreateWithoutProjectsInput, ArtistUncheckedCreateWithoutProjectsInput>
@@ -17096,6 +18954,51 @@ export namespace Prisma {
     timestamp?: FloatNullableFilter<"ProjectFeedback"> | number | null
   }
 
+  export type ProjectInvoiceUpsertWithoutProjectInput = {
+    update: XOR<ProjectInvoiceUpdateWithoutProjectInput, ProjectInvoiceUncheckedUpdateWithoutProjectInput>
+    create: XOR<ProjectInvoiceCreateWithoutProjectInput, ProjectInvoiceUncheckedCreateWithoutProjectInput>
+    where?: ProjectInvoiceWhereInput
+  }
+
+  export type ProjectInvoiceUpdateToOneWithWhereWithoutProjectInput = {
+    where?: ProjectInvoiceWhereInput
+    data: XOR<ProjectInvoiceUpdateWithoutProjectInput, ProjectInvoiceUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type ProjectInvoiceUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    invoiceNumber?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currency?: StringFieldUpdateOperationsInput | string
+    lineItems?: JsonNullValueInput | InputJsonValue
+    subtotalCents?: IntFieldUpdateOperationsInput | number
+    taxCents?: IntFieldUpdateOperationsInput | number
+    totalCents?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectInvoiceUncheckedUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    invoiceNumber?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currency?: StringFieldUpdateOperationsInput | string
+    lineItems?: JsonNullValueInput | InputJsonValue
+    subtotalCents?: IntFieldUpdateOperationsInput | number
+    taxCents?: IntFieldUpdateOperationsInput | number
+    totalCents?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ProjectCreateWithoutFilesInput = {
     id?: string
     title?: string | null
@@ -17107,6 +19010,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     artist: ArtistCreateNestedOneWithoutProjectsInput
     feedbacks?: ProjectFeedbackCreateNestedManyWithoutProjectInput
+    invoice?: ProjectInvoiceCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutFilesInput = {
@@ -17120,6 +19024,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     feedbacks?: ProjectFeedbackUncheckedCreateNestedManyWithoutProjectInput
+    invoice?: ProjectInvoiceUncheckedCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutFilesInput = {
@@ -17177,6 +19082,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artist?: ArtistUpdateOneRequiredWithoutProjectsNestedInput
     feedbacks?: ProjectFeedbackUpdateManyWithoutProjectNestedInput
+    invoice?: ProjectInvoiceUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutFilesInput = {
@@ -17190,6 +19096,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     feedbacks?: ProjectFeedbackUncheckedUpdateManyWithoutProjectNestedInput
+    invoice?: ProjectInvoiceUncheckedUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectFeedbackUpsertWithWhereUniqueWithoutFileInput = {
@@ -17219,6 +19126,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     artist: ArtistCreateNestedOneWithoutProjectsInput
     files?: ProjectFileCreateNestedManyWithoutProjectInput
+    invoice?: ProjectInvoiceCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutFeedbacksInput = {
@@ -17232,6 +19140,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     files?: ProjectFileUncheckedCreateNestedManyWithoutProjectInput
+    invoice?: ProjectInvoiceUncheckedCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutFeedbacksInput = {
@@ -17292,6 +19201,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artist?: ArtistUpdateOneRequiredWithoutProjectsNestedInput
     files?: ProjectFileUpdateManyWithoutProjectNestedInput
+    invoice?: ProjectInvoiceUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutFeedbacksInput = {
@@ -17305,6 +19215,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     files?: ProjectFileUncheckedUpdateManyWithoutProjectNestedInput
+    invoice?: ProjectInvoiceUncheckedUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectFileUpsertWithoutFeedbacksInput = {
@@ -17342,6 +19253,78 @@ export namespace Prisma {
     type?: EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
     isPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectCreateWithoutInvoiceInput = {
+    id?: string
+    title?: string | null
+    portalToken?: string
+    status?: $Enums.ProjectStatus
+    rating?: number | null
+    review?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    artist: ArtistCreateNestedOneWithoutProjectsInput
+    files?: ProjectFileCreateNestedManyWithoutProjectInput
+    feedbacks?: ProjectFeedbackCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectUncheckedCreateWithoutInvoiceInput = {
+    id?: string
+    artistId: string
+    title?: string | null
+    portalToken?: string
+    status?: $Enums.ProjectStatus
+    rating?: number | null
+    review?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    files?: ProjectFileUncheckedCreateNestedManyWithoutProjectInput
+    feedbacks?: ProjectFeedbackUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectCreateOrConnectWithoutInvoiceInput = {
+    where: ProjectWhereUniqueInput
+    create: XOR<ProjectCreateWithoutInvoiceInput, ProjectUncheckedCreateWithoutInvoiceInput>
+  }
+
+  export type ProjectUpsertWithoutInvoiceInput = {
+    update: XOR<ProjectUpdateWithoutInvoiceInput, ProjectUncheckedUpdateWithoutInvoiceInput>
+    create: XOR<ProjectCreateWithoutInvoiceInput, ProjectUncheckedCreateWithoutInvoiceInput>
+    where?: ProjectWhereInput
+  }
+
+  export type ProjectUpdateToOneWithWhereWithoutInvoiceInput = {
+    where?: ProjectWhereInput
+    data: XOR<ProjectUpdateWithoutInvoiceInput, ProjectUncheckedUpdateWithoutInvoiceInput>
+  }
+
+  export type ProjectUpdateWithoutInvoiceInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    portalToken?: StringFieldUpdateOperationsInput | string
+    status?: EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+    rating?: NullableIntFieldUpdateOperationsInput | number | null
+    review?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    artist?: ArtistUpdateOneRequiredWithoutProjectsNestedInput
+    files?: ProjectFileUpdateManyWithoutProjectNestedInput
+    feedbacks?: ProjectFeedbackUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectUncheckedUpdateWithoutInvoiceInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    artistId?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    portalToken?: StringFieldUpdateOperationsInput | string
+    status?: EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+    rating?: NullableIntFieldUpdateOperationsInput | number | null
+    review?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    files?: ProjectFileUncheckedUpdateManyWithoutProjectNestedInput
+    feedbacks?: ProjectFeedbackUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type LeadCreateManyArtistInput = {
@@ -17502,6 +19485,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     files?: ProjectFileUpdateManyWithoutProjectNestedInput
     feedbacks?: ProjectFeedbackUpdateManyWithoutProjectNestedInput
+    invoice?: ProjectInvoiceUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutArtistInput = {
@@ -17515,6 +19499,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     files?: ProjectFileUncheckedUpdateManyWithoutProjectNestedInput
     feedbacks?: ProjectFeedbackUncheckedUpdateManyWithoutProjectNestedInput
+    invoice?: ProjectInvoiceUncheckedUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateManyWithoutArtistInput = {

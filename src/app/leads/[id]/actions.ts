@@ -7,6 +7,7 @@ import { LeadStatus } from "local-prisma-client";
 import { generateReachoutDrafts } from "@/lib/reachout";
 import { scoreLead } from "@/lib/scoring";
 import { ensureBotRunning } from "@/lib/instagram-bot";
+import { appendContactRow, inferContactMethod } from "@/lib/google-sheets";
 
 type UpdateStatusState = {
   leadId: string;
@@ -79,6 +80,7 @@ export async function updateLeadStatus(state: UpdateStatusState) {
 export async function markContacted(state: LeadActionState) {
   const lead = await prisma.lead.findUnique({
     where: { id: state.leadId },
+    include: { artist: true },
   });
 
   if (!lead) return;
@@ -98,6 +100,15 @@ export async function markContacted(state: LeadActionState) {
       type: "MESSAGE_SENT",
       note: "Marked contacted",
     },
+  });
+
+  const contactMethod = inferContactMethod({ hasEmail: (lead.artist.emails?.length ?? 0) > 0 });
+  appendContactRow({
+    artistName: lead.artist.name,
+    contactMethod,
+    instagramHandle: lead.artist.instagramHandle,
+    email: lead.artist.emails?.[0],
+    dateContacted: new Date(),
   });
 }
 
@@ -211,7 +222,18 @@ export async function sendMessage(state: SendMessageState) {
     },
   });
 
+  const contactMethod = inferContactMethod({ hasEmail: (lead.artist.emails?.length ?? 0) > 0 });
+  appendContactRow({
+    artistName: lead.artist.name,
+    contactMethod,
+    instagramHandle: lead.artist.instagramHandle,
+    email: lead.artist.emails?.[0],
+    dateContacted: new Date(),
+  });
+
   revalidatePath(`/leads/${lead.id}`);
+  revalidatePath("/leads");
+  redirect("/leads");
 }
 
 export async function generateDraftsForLead(
@@ -454,7 +476,9 @@ export async function refreshLeadData(formData: FormData) {
 
   if (!lead) return;
 
-  const ingestUrl = process.env.INGEST_URL || "http://localhost:3000/api/ingest";
+  const ingestUrl = process.env.NEXT_PUBLIC_APP_URL
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/api/ingest`
+    : "http://localhost:3000/api/ingest";
 
   const payload = {
     lead: { id: leadId, status: lead.status },
@@ -596,7 +620,9 @@ export async function updateArtistName(state: {
     });
   }
 
-  // Revalidate paths for all associated leads
+  // Revalidate paths
+  revalidatePath("/");
+  revalidatePath("/leads/desk");
   for (const lead of artist.leads) {
     revalidatePath(`/leads/${lead.id}`);
   }

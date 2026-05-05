@@ -162,8 +162,14 @@ async function enrichArtist(artist, dryRun = false) {
 
 async function getArtistsToEnrich(options) {
   const { limit = 100 } = options;
+  
+  // Exclude anything updated in the last 10 minutes to avoid batch overlap
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
 
   return prisma.artist.findMany({
+    where: {
+      updatedAt: { lt: tenMinutesAgo },
+    },
     take: limit,
     orderBy: { updatedAt: "asc" },
   });
@@ -297,6 +303,8 @@ async function main() {
 
       if (enrichResult.status === "healthy") {
         results.healthy++;
+        
+        // No refresh needed, artist is already healthy
       } else {
         results.needsRefresh++;
         
@@ -319,7 +327,6 @@ async function main() {
                   spotifyArtistId: artist.spotifyArtistId,
                   officialSiteUrl: artist.officialSiteUrl,
                 },
-                // We want to force a fresh fetch from both Spotify and IG
                 skipInstagramFetch: false,
                 skipSpotifyFetch: false,
               }),
@@ -333,13 +340,32 @@ async function main() {
               process.stdout.write(`✗ (${res.status}: ${errText.substring(0, 80)})\n`);
               results.failed++;
             }
-
-            // Wait 1.5s between refreshes to avoid rate limits
-            await new Promise((r) => setTimeout(r, 1500));
           } catch (apiError) {
             process.stdout.write(`✗ (${apiError.message})\n`);
             results.failed++;
           }
+        }
+      }
+
+      // ── Touch Logic ────────────────────────────────────────────────────────
+      // This ensures the artist moves to the back of the queue (updatedAt asc)
+      // regardless of whether they were healthy or refreshed.
+      if (!dryRun) {
+        try {
+          await prisma.artist.update({
+            where: { id: artist.id },
+            data: { updatedAt: new Date() },
+          });
+        } catch (touchError) {
+          // If we already refreshed, we might skip the warning
+          if (enrichResult.status === "healthy") {
+             console.error(`  Warning: Could not touch updatedAt for "${artist.name}": ${touchError.message}`);
+          }
+        }
+        
+        // Wait 1.5s between refreshes to avoid rate limits
+        if (enrichResult.status !== "healthy") {
+           await new Promise((r) => setTimeout(r, 1500));
         }
       }
     } catch (error) {

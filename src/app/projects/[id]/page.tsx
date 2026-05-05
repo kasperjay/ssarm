@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getProjectById, deleteFileFromProject } from "../actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -12,6 +14,8 @@ import { StatusPill } from "@/components/StatusPill";
 import { formatRelativeDate, formatTime } from "@/lib/utils";
 import AudioPlayer from "../components/AudioPlayer";
 import { addProjectFeedback } from "../actions";
+import { centsToCurrency } from "@/lib/invoice";
+import { prisma } from "@/lib/prisma";
 
 export default async function ProjectDetailPage({
   params,
@@ -23,12 +27,30 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
-  // Dynamic Origin check via ENV or fallback
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!configuredAppUrl) {
+    throw new Error("NEXT_PUBLIC_APP_URL is not configured. Set it in .env before generating portal links.");
+  }
+
+  const appUrl = configuredAppUrl.replace(/\/$/, "");
   const portalUrl = `${appUrl}/portal/${project.portalToken}`;
 
   const workingFiles = project.files.filter((f) => f.type === "WORKING");
   const deliverables = project.files.filter((f) => f.type === "DELIVERABLE");
+
+  const billingHistory = await prisma.projectInvoice.findMany({
+    where: {
+      project: {
+        artistId: project.artistId,
+      },
+    },
+    include: {
+      project: {
+        select: { id: true, title: true },
+      },
+    },
+    orderBy: { issuedAt: "desc" },
+  });
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -85,6 +107,25 @@ export default async function ProjectDetailPage({
                 Portal is currently active
               </div>
             </GlassCard>
+
+            <GlassCard className="p-6! border-accent/20 bg-white/3 min-w-[220px] shadow-2xl">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs font-bold text-white/30 uppercase tracking-[0.3em]">Billing</span>
+                  <p className="text-xs text-white/35 mt-2 font-bold uppercase tracking-widest">
+                    {project.invoice ? "Invoice ready" : "No invoice yet"}
+                  </p>
+                </div>
+                <Link
+                  href={`/projects/${project.id}/invoice`}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-accent/30 bg-accent/10 text-accent hover:bg-accent/20 transition-all"
+                  aria-label="Open invoice creation"
+                  title="Open invoice creation"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                </Link>
+              </div>
+            </GlassCard>
           </div>
         </header>
 
@@ -92,71 +133,6 @@ export default async function ProjectDetailPage({
 
           {/* Main Files Area */}
           <div className="space-y-12">
-
-            {/* Work in Progress */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="h-1.5 w-1.5 rounded-full bg-white/20" />
-                <h2 className="text-xl font-bold uppercase tracking-[0.2em] text-white/80">Working Files</h2>
-                <span className="text-xs font-sans font-bold text-white/10 uppercase tracking-widest ml-auto">{workingFiles.length} Files</span>
-                <div className="h-px w-20 bg-white/5" />
-              </div>
-
-              <FileUploadArea projectId={project.id} type="WORKING" />
-
-              <div className="grid gap-4 mt-6">
-                {workingFiles.map((file) => (
-                  <GlassCard key={file.id} className="p-4! border-white/5 hover:border-white/10 hover:bg-white/4 group/file transition-all">
-                    <div className="flex items-center justify-between gap-6">
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/20 group-hover/file:text-accent transition-colors">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-3 mb-1">
-                            <p className="font-bold text-sm text-white/90 truncate tracking-tight">{file.name}</p>
-                            <VisibilityToggle fileId={file.id} isPublic={file.isPublic} projectId={project.id} />
-                          </div>
-                          <div className="flex items-center gap-3 text-xs font-sans font-bold text-white/20 uppercase tracking-widest">
-                            <span>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                            <span className="h-1 w-1 rounded-full bg-white/5" />
-                            <span>{formatRelativeDate(file.createdAt)}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <form action={async () => {
-                        "use server";
-                        await deleteFileFromProject(file.id, project.id);
-                      }}>
-                        <button className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all group/delbtn">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/delbtn:animate-pulse"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                          Delete
-                        </button>
-                      </form>
-                    </div>
-                    {file.mimeType.startsWith("audio/") && (
-                        <AudioPlayer
-                            fileUrl={file.url}
-                            fileId={file.id}
-                            projectId={project.id}
-                            feedbacks={project.feedbacks
-                                .filter(fb => fb.fileId === file.id)
-                                .map(fb => ({
-                                    id: fb.id,
-                                    timestamp: fb.timestamp || 0,
-                                    content: fb.content
-                                }))
-                            }
-                            onAddFeedback={async (content, timestamp) => {
-                                "use server";
-                                await addProjectFeedback(project.id, content, file.id, timestamp);
-                            }}
-                        />
-                    )}
-                  </GlassCard>
-                ))}
-              </div>
-            </div>
 
             {/* Deliverables */}
             <div className="space-y-6">
@@ -204,6 +180,71 @@ export default async function ProjectDetailPage({
                     {file.mimeType.startsWith("audio/") && (
                         <AudioPlayer
                             fileUrl={`/uploads/${file.key}`}
+                            fileId={file.id}
+                            projectId={project.id}
+                            feedbacks={project.feedbacks
+                                .filter(fb => fb.fileId === file.id)
+                                .map(fb => ({
+                                    id: fb.id,
+                                    timestamp: fb.timestamp || 0,
+                                    content: fb.content
+                                }))
+                            }
+                            onAddFeedback={async (content, timestamp) => {
+                                "use server";
+                                await addProjectFeedback(project.id, content, file.id, timestamp);
+                            }}
+                        />
+                    )}
+                  </GlassCard>
+                ))}
+              </div>
+            </div>
+
+            {/* Work in Progress */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="h-1.5 w-1.5 rounded-full bg-white/20" />
+                <h2 className="text-xl font-bold uppercase tracking-[0.2em] text-white/80">Working Files</h2>
+                <span className="text-xs font-sans font-bold text-white/10 uppercase tracking-widest ml-auto">{workingFiles.length} Files</span>
+                <div className="h-px w-20 bg-white/5" />
+              </div>
+
+              <FileUploadArea projectId={project.id} type="WORKING" />
+
+              <div className="grid gap-4 mt-6">
+                {workingFiles.map((file) => (
+                  <GlassCard key={file.id} className="p-4! border-white/5 hover:border-white/10 hover:bg-white/4 group/file transition-all">
+                    <div className="flex items-center justify-between gap-6">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/20 group-hover/file:text-accent transition-colors">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-3 mb-1">
+                            <p className="font-bold text-sm text-white/90 truncate tracking-tight">{file.name}</p>
+                            <VisibilityToggle fileId={file.id} isPublic={file.isPublic} projectId={project.id} />
+                          </div>
+                          <div className="flex items-center gap-3 text-xs font-sans font-bold text-white/20 uppercase tracking-widest">
+                            <span>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                            <span className="h-1 w-1 rounded-full bg-white/5" />
+                            <span>{formatRelativeDate(file.createdAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <form action={async () => {
+                        "use server";
+                        await deleteFileFromProject(file.id, project.id);
+                      }}>
+                        <button className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all group/delbtn">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/delbtn:animate-pulse"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                    {file.mimeType.startsWith("audio/") && (
+                        <AudioPlayer
+                            fileUrl={file.url}
                             fileId={file.id}
                             projectId={project.id}
                             feedbacks={project.feedbacks
@@ -283,6 +324,44 @@ export default async function ProjectDetailPage({
                       )}
                     </div>
                   ))}
+                </div>
+              )}
+            </GlassCard>
+
+            <GlassCard className="p-8! bg-white/2 border-white/5">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
+                <span className="text-xs font-bold text-white/35 uppercase tracking-[0.3em]">Billing History</span>
+                <span className="text-xs font-bold text-accent/70 uppercase tracking-widest">{billingHistory.length}</span>
+              </div>
+
+              {billingHistory.length === 0 ? (
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/25">No invoices sent yet.</p>
+              ) : (
+                <div className="space-y-3 max-h-[340px] overflow-y-auto pr-2 custom-scrollbar">
+                  {billingHistory.map((inv) => {
+                    const isPaid = Boolean(inv.paidAt);
+                    return (
+                      <Link
+                        key={inv.id}
+                        href={`/projects/${inv.project.id}/invoice`}
+                        className="block rounded-2xl border border-white/8 bg-white/3 px-4 py-4 hover:bg-white/5 hover:border-accent/25 transition-all"
+                      >
+                        <div className="flex items-center justify-between gap-4 mb-2">
+                          <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/75">{inv.invoiceNumber}</p>
+                          <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isPaid ? "text-emerald-400" : "text-amber-300"}`}>
+                            {isPaid ? "Paid" : "Unpaid"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-white/35">
+                          <span className="truncate pr-3">{inv.project.title || "Untitled Project"}</span>
+                          <span className="text-accent/80">{centsToCurrency(inv.totalCents, inv.currency)}</span>
+                        </div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25 mt-2">
+                          Issued {new Date(inv.issuedAt).toLocaleDateString("en-US")}
+                        </p>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </GlassCard>

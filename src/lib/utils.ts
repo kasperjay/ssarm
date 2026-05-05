@@ -45,112 +45,31 @@ export const cleanArtistName = (name: string): string => {
   if (!name) return "";
   
   // Remove common tour/event suffixes (case insensitive)
-  const noiseRegex = /\s+(?:Tour|World Tour|US Tour|Live|Live at .*|Spring|Summer|Fall|Winter|20\d{2}|Official|Music Video|Lyric Video|Audio|Visualizer|EP|LP|Album|Full Album|Deluxe|Remastered|feat\..*|ft\..*|with .*|and guests.*|presented by .*)\s*$/gi;
+  const noiseRegex = /\s+(?:Tour|World Tour|US Tour|Live|Live at .*|Spring|Summer|Fall|Winter|20\d{2}|Official|Music Video|Lyric Video|Audio|Visualizer|EP|LP|Album|Full Album|Deluxe|Remastered|feat\..*|ft\..*)\s*$/gi;
   
   let cleaned = name.replace(noiseRegex, "").trim();
   
-  // Remove "Artist presents: ..." or "Heard presents: ..." or "Clockwork Music presents: ..."
-  if (/presents:?\s+/i.test(cleaned)) {
-    const parts = cleaned.split(/presents:?\s+/i);
-    if (parts[1]) {
-      cleaned = parts[1].trim();
-    }
-  }
-
   // Remove set times (e.g. @11:45 PM, @ 11:45, at 11:45, etc.)
   const timeRegex = /\s*(?:@|at|at:|time:)?\s*\d{1,2}:\d{2}(?:\s*[ap]m)?\b/gi;
   cleaned = cleaned.replace(timeRegex, "").trim();
   
-  // Also common patterns like "Artist - Tour Name" or "Artist - Event"
-  if (cleaned.includes(" - ")) {
-    const parts = cleaned.split(" - ");
-    if (parts[1] && (parts[1].toLowerCase().includes("tour") || parts[1].toLowerCase().includes("live") || parts[1].toLowerCase().includes("release"))) {
+  // Also common patterns like "Artist - Tour Name", "Artist: Tour Name", or "Artist | Event"
+  const delimiters = /\s*[:\-|]\s*/;
+  if (delimiters.test(cleaned)) {
+    const parts = cleaned.split(delimiters);
+    // If the second part contains "tour", "live", "show", "concert", or is very long, it's likely noise
+    if (parts[1] && (
+      parts[1].toLowerCase().includes("tour") || 
+      parts[1].toLowerCase().includes("live") || 
+      parts[1].toLowerCase().includes("show") ||
+      parts[1].toLowerCase().includes("concert") ||
+      parts[1].length > 15
+    )) {
       cleaned = parts[0].trim();
     }
   }
 
   // Final trim and cleanup
   return cleaned.replace(/\s+/g, " ").trim();
-};
-
-export const isBunkEvent = (name: string, description?: string): boolean => {
-  if (!name) return true;
-  
-  const bunkKeywords = [
-    "DJ Set", 
-    "Dance Party", 
-    "Kids Party", 
-    "Hosted by", 
-    "Quizzo", 
-    "Trivia", 
-    "Happy Hour", 
-    "Yoga", 
-    "Sports", 
-    "Closing Early",
-    "Open Mic",
-    "Karaoke",
-    "Bingo",
-    "Drag Brunch",
-    "Market",
-    "Pop-up",
-    "Ceremony",
-    "Auction",
-    "Workshop",
-    "Comedy Night",
-    "Any Baby Can",
-    "Austin Diaper Bank",
-    "Mad Men",
-    "Kickoff Show",
-    "Anniversary",
-    "Album Release",
-    "NCAA",
-    "NFL",
-    "NBA",
-    "MLB",
-    "Tribute",
-    "Experience",
-    "Cover Band",
-    "Performing the music of",
-    "Emo Night",
-    "Dad Rock Night",
-    "Theme Night",
-    "Come and Take It",
-    "Round Rock",
-    "Rave",
-    "Showcase",
-    "Broadway",
-    "Battle of the Bands",
-    "Night of",
-    "A Night with",
-    "Pre-Show",
-    "Kickoff Tour"
-  ];
-
-  const lowerName = name.toLowerCase();
-  const lowerDesc = (description || "").toLowerCase();
-
-  // Check if any bunk keyword is in the name
-  if (bunkKeywords.some(kw => lowerName.includes(kw.toLowerCase()))) {
-    return true;
-  }
-
-  // Exact matches for generic categories
-  const genericExact = ["dance", "sports", "the dead", "the club"];
-  if (genericExact.includes(lowerName)) {
-    return true;
-  }
-
-  // If the name ends with " Night" or contains it in a way that suggests a generic event
-  if (/\b\w+\s+Night\b/i.test(lowerName) && !lowerName.includes("vocalist")) {
-    // some exceptions might be needed here, but generally "[Genre] Night" is bunk
-    return true;
-  }
-
-  // If the name is basically just a time or "Live", it's bunk
-  if (/^(?:\d{1,2}:\d{2}\s*(?:pm|am)?|live|tba|tbd)$/i.test(lowerName)) {
-    return true;
-  }
-
-  return false;
 };
 

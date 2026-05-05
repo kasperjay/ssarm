@@ -11,7 +11,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const token = process.env.APIFY_ORG_TOKEN || process.env.APIFY_TOKEN;
+        const token = process.env.APIFY_TOKEN || process.env.APIFY_ORG_TOKEN;
         if (!token) {
             return NextResponse.json(
                 { error: "APIFY_TOKEN or APIFY_ORG_TOKEN environment variable not set." },
@@ -59,10 +59,31 @@ export async function POST(request: Request) {
             }
         }
 
+        // Deduplicate results by ownerUsername (IG handle) or by cleaned artist name
+        const seenKeys = new Set<string>();
+        const dedupedItems = items.filter((item: Record<string, unknown>) => {
+          const handle = (item.ownerUsername || item.username || item.handle || item.instagramHandle || "") as string;
+          const rawName = (item.artist || item.artistName || item.band || item.musician || item.fullName || item.title || item.name || "") as string;
+          // For IG results: dedupe by handle (most reliable identifier)
+          if (handle && handle !== "None" && handle !== "undefined") {
+            const cleanHandle = handle.replace(/^@/, "").toLowerCase();
+            if (seenKeys.has("handle:" + cleanHandle)) return false;
+            seenKeys.add("handle:" + cleanHandle);
+            return true;
+          }
+          // For calendar results: dedupe by cleaned name
+          if (rawName) {
+            const cleanName = rawName.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+            if (seenKeys.has("name:" + cleanName)) return false;
+            seenKeys.add("name:" + cleanName);
+          }
+          return true;
+        });
+
         return NextResponse.json({
             status,
-            itemCount: items.length > 0 ? items.length : itemCount,
-            items
+            itemCount: dedupedItems.length > 0 ? dedupedItems.length : itemCount,
+            items: dedupedItems
         });
 
     } catch (error: any) {

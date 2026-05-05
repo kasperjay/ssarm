@@ -1,4 +1,7 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import FeedbackForm from "./components/FeedbackForm";
 import CompletionRating from "./components/CompletionRating";
@@ -24,6 +27,7 @@ export default async function CustomerPortalPage({
             feedbacks: {
                 orderBy: { createdAt: "desc" },
             },
+            invoice: true,
         },
     });
 
@@ -52,6 +56,36 @@ export default async function CustomerPortalPage({
                             Access your latest session files, download final masters, and share your feedback.
                         </p>
                     </div>
+                </header>
+
+
+                <header className="flex justify-center">
+                    {project.invoice ? (
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href={`/portal/${token}/billing`}
+                                className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-bold uppercase tracking-[0.3em] text-white/70 transition-all hover:bg-white/10 hover:border-white/20"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>
+                                Billing History
+                            </Link>
+                            <Link
+                                href={`/portal/${token}/invoice`}
+                                className="inline-flex items-center gap-3 rounded-2xl border border-accent/20 bg-accent/5 px-5 py-3 text-xs font-bold uppercase tracking-[0.3em] text-accent transition-all hover:bg-accent/10 hover:border-accent/40"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                                View Invoice
+                            </Link>
+                        </div>
+                    ) : (
+                        <Link
+                            href={`/portal/${token}/billing`}
+                            className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-bold uppercase tracking-[0.3em] text-white/70 transition-all hover:bg-white/10 hover:border-white/20"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>
+                            Billing History
+                        </Link>
+                    )}
                 </header>
 
                 {/* Main Content Grid */}

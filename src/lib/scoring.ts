@@ -2,38 +2,46 @@ import { prisma } from "./prisma";
 
 const SCORING_CONFIG = {
   WEIGHTS: {
-    proximity: 20,       // Distance from Austin
-    followerCount: 20,   // Small/Medium preference
-    genreBonus: 15,      // Metal, Rock, Hip Hop
-    recency: 15,         // Last post recency
-    releaseCount: 15,    // Number of releases
-    dataCompleteness: 10, // Profile filled
-    engagement: 5,       // Bio/Site/Emails
+    proximity: 35,        // TOP PRIORITY — Austin/TX (35 pts max)
+    genreBonus: 25,       // Metal, Rock, Hip-Hop, Rap (25 pts)
+    followerCount: 20,    // Small/Medium only — caps at ~20k (20 pts max)
+    recency: 10,          // Last post recency (10 pts)
+    releaseCount: 10,    // Number of releases (10 pts)
+    dataCompleteness: 10, // Profile filled (10 pts)
+    engagement: 5,        // Contact signals (5 pts) — minor bonus
   },
-  QUALIFIED_THRESHOLD: 65, // Slightly higher due to proximity/genre boosts
+  QUALIFIED_THRESHOLD: 60,
+  // Geo-priority tiers
+  AUSTIN_AREA_CITIES: [
+    "austin", "round rock", "pflugerville", "cedar park", "georgetown",
+    "san marcos", "kyle", "buda", "dripping springs", "hutto", "manor", "lakeway",
+    "beecave", "westlake", "rollingwood", "spicewood", "bastrop", "lockhart",
+    "elgin", "taylor", "del valle", "dripping", "直达", "austinites", "atx",
+  ],
+  TEXAS_CITIES: [
+    "texas", "tx", "san antonio", "houston", "dallas", "fort worth", "elpaso",
+    "amarillo", "laredo", "lubbock", "waco", "tyler", "beaumont", "port arthur",
+    "corpus christi", "midland", "odessa", "abilene", "college station",
+  ],
 };
-
-const AUSTIN_AREA_CITIES = [
-  "austin", "round rock", "pflugerville", "cedar park", "georgetown",
-  "san marcos", "kyle", "buda", "dripping springs", "hutto", "manor", "lakeway",
-  "beecave", "westlake", "rollingwood", "spicewood", "bastrop"
-];
 
 function calculateProximityScore(artist: any) {
   if (!artist.location && !artist.city) return 0;
   
-  const locStr = `${artist.city || ""} ${artist.location || ""}`.toLowerCase();
+  const locStr = `${artist.city || ""} ${artist.location || ""} ${artist.state || ""}`.toLowerCase();
   
   // 1. Austin Area (Highest)
-  for (const city of AUSTIN_AREA_CITIES) {
+  for (const city of SCORING_CONFIG.AUSTIN_AREA_CITIES) {
     if (locStr.includes(city)) {
       return SCORING_CONFIG.WEIGHTS.proximity;
     }
   }
   
   // 2. Texas (Medium)
-  if (locStr.includes("tx") || locStr.includes("texas") || locStr.includes("san antonio") || locStr.includes("houston") || locStr.includes("dallas") || locStr.includes("fort worth")) {
-    return Math.round(SCORING_CONFIG.WEIGHTS.proximity * 0.5); // 10 pts
+  for (const city of SCORING_CONFIG.TEXAS_CITIES) {
+    if (locStr.includes(city)) {
+      return Math.round(SCORING_CONFIG.WEIGHTS.proximity * 0.5); // 10 pts
+    }
   }
   
   // 3. USA (Low)
@@ -86,16 +94,35 @@ function calculateEngagementScore(artist: any) {
 function calculateGenreBonus(artist: any) {
   if (!artist.genre) return 0;
   const genreStr = artist.genre.toLowerCase();
-  
-  const favoredKeywords = ["metal", "rock", "hardcore", "punk", "hip hop", "hip-hop", "rap", "trap"];
-  for (const kw of favoredKeywords) {
+
+  // Tier 1: Heavy metal, rock, hip-hop/rap — FULL BONUS (25pts)
+  const tier1Genres = [
+    // Metal subgenres
+    "metal", "deathcore", "blackcore", "doom", "sludge", "stoner",
+    "gothic", "symphonic", "power", "thrash", "groove", "metalcore",
+    "prog metal", "progressive metal", "djent", "mathcore", "post-metal",
+    "heavy metal", "traditional metal", "speed metal", "hair metal",
+    "hardcore", "hard core", "hc",
+    // Rock subgenres
+    "rock", "alternative rock", "alt rock", "indie rock", "garage rock",
+    "psychedelic", "psych rock", "southern rock", "blues rock", "classic rock",
+    "hard rock", "punk", "post-punk", "emo", "shoegaze", "grunge",
+    "industrial rock", "goth rock",
+    // Hip-hop / Rap subgenres
+    "hip hop", "hip-hop", "rap", "trap", "boom bap", "phonk",
+    "drill", "cloud rap", "mumble rap", "gangsta rap", "conscious rap",
+    "old school rap", "trap soul", "r&b", "rn'b",
+  ];
+
+  for (const kw of tier1Genres) {
     if (genreStr.includes(kw)) {
       return SCORING_CONFIG.WEIGHTS.genreBonus;
     }
   }
-  
-  if (genreStr.length > 2 && genreStr !== 'unknown') {
-    return Math.round(SCORING_CONFIG.WEIGHTS.genreBonus * 0.4); // 6 pts for any valid genre
+
+  // Tier 2: Any other valid genre — partial (10pts)
+  if (genreStr.length > 2 && genreStr !== 'unknown' && genreStr !== 'n/a' && genreStr !== 'none') {
+    return Math.round(SCORING_CONFIG.WEIGHTS.genreBonus * 0.4); // 10 pts
   }
   return 0;
 }

@@ -11,15 +11,25 @@ export async function POST(request: Request) {
             );
         }
 
-        const token = process.env.APIFY_ORG_TOKEN || process.env.APIFY_TOKEN;
+        const personalToken = process.env.APIFY_TOKEN;
+        const orgToken = process.env.APIFY_ORG_TOKEN;
+        const isOrgActor = actorId.startsWith("spectral-soundworks/");
+        const isPublicInstagramActor = actorId === "apify/instagram-scraper" || actorId === "apify/instagram-hashtag-scraper" || actorId === "apify/instagram-profile-scraper";
+
+        const token = isOrgActor
+            ? (orgToken || personalToken)
+            : isPublicInstagramActor
+              ? (personalToken || orgToken)
+              : (personalToken || orgToken);
+
         if (!token) {
             return NextResponse.json(
-                { error: "APIFY_TOKEN or APIFY_ORG_TOKEN environment variable not set. Please add it to your .env file." },
+                { error: "No Apify token configured for this search type. Please set APIFY_TOKEN and/or APIFY_ORG_TOKEN in .env." },
                 { status: 500 }
             );
         }
 
-        console.log(`[DISCOVER] Starting actor ${actorId} with token: ${token.substring(0, 10)}...`);
+        console.log(`[DISCOVER] Starting actor ${actorId} with ${isOrgActor ? "org" : "personal"} token: ${token.substring(0, 10)}...`);
         const client = new ApifyClient({ token });
 
         // Start the Apify actor and immediately return the run info
