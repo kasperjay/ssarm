@@ -9,10 +9,8 @@ require("dotenv").config();
 const { PrismaClient } = require("../prisma/generated-client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const { sendEmail } = require("../src/lib/email-sender");
+const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
 
 const CONFIG = {
   igWebhookUrl: process.env.IG_DM_WEBHOOK_URL,
@@ -63,24 +61,27 @@ async function main() {
     }
 
     let success = false;
+    let providerResponse = null;
 
     if (channel === "ig") {
       success = await sendInstagramDM(lead, draft);
+      providerResponse = "ig-webhook";
     } else {
-      console.log("📧 Email sending is not yet implemented in this version of the agent.");
-      // We'll skip email for now as SMTP isn't configured
-      continue;
+      success = await sendEmailMessage(lead, draft);
+      providerResponse = "smtp";
     }
 
     if (success) {
       sentCount++;
-      await recordSuccess(lead, draft);
+      await recordSuccess(lead, draft, channel, providerResponse);
     } else {
       console.log("❌ Failed to deliver message.");
     }
   }
 
   console.log(`\n✨ Finished. Delivered ${sentCount} messages.`);
+  
+  return { sentCount, totalFound: leads.length };
 }
 
 async function sendInstagramDM(lead, draft) {
@@ -123,7 +124,24 @@ async function sendInstagramDM(lead, draft) {
   }
 }
 
-async function recordSuccess(lead, draft) {
+async function sendEmailMessage(lead, draft) {
+  const to = lead.artist.emails?.[0];
+  if (!to) {
+    console.error("❌ No email address found for lead.");
+    return false;
+  }
+
+  try {
+    const subject = `Inquiry regarding ${lead.artist.name}`;
+    await sendEmail(to, subject, draft.body);
+    return true;
+  } catch (err) {
+    console.error(`💥 Error sending email: ${err.message}`);
+    return false;
+  }
+}
+
+async function recordSuccess(lead, draft, channel, provider) {
   // Update lead status
   const days = parseInt(process.env.FOLLOW_UP_DAYS || "7", 10);
   const nextActionAt = new Date();
@@ -143,14 +161,14 @@ async function recordSuccess(lead, draft) {
     data: {
       leadId: lead.id,
       type: "MESSAGE_SENT",
-      note: draft.body
+      note: `Sent via ${channel} (${provider}):\n\n${draft.body}`
     }
   });
 
-  console.log("✅ Recorded success in database.");
+  // console.log("✅ Recorded success in database.");
 }
 
-main()
+withAgentRun("send-messages", { dryRun: CONFIG.dryRun }, main)
   .catch(err => console.error("Fatal Error:", err))
   .finally(async () => {
     await prisma.$disconnect();

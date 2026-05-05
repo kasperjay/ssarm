@@ -131,7 +131,6 @@ async function mergeArtists(primaryArtistId, duplicateArtistId, dryRun = false) 
     city: primary.city || duplicate.city,
     bio: primary.bio || duplicate.bio,
     officialSiteUrl: primary.officialSiteUrl || duplicate.officialSiteUrl,
-    bandcampUrl: primary.bandcampUrl || duplicate.bandcampUrl,
     emails: [...new Set([...(primary.emails || []), ...(duplicate.emails || [])])],
   };
 

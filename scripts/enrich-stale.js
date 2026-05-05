@@ -24,10 +24,6 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
-
 const getArg = (name) => {
   const index = process.argv.indexOf(name);
   if (index === -1) return null;
@@ -269,8 +265,7 @@ async function main() {
     console.log("📍 Running location/genre/bio backfill...");
     if (skipGoogle) console.log("   (Skipping Google/homepage stages — --no-google)");
     await fixArtistLocations({ limit, dryRun, skipGoogle });
-    await prisma.$disconnect();
-    process.exit(0);
+    return { processedCount: 0 };
   }
 
   // ── Normal staleness check mode ───────────────────────────────────────────
@@ -278,8 +273,7 @@ async function main() {
 
   if (artists.length === 0) {
     console.log("✓ No artists to enrich");
-    await prisma.$disconnect();
-    process.exit(0);
+    return { processedCount: 0 };
   }
 
   console.log(`Checking ${artists.length} artists for stale data...`);
@@ -392,11 +386,13 @@ async function main() {
     console.log("⚠️  DRY RUN: No activities logged to database");
   }
 
-  await prisma.$disconnect();
-  process.exit(results.errors > 0 ? 1 : 0);
+  console.log(`\n✨ Finished. Processed ${results.refreshed} stale leads.`);
+  return { processedCount: results.refreshed };
 }
 
-main().catch((error) => {
-  console.error("Fatal error:", error.message);
-  process.exit(1);
-});
+withAgentRun("enrich-stale", { dryRun: hasFlag("--dry-run") }, main)
+  .catch(err => console.error("Fatal Error:", err))
+  .finally(async () => {
+    await prisma.$disconnect();
+    await pool.end();
+  });

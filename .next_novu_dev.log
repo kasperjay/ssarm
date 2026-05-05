@@ -1,0 +1,17 @@
+
+> spectral-soundworks-app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.43.1:3000
+- Environments: .env.local, .env
+
+✓ Starting...
+Creating turbopack project {
+  dir: 'C:\\Users\\kp\\Documents\\spectral-soundworks-app',
+  testMode: true
+}
+✓ Ready in 6.6s
+○ Compiling / ...
+ GET / 500 in 7.9s (compile: 6.5s, render: 1414ms)

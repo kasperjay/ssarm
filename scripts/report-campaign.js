@@ -34,7 +34,7 @@ function calculateFunnelMetrics(leads) {
   const qualified = leads.filter((l) => l.status === "QUALIFIED").length;
   const contacted = leads.filter((l) => l.status === "CONTACTED").length;
   const followUp = leads.filter((l) => l.status === "FOLLOW_UP").length;
-  const converted = leads.filter((l) => l.status === "CONVERTED").length;
+  const converted = leads.filter((l) => l.status === "WON").length;
   const lost = leads.filter((l) => l.status === "LOST").length;
 
   return {
@@ -89,12 +89,12 @@ function analyzeChannelPerformance(activities) {
 
 function identifyHighPerformers(leads) {
   // High performers: score >= 70 and contacted
-  return leads.filter((l) => l.score >= 70 && ["CONTACTED", "FOLLOW_UP", "CONVERTED"].includes(l.status));
+  return leads.filter((l) => l.score >= 70 && ["CONTACTED", "FOLLOW_UP", "WON"].includes(l.status));
 }
 
 function identifyUnderperformers(leads) {
-  // Underperformers: score >= 60 but status is still NEW/EARLY
-  return leads.filter((l) => l.score >= 60 && ["NEW", "EARLY"].includes(l.status));
+  // Underperformers: score >= 60 but status is still early in the funnel
+  return leads.filter((l) => l.score >= 60 && ["NEW", "QUALIFIED"].includes(l.status));
 }
 
 function identifyAtRisk(leads) {

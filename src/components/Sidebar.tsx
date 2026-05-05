@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { NotificationInbox } from './NotificationInbox';
 
 const NavIcon = ({ children, active = false }: { children: React.ReactNode, active?: boolean }) => (
   <div className={`
@@ -139,6 +140,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
 
       {/* Footer Nav */}
       <div className="flex flex-col gap-6 items-center">
+        <NotificationInbox placement="right-end" />
         <div className="h-12 w-12 rounded-full border-2 border-accent/30 p-0.5 group cursor-pointer transition-transform hover:scale-110">
           <div className="h-full w-full rounded-full bg-linear-to-tr from-accent-secondary/40 to-accent/40 flex items-center justify-center text-xs font-bold">
             KP

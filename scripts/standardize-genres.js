@@ -211,18 +211,25 @@ async function main() {
     let fixed = 0;
     for (const item of issues.standardizable) {
       try {
+        const lead = await prisma.lead.findFirst({
+          where: { artistId: item.artist.id },
+          orderBy: { createdAt: "asc" },
+        });
+
         await prisma.artist.update({
           where: { id: item.artist.id },
           data: { genre: item.standardized },
         });
 
-        await prisma.activity.create({
-          data: {
-            type: "NOTE",
-            note: `[AUTO-FIX] Genre standardized: "${item.original}" → "${item.standardized}"`,
-            // We need a leadId, so find the first lead for this artist
-          },
-        });
+        if (lead) {
+          await prisma.activity.create({
+            data: {
+              leadId: lead.id,
+              type: "NOTE",
+              note: `[AUTO-FIX] Genre standardized: "${item.original}" -> "${item.standardized}"`,
+            },
+          });
+        }
 
         fixed++;
         console.log(`  ✓ ${item.artist.name}: "${item.original}" → "${item.standardized}"`);

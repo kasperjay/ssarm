@@ -1,312 +1,158 @@
-# Automated Agents
+# Spectral Soundworks Implementation Plan
 
-This document describes the automated agents and scripts available for operating Spectral Soundworks.
+This document tracks the current automation, data quality, outreach, and client-portal roadmap for Spectral Soundworks.
 
-## ✅ Implemented Agents
+Last reevaluated: 2026-05-05
 
-### Lead Scoring Agent
+## Current Progress
 
-**File:** `scripts/score-leads.js`
+The app has moved beyond the original "planned agents" phase. The repo now includes working lead ingestion, enrichment, scoring, contact discovery, message delivery, campaign reporting, duplicate detection, genre cleanup, a projects workspace, client portals, file uploads, feedback, invoices, and billing views.
 
-**Purpose:** Automatically calculate lead quality scores based on artist metrics.
+The next phase should focus less on adding isolated scripts and more on making the system reliable as an operating workflow: shared scoring logic, safe data mutations, scheduled runs, surfaced notifications, and tighter handoff from lead to project to invoice.
 
-**Scoring Algorithm** (0-100 scale):
+## Implemented Automation
 
-- Follower Count: 0-30 points
-- Release Recency: 0-20 points
-- Release Count: 0-20 points
-- Data Completeness: 0-15 points
-- Engagement Signals: 0-10 points
-- Genre Bonus: 0-5 points
+| Area | Status | Entry Point | Notes |
+| --- | --- | --- | --- |
+| Lead scoring | Consolidated | `src/lib/scoring-core.js`, `src/lib/scoring.ts`, `scripts/score-leads.js` | API and CLI scoring now use the same shared scoring core. Scores are capped at 100. |
+| Event-driven scoring | Consolidated | `scripts/score-auto.js`, `/api/ingest` | Ingest and auto-scoring now use the same shared scoring core. |
+| Data enrichment and staleness | Implemented, needs scheduling | `scripts/enrich-stale.js`, `/api/ingest` | Detects stale data and can re-ingest artists; needs operational scheduling and run logs. |
+| Follow-up reminders | Implemented, needs UI surfacing | `scripts/followup-remind.js` | Finds due follow-ups and logs reminders; should feed a dashboard queue. |
+| Contact discovery | Implemented, needs confidence persistence | `scripts/discover-contacts.js`, `src/lib/email.ts` | Finds emails but confidence is only in activity notes, not queryable structured data. |
+| Campaign reporting | Implemented, recently aligned to schema | `scripts/report-campaign.js` | Now uses `WON` rather than legacy `CONVERTED`; needs export formats and dashboard integration. |
+| Duplicate detection | Implemented, recently aligned to schema | `scripts/detect-duplicates.js` | Removed non-schema `bandcampUrl` merge field; should add merge audit logging. |
+| Genre standardization | Implemented, recently fixed auto-fix logging | `scripts/standardize-genres.js` | Auto-fix now looks up a lead before writing Activity. |
+| Message delivery | Partially implemented | `scripts/send-messages.js` | IG webhook delivery exists; email path is still placeholder behavior. |
+| Discovery jobs | Implemented | `/api/discover`, `/api/discover/status` | Apify actors can be started and polled from the app. |
+| Client projects and portals | Implemented | `src/app/projects`, `src/app/portal/[token]` | Strong base for delivery workflow, feedback, visibility, invoices, and completion ratings. |
 
-**CLI Usage:**
+## Fixes Completed In This Reevaluation
 
-```bash
-npm run score                          # Score pending leads
-npm run score -- --all                 # Score all leads
-npm run score -- --limit 50            # Score 50 leads
-npm run score -- --filter-status NEW   # Score specific statuses
-npm run score -- --dry-run             # Preview changes
-```
+- Updated campaign reporting to use the schema's `WON` status instead of old `CONVERTED` labels.
+- Updated high-performer and underperformer segments to use valid statuses: `CONTACTED`, `FOLLOW_UP`, `WON`, `NEW`, and `QUALIFIED`.
+- Removed references to non-schema `bandcampUrl` from contact discovery and duplicate merge data.
+- Fixed genre standardization auto-fix so Activity records include the required `leadId` when a lead exists.
+- Replaced the stale and mojibake-heavy agent plan with this current implementation plan.
 
----
+## Highest-Priority Next Steps
 
-## 🚀 Planned Agents (TIER 1)
+### 1. Centralize Scoring Logic
 
-### 1. Data Enrichment & Staleness Agent
+**Status:** Complete for the current API and CLI scoring paths.
 
-**File:** `scripts/enrich-stale.js`
+**Completed:**
 
-**Status:** ✅ COMPLETE
+- Moved scoring weights, thresholds, component scoring, rationale generation, and score capping into `src/lib/scoring-core.js`.
+- Updated `src/lib/scoring.ts`, `scripts/score-leads.js`, and `scripts/score-auto.js` to use the same implementation.
+- Added `--all` support to `scripts/score-auto.js`.
+- Capped total scores at 100 while preserving raw-score context in the rationale when a cap is applied.
 
-**Purpose:** Keep artist profiles fresh by detecting stale data and triggering automatic enrichment.
+**Remaining follow-up:**
 
-**Features:**
+- Add focused tests around score components and qualification thresholds.
+- Re-run database-backed dry-run checks once local PostgreSQL is available.
 
-- Detect stale Instagram data (>60 days since last post)
-- Detect missing releases (>6 months)
-- Detect engagement drops (follower count declining)
-- Auto-trigger Spotify/Instagram refresh via `/api/ingest`
-- Log all enrichment activities for audit trail
-- Flag artists needing manual review
+### 2. Add Agent Run Logging
 
-**CLI Usage:**
+**Why:** Activity logs are lead-focused, but there is no durable record of agent runs, inputs, output counts, failures, duration, or dry-run status.
 
-```bash
-npm run enrich:stale                   # Check & refresh stale data
-npm run enrich:stale -- --dry-run      # Preview changes
-npm run enrich:stale -- --limit 20     # Limit to 20 artists
-```
+**Best next implementation:**
 
----
+- Add an `AgentRun` model with fields for agent name, mode, startedAt, finishedAt, status, totals, and error summary.
+- Wrap each script with a small shared runner helper.
+- Keep lead-level Activity entries for user-facing audit history, and use AgentRun for operational observability.
 
-### 2. Event-Driven Lead Scoring
+### 3. Surface Action Queues In The UI
 
-**File:** `scripts/score-auto.js`
+**Why:** Several agents create useful next actions, but the app should make those actions unavoidable: due follow-ups, high-confidence contacts found, stale data failures, merge candidates, and genre/manual-review items.
 
-**Status:** ✅ COMPLETE
+**Best next implementation:**
 
-**Purpose:** Automatically score leads when they're created or their data changes.
+- Create an Operations page or dashboard section for action queues.
+- Start with due follow-ups and high-score uncontacted leads.
+- Add filters for "needs data", "needs contact", "ready to message", "possible duplicate", and "stale enrichment".
 
-**Features:**
+### 4. Harden Destructive And Semi-Destructive Jobs
 
-- Score new leads immediately upon creation
-- Auto-flag QUALIFIED leads (score ≥60)
-- Auto-update lead status based on score
-- Maintain Activity log for audit trail
-- Prevent duplicate scoring
+**Why:** Duplicate merge and genre standardization change production data. They should be safer and easier to review.
 
-**CLI Usage:**
+**Best next implementation:**
 
-```bash
-npm run score:auto                     # Score pending leads
-npm run score:auto -- --dry-run        # Preview changes
-npm run score:auto -- --limit 50       # Score 50 leads
-```
+- Make dry-run the default for duplicate merging and genre changes.
+- Persist proposed merge groups before applying them.
+- Add merge Activity notes for all affected leads.
+- Add rollback notes or snapshots for merged artist fields.
 
----
+### 5. Complete Message Delivery
 
-### 3. Follow-Up Reminder & Sequencing
+**Why:** The outreach loop is only partially closed. IG webhook delivery exists, but email sending is still not implemented in the delivery agent.
 
-**File:** `scripts/followup-remind.js`
+**Best next implementation:**
 
-**Status:** ✅ COMPLETE
+- Implement email delivery through `src/lib/email.ts` or a small SMTP/provider module.
+- Store channel and delivery provider result in Activity notes or a structured message delivery table.
+- Add daily send limits by channel.
+- Add a preview/send approval step in the UI.
 
-**Purpose:** Ensure no leads fall through cracks; automate follow-up workflow.
+## Near-Term Bug And Quality Backlog
 
-**Features:**
+| Priority | Item | Suggested Fix |
+| --- | --- | --- |
+| Done | Scoring config drift | Consolidated scoring into `src/lib/scoring-core.js`. |
+| Done | Score can exceed 100 | Enforced `Math.min(total, 100)` in the shared scoring core. |
+| High | No test suite for agents | Add focused smoke tests for scoring, reporting segments, duplicate merge preview, and genre standardization. |
+| Medium | Agent output contains mixed Unicode/encoding artifacts | Normalize script console output to ASCII or ensure UTF-8 everywhere. |
+| Medium | Contact confidence is not structured | Add fields or a related table for discovered contacts, confidence, source URL, and discoveredAt. |
+| Medium | Duplicate merge lacks audit trail | Log a NOTE on all moved leads and record merged artist IDs. |
+| Medium | Staleness checks use Activity notes for follower history | Add a proper metric snapshot table for followerCount, lastPostAt, release count, and source freshness. |
+| Low | README is still create-next-app boilerplate | Replace with project setup, env vars, scripts, data model, and operations docs. |
 
-- Monitor `nextActionAt` field across all leads
-- Generate notifications for due follow-ups
-- Suggest next contact tone based on recency
-- Prevent duplicate outreach (check Activity log)
-- Auto-transition stale leads from FOLLOW_UP → LOST
-- Create activity logs for all actions
-- Categorize by priority (high/normal)
+## New Roadmap Ideas
 
-**Tone Suggestions:**
+These ideas build on existing project and portal features. Secure client links already exist through `Project.portalToken`, and timestamped file feedback already exists through `ProjectFeedback.timestamp` plus the portal audio player.
 
-- 0-3 days: "warm" (light touch)
-- 4-7 days: "check-in" (friendly reminder)
-- 8-14 days: "escalation" (more direct)
-- 14+ days: "final-attempt" (persistence)
+### Pipeline Health Agent
 
-**CLI Usage:**
+Create a daily job that reports data health across the whole system: missing email, missing city, missing genre, stale Instagram, stale Spotify, unscored leads, selected drafts not sent, and leads stuck in a status too long.
 
-```bash
-npm run followup:remind                # Check due follow-ups
-npm run followup:remind -- --dry-run   # Preview changes
-```
+### Lead-to-Project Conversion Agent
 
----
+When a lead becomes `WON`, suggest or auto-create a project shell using the existing secure portal token, starter invoice, and default delivery folders. This turns sales success into an operational handoff.
 
-## Implementation Status
+### Outreach QA Agent
 
-| Agent                       | Status      | File                            | Effort |
-| --------------------------- | ----------- | ------------------------------- | ------ |
-| Lead Scoring                | ✅ Complete | `scripts/score-leads.js`        | Done   |
-| Data Enrichment & Staleness | ✅ Complete | `scripts/enrich-stale.js`       | Done   |
-| Event-Driven Scoring        | ✅ Complete | `scripts/score-auto.js`         | Done   |
-| Follow-Up Reminder          | ✅ Complete | `scripts/followup-remind.js`    | Done   |
-| Contact Intelligence        | ✅ Complete | `scripts/discover-contacts.js`  | Done   |
-| Campaign Analytics          | ✅ Complete | `scripts/report-campaign.js`    | Done   |
-| Duplicate Detection         | ✅ Complete | `scripts/detect-duplicates.js`  | Done   |
-| Genre Standardization       | ✅ Complete | `scripts/standardize-genres.js` | Done   |
+Before sending, inspect selected message drafts for missing personalization, duplicate phrasing, overly long copy, missing artist name, unavailable channel, or too-frequent outreach.
 
----
+### Reply Triage Agent
 
-## Architecture Notes
+Add an inbox or manual import workflow that classifies replies into interested, not now, pricing request, wrong contact, unsubscribed, or booked. The result should update lead status and next action.
 
-All agents:
+### Local Scene Intelligence
 
-- Connect via existing Prisma client to PostgreSQL
-- Log activities to Activity table for audit/compliance
-- Can run scheduled or on-demand
-- Use existing integration libraries (Spotify, Instagram, email)
-- Generate notifications for high-priority items
-- Are testable with sample data before production deployment
+Build a lightweight venue/event signal collector for Austin/Texas artists: recent show announcements, common venues, upcoming releases, and collaboration signals. Feed those signals into score rationale and draft personalization.
 
-Integration points:
+### Client Delivery Follow-Up
 
-- `/api/ingest` endpoint for triggering enrichment
-- Existing `scripts/` for CLI tools
-- Scheduled execution via GitHub Actions or cron
-- Activity logging for complete audit trail
+After a project file is uploaded, timestamped feedback is left, or an invoice is issued, create reminders for unresolved feedback, payment follow-up, revision status, and completion rating. This extends the existing portal workflow into delivery operations.
 
----
+### Forecasting And Capacity View
 
-## 📋 TIER 2 Agents (Medium Priority)
+Use lead scores, follow-up stage, active projects, invoices, and project status to estimate upcoming workload and likely revenue. This would make the dashboard useful for planning, not just tracking.
 
-### 4. Contact Intelligence & Email Discovery
+## Suggested Implementation Order
 
-**File:** `scripts/discover-contacts.js`
+1. Consolidate scoring and add tests around score components.
+2. Add AgentRun logging and wrap the existing scripts.
+3. Build an Operations queue page for due follow-ups and high-score uncontacted leads.
+4. Complete email sending and delivery logging.
+5. Add structured contact confidence and source tracking.
+6. Harden duplicate merge with persisted proposals and audit trails.
+7. Replace README boilerplate with real setup and operations documentation.
 
-**Status:** ✅ COMPLETE
+## Operating Notes
 
-**Purpose:** Automatically discover and validate contact information for leads.
-
-**Features:**
-
-- Crawl artist websites for booking/contact emails
-- Score contact confidence (verified/inferred/uncertain)
-- Email format validation and pattern matching
-- Prevents duplicate email entries
-- Logs discovery activities for audit trail
-
-**Confidence Scoring:**
-
-- **Verified (85-95%)**: Official website contact pages
-- **Inferred (60-75%)**: Band website, social profiles
-- **Uncertain (40%)**: Pattern-matched emails
-
-**CLI Usage:**
-
-```bash
-npm run discover:contacts                # Discover contacts for all leads
-npm run discover:contacts -- --dry-run   # Preview without saving
-npm run discover:contacts -- --limit 20  # Process 20 leads
-npm run discover:contacts -- --missing   # Only process leads with no emails
-```
-
----
-
-### 5. Campaign Analytics & Reporting
-
-**File:** `scripts/report-campaign.js`
-
-**Status:** ✅ COMPLETE
-
-**Purpose:** Track and analyze campaign performance across all leads.
-
-**Features:**
-
-- Calculate conversion funnel metrics
-- Score distribution analysis (excellent/strong/moderate/weak)
-- Tone effectiveness tracking
-- Channel performance analytics (email/Instagram/phone/in-person)
-- Segment identification:
-  - **High Performers**: score ≥70 + contacted
-  - **Underperformers**: score ≥60 but not yet contacted
-  - **At-Risk**: FOLLOW_UP status with no activity 14+ days
-- Generate detailed reports with optional deep dives
-
-**Report Metrics:**
-
-- Qualification rate, conversion rate
-- Funnel stages (Qualified → Contacted → Follow-up → Converted)
-- Score distribution breakdown
-- Tone and channel effectiveness
-- Actionable segment lists
-
-**CLI Usage:**
-
-```bash
-npm run report:campaign              # Generate 7-day report
-npm run report:campaign -- --days 30 # Generate 30-day report
-npm run report:campaign -- --details # Include artist lists
-```
-
----
-
-## 📋 TIER 3 Agents (Low Priority)
-
-### 6. Duplicate Artist Detection & Merging
-
-**File:** `scripts/detect-duplicates.js`
-
-**Status:** ✅ COMPLETE
-
-**Purpose:** Catch and safely merge duplicate artist records before they cause data quality issues.
-
-**Features:**
-
-- Levenshtein distance algorithm for name similarity detection
-- Spotify ID and Instagram handle matching
-- Confidence-based categorization (high/medium/low)
-- Safe merging strategy: consolidates data, preserves all leads and relationships
-- Prevents duplicate emails in merged records
-
-**Confidence Levels:**
-
-- **High**: Exact Spotify ID or Instagram match
-- **Medium**: 95%+ name similarity
-- **Low**: 85-94% name similarity
-
-**CLI Usage:**
-
-```bash
-npm run detect:duplicates              # Find potential duplicates
-npm run detect:duplicates -- --dry-run # Preview without changes
-npm run detect:duplicates -- --auto-merge # Auto-merge high confidence
-npm run detect:duplicates -- --threshold 0.90 # Adjust similarity threshold
-```
-
----
-
-### 7. Genre Standardization
-
-**File:** `scripts/standardize-genres.js`
-
-**Status:** ✅ COMPLETE
-
-**Purpose:** Normalize messy genre tags to a canonical taxonomy for consistent reporting.
-
-**Features:**
-
-- Canonical taxonomy with 12+ primary genres and 80+ aliases
-- Partial matching and alias detection
-- Categorizes genres: already standard, standardizable, invalid, missing
-- Shows data quality metrics
-- Logs fixes with rationale
-
-**Canonical Genres:**
-
-- electronic, hip-hop, rock, pop, r&b, country, jazz, classical, folk, metal, reggae, indie, experimental
-
-**CLI Usage:**
-
-```bash
-npm run standardize:genres              # Analyze genre issues
-npm run standardize:genres -- --dry-run # Preview without changes
-npm run standardize:genres -- --auto-fix # Apply standardizations
-npm run standardize:genres -- --taxonomy # Show canonical taxonomy
-```
-
----
-
-## Architecture Notes for Tier 2 & Tier 3
-
-The Tier 2 and Tier 3 agents introduce more complex processing and external interactions while maintaining the core architectural principles established by the Tier 1 agents:
-
-### Processing & Data Safety
-- **Non-Destructive Defaults:** Complex operations (like merging duplicates or standardizing genres) always default to a preview state using `--dry-run`. Flags like `--auto-fix` or `--auto-merge` require explicit invocation.
-- **Confidence Gating:** Automated actions are strictly gated by confidence scoring thresholds (e.g., 85%+ for verified contact discovery, 95%+ for auto-merging duplicates).
-- **Advanced Logic:** Employs appropriate algorithms such as Levenshtein distance for string similarity detection and robust pattern matching for data extraction.
-
-### Extensibility & Integration
-- **Modular Design:** Core functionality for these agents is decoupled from their CLI wrappers, enabling seamless future integration into Next.js background API routes or scheduled webhooks.
-- **Structured Reporting:** Analytical agents (e.g., `report-campaign`) generate structured data (JSON/Markdown) to facilitate easy integration with frontend dashboards and BI tools.
-
-### Operational Compliance
-- **Ethical Web Crawling:** External data gathering implements sensible rate limiting and polite scraping practices to prevent rate-limits or IP blocks.
-- **Holistic Audit Trails:** All substantive database modifications made by these agents are appended to the `Activity` log, preserving a complete, granular history of data transformations within the platform.
+- Keep all agents runnable by CLI and safe to schedule.
+- Prefer dry-run defaults for data cleanup and merging jobs.
+- Every substantive data change should leave either a lead-level Activity record or an AgentRun record.
+- Shared business logic should live in `src/lib` or a small shared package-style module, with scripts acting as thin wrappers.
+- The app should become the review surface for agent output, not just the place where final records appear.

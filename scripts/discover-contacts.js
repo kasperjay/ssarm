@@ -232,7 +232,6 @@ async function discoverContactsForLead(lead, dryRun = false) {
   // Gather potential URLs
   const urlsToCheck = [
     lead.artist.officialSiteUrl,
-    lead.artist.bandcampUrl,
     lead.artist.instagramHandle && `https://instagram.com/${lead.artist.instagramHandle}`,
   ].filter(Boolean);
 
