@@ -1,7 +1,7 @@
 import React from "react";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import GlassCard from "@/components/GlassCard";
+import { GlassCard } from "@/components/GlassCard";
 
 // Helper to calculate days ago/due
 function getDaysDifference(date: Date | null) {
