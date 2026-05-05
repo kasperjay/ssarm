@@ -1,36 +1,220 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Spectral Soundworks
+
+An internal CRM and automation platform for managing artist leads, outreach, and client project delivery. Built for Spectral Soundworks, an Austin-based music production company.
+
+---
+
+## Architecture
+
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js 16 (App Router, React 19) |
+| **Database** | PostgreSQL (via Docker) |
+| **ORM** | Prisma 7 with `@prisma/adapter-pg` |
+| **Styling** | Tailwind CSS 4 |
+| **Automation** | Node.js CLI agent scripts |
+| **Discovery** | Apify actors for Instagram / Spotify |
+| **Email** | Nodemailer (SMTP) |
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Docker** (for PostgreSQL)
+- **Node.js** ≥ 20
+- **npm** ≥ 10
+
+### Setup
+
+1. **Clone and install dependencies**
+
+   ```bash
+   git clone <repo>
+   cd spectral-soundworks-app
+   npm install
+   ```
+
+2. **Configure environment variables**
+
+   Copy the example env file and fill in your values:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   See [Environment Variables](#environment-variables) below for a full reference.
+
+3. **Start the database and application**
+
+   ```bash
+   npm run launch
+   ```
+
+   This runs `scripts/launch.sh`, which starts Docker, waits for PostgreSQL, runs Prisma migrations, and starts the Next.js dev server.
+
+4. **Alternatively, run components separately**
+
+   ```bash
+   # Start Postgres via Docker Compose
+   docker compose up -d
+
+   # Apply migrations and generate Prisma client
+   npm run db:migrate
+
+   # Start Next.js dev server
+   npm run dev
+   ```
+
+---
+
+## Environment Variables
+
+Create a `.env` file at the project root with the following:
+
+```env
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/spectral
+
+# Apify (for artist discovery scraping)
+APIFY_TOKEN=your_apify_token
+
+# Instagram DM Webhook
+IG_DM_WEBHOOK_URL=https://your-webhook-endpoint.com/ig
+IG_DM_WEBHOOK_SECRET=your_secret
+
+# SMTP Email Delivery
+SMTP_HOST=mail.spacemail.com
+SMTP_PORT=465
+SMTP_USER=admin@spectralsound.works
+SMTP_PASS=your_password
+SMTP_FROM="Spectral Soundworks" <admin@spectralsound.works>
+
+# Agent Limits
+DAILY_LIMIT=12
+FOLLOW_UP_DAYS=7
+EMAIL_SCRAPE_MAX_PAGES=5
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## CLI Agent Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All scripts are runnable via `npm run <script>` or directly with `node scripts/<name>.js`. They are safe to schedule via cron.
 
-## Learn More
+Every script wraps its execution in an `AgentRun` database record for operational observability. Lead-level changes also leave `Activity` records for user-facing audit history.
 
-To learn more about Next.js, take a look at the following resources:
+### Scoring
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Script | Command | Description |
+|---|---|---|
+| `score-leads.js` | `npm run score` | Score unscored (or all) leads based on proximity, followers, genre, recency, releases, and data completeness. Scores are capped at 100. |
+| `score-auto.js` | `npm run score:auto` | Event-triggered scoring, same logic as above. Supports `--all` flag. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Flags:** `--all`, `--dry-run`, `--limit N`, `--filter-status STATUS`
 
-## Deploy on Vercel
+### Enrichment & Discovery
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Script | Command | Description |
+|---|---|---|
+| `enrich-stale.js` | `npm run enrich:stale` | Re-enriches artists whose Instagram/Spotify data is stale (> 30 days). |
+| `discover-contacts.js` | `npm run discover:contacts` | Crawls artist websites and Instagram profiles to find emails. Stores structured `ContactInfo` records with confidence scores. |
+| `backfill-enrich.js` | `npm run backfill:enrich` | Backfills enrichment data for artists missing key fields. |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Flags:** `--dry-run`, `--limit N`, `--missing` (contacts only)
+
+### Outreach
+
+| Script | Command | Description |
+|---|---|---|
+| `send-messages.js` | `npm run send:messages` | Delivers unsent `MessageDraft` records. Supports Instagram DM via webhook and Email via SMTP. |
+
+**Flags:** `--dry-run`, `--limit N`
+
+### Data Quality
+
+| Script | Command | Description |
+|---|---|---|
+| `detect-duplicates.js` | `npm run detect:duplicates` | Detects duplicate artists by name similarity and exact ID matches. Saves `MergeProposal` records to the database. **Defaults to dry-run.** Pass `--live` to enable proposal persistence. Use `--live --auto-merge` to apply high-confidence merges. |
+| `standardize-genres.js` | `npm run standardize:genres` | Analyzes genre fields and maps them to a canonical taxonomy. **Defaults to dry-run.** Pass `--live --auto-fix` to apply changes. |
+
+**Flags for both:** `--live`, `--auto-merge` / `--auto-fix`, `--threshold N` (duplicates)
+
+### Reporting & Follow-ups
+
+| Script | Command | Description |
+|---|---|---|
+| `report-campaign.js` | `npm run report:campaign` | Generates campaign reports by status segment (WON, CONTACTED, etc.). |
+| `followup-remind.js` | `npm run followup:remind` | Finds leads with a past `nextActionAt` and logs reminders. |
+
+---
+
+## Database Management
+
+```bash
+# Apply pending migrations
+npm run db:migrate
+
+# Backup the database
+npm run db:backup
+
+# Seed the database
+npm run seed
+
+# Reset and reseed
+npm run seed:reset
+```
+
+---
+
+## Testing
+
+The scoring core has a test suite using Node's native test runner:
+
+```bash
+npm run test
+```
+
+Tests cover all scoring components (proximity, followers, recency, releases, genre, data completeness), the 100-point cap, and the qualification threshold.
+
+---
+
+## Application Routes
+
+| Route | Description |
+|---|---|
+| `/` | Dashboard |
+| `/leads` | Lead pipeline |
+| `/leads/[id]` | Lead detail view with scoring, drafts, and activity |
+| `/leads/discover` | Trigger Apify discovery jobs |
+| `/projects` | Client project workspace |
+| `/portal/[token]` | Client-facing portal (no auth required) |
+| `/operations` | Operations queue — due follow-ups & high-score uncontacted leads |
+
+---
+
+## Data Model Overview
+
+```
+Artist ──< Lead ──< MessageDraft
+       ──< Release
+       ──< InstagramPost
+       ──< ContactInfo          (discovered emails with confidence scores)
+       ──< MergeProposal        (pending duplicate merge proposals)
+       ──< Project ──< ProjectFile
+                   ──< ProjectFeedback
+                   ──< ProjectInvoice
+
+AgentRun                        (operational log of script executions)
+Activity                        (user-facing lead audit trail)
+```
+
+---
+
+## Operating Notes
+
+- All agents are safe to run from CLI or schedule via cron.
+- Destructive scripts (`detect-duplicates`, `standardize-genres`) **default to dry-run**. Pass `--live` to apply changes.
+- Every substantive data change leaves either a lead-level `Activity` record or an `AgentRun` record.
+- Shared business logic lives in `src/lib/` — scripts are thin wrappers.

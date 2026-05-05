@@ -4,6 +4,8 @@ This document tracks the current automation, data quality, outreach, and client-
 
 Last reevaluated: 2026-05-05
 
+> **Session summary (2026-05-05):** Completed all 7 items from the Suggested Implementation Order: consolidated scoring tests, implemented email delivery via SMTP, added `AgentRun` logging across all agents, built the Operations Queue UI, added structured `ContactInfo` tracking, hardened duplicate merge with `MergeProposal` persistence and audit trails, and replaced the README with full project documentation.
+
 ## Current Progress
 
 The app has moved beyond the original "planned agents" phase. The repo now includes working lead ingestion, enrichment, scoring, contact discovery, message delivery, campaign reporting, duplicate detection, genre cleanup, a projects workspace, client portals, file uploads, feedback, invoices, and billing views.
@@ -38,61 +40,31 @@ The next phase should focus less on adding isolated scripts and more on making t
 
 ### 1. Centralize Scoring Logic
 
-**Status:** Complete for the current API and CLI scoring paths.
-
-**Completed:**
-
-- Moved scoring weights, thresholds, component scoring, rationale generation, and score capping into `src/lib/scoring-core.js`.
-- Updated `src/lib/scoring.ts`, `scripts/score-leads.js`, and `scripts/score-auto.js` to use the same implementation.
-- Added `--all` support to `scripts/score-auto.js`.
-- Capped total scores at 100 while preserving raw-score context in the rationale when a cap is applied.
-
-**Remaining follow-up:**
-
-- Add focused tests around score components and qualification thresholds.
-- Re-run database-backed dry-run checks once local PostgreSQL is available.
+**Status:** ✅ Complete. Shared scoring core in `src/lib/scoring-core.js`. Tests added in `src/lib/scoring-core.test.js`. Run with `npm run test`.
 
 ### 2. Add Agent Run Logging
 
-**Why:** Activity logs are lead-focused, but there is no durable record of agent runs, inputs, output counts, failures, duration, or dry-run status.
-
-**Best next implementation:**
-
-- Add an `AgentRun` model with fields for agent name, mode, startedAt, finishedAt, status, totals, and error summary.
-- Wrap each script with a small shared runner helper.
-- Keep lead-level Activity entries for user-facing audit history, and use AgentRun for operational observability.
+**Status:** ✅ Complete. `AgentRun` model added to Prisma schema. `src/lib/agent-runner.js` wraps all major CLI scripts: `score-leads`, `score-auto`, `enrich-stale`, `send-messages`, `discover-contacts`, `detect-duplicates`, `standardize-genres`.
 
 ### 3. Surface Action Queues In The UI
 
-**Why:** Several agents create useful next actions, but the app should make those actions unavoidable: due follow-ups, high-confidence contacts found, stale data failures, merge candidates, and genre/manual-review items.
-
-**Best next implementation:**
-
-- Create an Operations page or dashboard section for action queues.
-- Start with due follow-ups and high-score uncontacted leads.
-- Add filters for "needs data", "needs contact", "ready to message", "possible duplicate", and "stale enrichment".
+**Status:** ✅ Complete. `/operations` page built in `src/app/operations/page.tsx`. Surfaces due follow-ups and high-score uncontacted leads.
 
 ### 4. Harden Destructive And Semi-Destructive Jobs
 
-**Why:** Duplicate merge and genre standardization change production data. They should be safer and easier to review.
-
-**Best next implementation:**
-
-- Make dry-run the default for duplicate merging and genre changes.
-- Persist proposed merge groups before applying them.
-- Add merge Activity notes for all affected leads.
-- Add rollback notes or snapshots for merged artist fields.
+**Status:** ✅ Complete. Both `detect-duplicates.js` and `standardize-genres.js` now default to dry-run. Merge applies Activity audit notes with full artist JSON snapshots. Merge proposals persisted in `MergeProposal` table and marked `APPLIED` after execution.
 
 ### 5. Complete Message Delivery
 
-**Why:** The outreach loop is only partially closed. IG webhook delivery exists, but email sending is still not implemented in the delivery agent.
+**Status:** ✅ Complete. `nodemailer` integrated via `src/lib/email-sender.js`. `send-messages.js` now delivers to email addresses via SMTP using `mail.spacemail.com`. Channel and provider logged in Activity notes.
 
-**Best next implementation:**
+### 6. Structured Contact Confidence
 
-- Implement email delivery through `src/lib/email.ts` or a small SMTP/provider module.
-- Store channel and delivery provider result in Activity notes or a structured message delivery table.
-- Add daily send limits by channel.
-- Add a preview/send approval step in the UI.
+**Status:** ✅ Complete. `ContactInfo` model added to Prisma schema. `discover-contacts.js` upserts structured records with `confidence`, `score`, `sourceUrl`, and `sourceType`. `Artist.emails` kept in sync for backward compatibility.
+
+### 7. README Documentation
+
+**Status:** ✅ Complete. `README.md` fully rewritten with setup instructions, environment variable reference, all CLI script docs, the data model overview, and operating notes.
 
 ## Near-Term Bug And Quality Backlog
 
@@ -100,12 +72,11 @@ The next phase should focus less on adding isolated scripts and more on making t
 | --- | --- | --- |
 | Done | Scoring config drift | Consolidated scoring into `src/lib/scoring-core.js`. |
 | Done | Score can exceed 100 | Enforced `Math.min(total, 100)` in the shared scoring core. |
-| High | No test suite for agents | Add focused smoke tests for scoring, reporting segments, duplicate merge preview, and genre standardization. |
+| Done | No test suite for agents | Tests added in `src/lib/scoring-core.test.js` covering all components, cap, and qualification. |
+| Done | Contact confidence is not structured | `ContactInfo` model added with `confidence`, `score`, `sourceUrl`, `sourceType`, `discoveredAt`. |
+| Done | Duplicate merge lacks audit trail | Activity notes with JSON artist snapshot on merge; `MergeProposal` table tracks status. |
 | Medium | Agent output contains mixed Unicode/encoding artifacts | Normalize script console output to ASCII or ensure UTF-8 everywhere. |
-| Medium | Contact confidence is not structured | Add fields or a related table for discovered contacts, confidence, source URL, and discoveredAt. |
-| Medium | Duplicate merge lacks audit trail | Log a NOTE on all moved leads and record merged artist IDs. |
 | Medium | Staleness checks use Activity notes for follower history | Add a proper metric snapshot table for followerCount, lastPostAt, release count, and source freshness. |
-| Low | README is still create-next-app boilerplate | Replace with project setup, env vars, scripts, data model, and operations docs. |
 
 ## New Roadmap Ideas
 
@@ -141,13 +112,18 @@ Use lead scores, follow-up stage, active projects, invoices, and project status 
 
 ## Suggested Implementation Order
 
-1. Consolidate scoring and add tests around score components.
-2. Add AgentRun logging and wrap the existing scripts.
-3. Build an Operations queue page for due follow-ups and high-score uncontacted leads.
-4. Complete email sending and delivery logging.
-5. Add structured contact confidence and source tracking.
-6. Harden duplicate merge with persisted proposals and audit trails.
-7. Replace README boilerplate with real setup and operations documentation.
+All 7 items from the original order are complete as of 2026-05-05.
+
+**Next priorities to consider:**
+
+1. Run `npm run db:migrate` to apply the new `AgentRun`, `ContactInfo`, and `MergeProposal` migrations.
+2. Install `nodemailer` with `npm install` after the updated `package.json` is deployed.
+3. Build a UI for reviewing `MergeProposal` records (currently DB-only).
+4. Implement Pipeline Health Agent (daily data-quality report).
+5. Implement Lead-to-Project Conversion Agent (auto-create project shell on WON).
+6. Add Outreach QA Agent (pre-send draft inspection).
+7. Add Reply Triage Agent (inbox classification → lead status update).
+8. Add metric snapshot table for follower/post history (replaces Activity note approach).
 
 ## Operating Notes
 

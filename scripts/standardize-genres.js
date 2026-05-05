@@ -24,9 +24,8 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
+
 
 // Canonical genre taxonomy
 const GENRE_TAXONOMY = {
@@ -130,12 +129,13 @@ function getGenreIssues(artists) {
 }
 
 async function main() {
-  const dryRun = process.argv.includes("--dry-run");
+  // Default to dry-run; pass --live to actually apply changes
+  const dryRun = !process.argv.includes("--live");
   const autoFix = process.argv.includes("--auto-fix");
   const showTaxonomy = process.argv.includes("--taxonomy");
 
   console.log("🏷️  Genre Standardization Agent");
-  console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"}`);
+  console.log(`Mode: ${dryRun ? "DRY RUN (pass --live to apply)" : "LIVE"}`);
   console.log();
 
   if (showTaxonomy) {
@@ -250,14 +250,18 @@ async function main() {
   console.log(`  Data quality: ${((issues.already_standard.length / artists.length) * 100).toFixed(1)}%`);
 
   if (!autoFix && issues.standardizable.length > 0) {
-    console.log("\n💡 Tip: Run with --auto-fix to apply standardizations");
+    console.log("\n💡 Tip: Run with --live --auto-fix to apply standardizations");
   }
 
-  await prisma.$disconnect();
-  process.exit(0);
+  return { fixed: autoFix && !dryRun ? issues.standardizable.length : 0, needsReview: issues.invalid.length + issues.missing.length };
 }
 
-main().catch((error) => {
-  console.error("Fatal error:", error.message);
-  process.exit(1);
-});
+withAgentRun("standardize-genres", { dryRun: !process.argv.includes("--live") }, main)
+  .catch((error) => {
+    console.error("Fatal error:", error.message);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+    await pool.end();
+  });
