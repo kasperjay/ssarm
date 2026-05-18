@@ -1,0 +1,9 @@
+# Layout Verification Plan
+
+- [ ] Open http://localhost:3000/leads
+- [ ] Take a screenshot of the page
+- [ ] Verify GlassCards, padding, gradient text, and sidebar visibility
+- [ ] Report findings and screenshot path
+
+## Status
+- 2026-05-05: Encountering "target closed" errors when trying to open /leads. Will retry or check /operations.

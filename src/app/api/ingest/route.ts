@@ -3,11 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { discoverEmailsFromUrls, extractEmailsFromTextSafe, mergeEmails } from "@/lib/email";
 import { fetchInstagramPosts, fetchInstagramProfile } from "@/lib/instagram";
 import { fetchSpotifyArtistProfile, fetchSpotifyReleases } from "@/lib/spotify";
-import { discoverInstagramHandle, discoverSpotifyArtistId } from "@/lib/google-search";
-import { resolveArtistEnrichment } from "@/lib/location";
-import { scoreLead } from "@/lib/scoring";
-import { cleanArtistName } from "@/lib/utils";
-import sharp from "sharp";
 
 type LeadStatus =
   | "NEW"
@@ -65,6 +60,26 @@ const mergeInstagramPosts = (
   });
 
   return [...mergedScraped, ...incomingOnly];
+};
+
+const normalizeInstagramPost = (
+  post: NonNullable<LeadPayload["instagramPosts"]>[number]
+) => {
+  const imageUrl = post.imageUrl ?? null;
+  const url = post.url ?? null;
+  const isIgPostUrl =
+    typeof imageUrl === "string" &&
+    /instagram\.com\/(p|reel|tv)\//i.test(imageUrl);
+
+  if (isIgPostUrl) {
+    return {
+      ...post,
+      imageUrl: null,
+      url: url ?? imageUrl,
+    };
+  }
+
+  return post;
 };
 
 
@@ -157,47 +172,18 @@ const createAccentPalette = (r: number, g: number, b: number) => {
 
 const extractAccentFromImage = async (imageUrl: string) => {
   try {
-    const response = await fetch(imageUrl, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-      },
-    });
+    const response = await fetch(imageUrl);
     if (!response.ok) return null;
     const buffer = Buffer.from(await response.arrayBuffer());
-
-    // Resize to a small grid to sample colors
-    const { data } = await sharp(buffer)
-      .resize(24, 24, { fit: "cover" })
+    const sharpModule = await import("sharp").catch(() => null);
+    if (!sharpModule || !sharpModule.default) return null;
+    const { data } = await sharpModule.default(buffer)
+      .resize(1, 1, { fit: "cover" })
       .removeAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
-
     if (!data || data.length < 3) return null;
-
-    let bestPixel = { r: data[0], g: data[1], b: data[2], score: -1 };
-
-    for (let i = 0; i < data.length; i += 3) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const { s, l } = rgbToHsl(r, g, b);
-      const score = s * (1 - Math.abs(l - 0.5) * 2);
-      if (score > bestPixel.score) {
-        bestPixel = { r, g, b, score };
-      }
-    }
-
-    if (bestPixel.score < 0.1) {
-      const { data: avgData } = await sharp(buffer)
-        .resize(1, 1, { fit: "cover" })
-        .removeAlpha()
-        .raw()
-        .toBuffer({ resolveWithObject: true });
-      return createAccentPalette(avgData[0], avgData[1], avgData[2]);
-    }
-
-    return createAccentPalette(bestPixel.r, bestPixel.g, bestPixel.b);
+    return createAccentPalette(data[0], data[1], data[2]);
   } catch {
     return null;
   }
@@ -282,7 +268,6 @@ const mergeReleases = (
 };
 
 type LeadPayload = {
-  isDiscoveryImport?: boolean;
   skipInstagramFetch?: boolean;
   skipSpotifyFetch?: boolean;
   artist: {
@@ -351,16 +336,16 @@ export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as LeadPayload;
 
-    const name = cleanArtistName(payload.artist.name);
-
-    if (!name) {
+    if (!payload?.artist?.name) {
       return NextResponse.json(
-        { error: "artist.name is missing or invalid after cleaning" },
+        { error: "artist.name is required" },
         { status: 400 }
       );
     }
 
     const {
+      name,
+      instagramHandle,
       instagramProfileUrl,
       instagramProfileImageUrl,
       spotifyArtistId,
@@ -382,141 +367,15 @@ export async function POST(request: Request) {
       lastPostAt,
     } = payload.artist;
 
-    let { instagramHandle } = payload.artist;
-
-    // 1. Initial discovery of IDs to ensure we find the right artist
-    let resolvedSpotifyArtistId = spotifyArtistId;
-    if (!resolvedSpotifyArtistId) {
-      console.log(`[Ingest] Missing Spotify ID for ${name}. Attempting to auto-discover...`);
-      const discovered = await discoverSpotifyArtistId(name);
-      if (discovered) {
-        console.log(`[Ingest] Discovered Spotify ID ${discovered} for ${name}`);
-        resolvedSpotifyArtistId = discovered;
-      }
-    }
-
-    if (!instagramHandle) {
-      console.log(`[Ingest] Missing IG handle for ${name}. Attempting to auto-discover...`);
-      const discovered = await discoverInstagramHandle(name);
-      if (discovered) {
-        console.log(`[Ingest] Discovered handle @${discovered} for ${name}`);
-        instagramHandle = discovered;
-      }
-    }
-
-    // 2. Search for existing artist using all resolved identifiers
-    const artistMatchers = [] as Array<Record<string, unknown>>;
-    if (instagramHandle) {
-      artistMatchers.push({ instagramHandle });
-    }
-    if (resolvedSpotifyArtistId) {
-      artistMatchers.push({ spotifyArtistId: resolvedSpotifyArtistId });
-    }
-    artistMatchers.push({
-      name,
-      city: city ?? undefined,
-      state: state ?? undefined,
-    });
-
-    const candidates = await prisma.artist.findMany({
-      where: { OR: artistMatchers },
-      include: {
-        leads: true,
-      }
-    });
-
-    let existingArtist = candidates.find(a =>
-      (instagramHandle && a.instagramHandle === instagramHandle) ||
-      (resolvedSpotifyArtistId && a.spotifyArtistId === resolvedSpotifyArtistId)
-    ) || candidates[0] || null;
-
-    // 3. Merge duplicates if multiple candidates found
-    if (candidates.length > 1 && existingArtist) {
-      console.log(`[Ingest] Merging ${candidates.length - 1} duplicates into artist ${existingArtist.id} (${existingArtist.name})`);
-      for (const candidate of candidates) {
-        if (candidate.id === existingArtist.id) continue;
-
-        // Move related data to the existingArtist
-        await prisma.lead.updateMany({ where: { artistId: candidate.id }, data: { artistId: existingArtist.id } });
-        await prisma.release.updateMany({ where: { artistId: candidate.id }, data: { artistId: existingArtist.id } });
-        await prisma.instagramPost.updateMany({ where: { artistId: candidate.id }, data: { artistId: existingArtist.id } });
-        await prisma.project.updateMany({ where: { artistId: candidate.id }, data: { artistId: existingArtist.id } });
-        await prisma.contactInfo.updateMany({ where: { artistId: candidate.id }, data: { artistId: existingArtist.id } });
-
-        // Delete the duplicate
-        await prisma.artist.delete({ where: { id: candidate.id } }).catch(e => console.error(`[Ingest] Failed to delete duplicate ${candidate.id}:`, e));
-      }
-    }
-
-    // If this is a new scraper upload and the artist already exists AND has recent data, skip to save API calls
-    // But if they are missing critical data like spotifyId or profile pic, we proceed.
-    if (payload.isDiscoveryImport && existingArtist) {
-      const hasSpotify = !!existingArtist.spotifyArtistId;
-      const hasPic = !!existingArtist.instagramProfileImageUrl;
-      const isRecent = existingArtist.updatedAt > new Date(Date.now() - 24 * 60 * 60 * 1000);
-      
-      if (hasSpotify && hasPic && isRecent) {
-        return NextResponse.json({
-          artistId: existingArtist.id,
-          leadId: existingArtist.leads?.[0]?.id,
-          status: "skipped_recent_duplicate"
-        });
-      }
-    }
-
-    // 4. Final conflict check to handle cases where discovery found an ID 
-    // that belongs to an artist not in the initial candidates list
-    if (instagramHandle || resolvedSpotifyArtistId) {
-      const conflictMatchers = [] as Array<Record<string, unknown>>;
-      if (instagramHandle) conflictMatchers.push({ instagramHandle });
-      if (resolvedSpotifyArtistId) conflictMatchers.push({ spotifyArtistId: resolvedSpotifyArtistId });
-
-      const conflictingArtist = await prisma.artist.findFirst({
-        where: {
-          AND: [
-            existingArtist ? { id: { not: existingArtist.id } } : {},
-            { OR: conflictMatchers }
-          ]
-        },
-        include: { leads: true }
-      });
-
-      if (conflictingArtist) {
-        if (existingArtist) {
-          console.log(`[Ingest] Found conflict after discovery. Merging current ${existingArtist.id} into ${conflictingArtist.id}`);
-          // Move current artist's data to the conflicting one
-          await prisma.lead.updateMany({ where: { artistId: existingArtist.id }, data: { artistId: conflictingArtist.id } });
-          await prisma.release.updateMany({ where: { artistId: existingArtist.id }, data: { artistId: conflictingArtist.id } });
-          await prisma.instagramPost.updateMany({ where: { artistId: existingArtist.id }, data: { artistId: conflictingArtist.id } });
-          await prisma.project.updateMany({ where: { artistId: existingArtist.id }, data: { artistId: conflictingArtist.id } });
-          await prisma.contactInfo.updateMany({ where: { artistId: existingArtist.id }, data: { artistId: conflictingArtist.id } });
-
-          const strayId = existingArtist.id;
-          existingArtist = conflictingArtist;
-          await prisma.artist.delete({ where: { id: strayId } }).catch(() => {});
-        } else {
-          console.log(`[Ingest] Discovery found existing artist ${conflictingArtist.id}. Using it.`);
-          existingArtist = conflictingArtist;
-        }
-      }
-    }
-
     const skipInstagramFetch = payload.skipInstagramFetch === true;
     const skipSpotifyFetch = payload.skipSpotifyFetch === true;
     const [scrapedInstagramPosts, scrapedInstagramProfile] =
       instagramHandle && !skipInstagramFetch
         ? await Promise.all([
-          fetchInstagramPosts(instagramHandle).catch(e => { console.error(`[Ingest] IG Posts fetch failed for @${instagramHandle}:`, e); return undefined; }),
-          fetchInstagramProfile(instagramHandle).catch(e => { console.error(`[Ingest] IG Profile fetch failed for @${instagramHandle}:`, e); return null; }),
-        ])
+            fetchInstagramPosts(instagramHandle),
+            fetchInstagramProfile(instagramHandle),
+          ])
         : [undefined, null];
-    
-    if (scrapedInstagramProfile) {
-        console.log(`[Ingest] Scraped IG Profile for @${instagramHandle}:`, {
-            followers: scrapedInstagramProfile.followersCount,
-            hasPic: !!scrapedInstagramProfile.profileImageUrl
-        });
-    }
     const resolvedInstagramPosts = mergeInstagramPosts(
       payload.instagramPosts,
       scrapedInstagramPosts
@@ -526,22 +385,32 @@ export async function POST(request: Request) {
       10
     );
     const [spotifyProfile, spotifyReleases] =
-      resolvedSpotifyArtistId && !skipSpotifyFetch
+      spotifyArtistId && !skipSpotifyFetch
         ? await Promise.all([
-          fetchSpotifyArtistProfile(resolvedSpotifyArtistId).catch(e => { console.error(`[Ingest] Spotify Profile fetch failed for ${resolvedSpotifyArtistId}:`, e); return null; }),
-          fetchSpotifyReleases(
-            resolvedSpotifyArtistId,
-            Number.isFinite(spotifyReleaseLimit) ? spotifyReleaseLimit : 6
-          ).catch(e => { console.error(`[Ingest] Spotify Releases fetch failed for ${resolvedSpotifyArtistId}:`, e); return []; }),
-        ])
+            fetchSpotifyArtistProfile(spotifyArtistId),
+            fetchSpotifyReleases(
+              spotifyArtistId,
+              Number.isFinite(spotifyReleaseLimit) ? spotifyReleaseLimit : 6
+            ),
+          ])
         : [null, []];
 
-    if (spotifyProfile) {
-        console.log(`[Ingest] Scraped Spotify Profile for ${resolvedSpotifyArtistId}:`, {
-            name: spotifyProfile.name,
-            hasPic: !!spotifyProfile.imageUrl
-        });
+    const artistMatchers = [] as Array<Record<string, unknown>>;
+    if (instagramHandle) {
+      artistMatchers.push({ instagramHandle });
     }
+    if (spotifyArtistId) {
+      artistMatchers.push({ spotifyArtistId });
+    }
+    artistMatchers.push({
+      name,
+      city: city ?? undefined,
+      state: state ?? undefined,
+    });
+
+    const existingArtist = await prisma.artist.findFirst({
+      where: { OR: artistMatchers },
+    });
 
     const resolvedSpotifyArtistUrl =
       spotifyArtistUrl ?? spotifyProfile?.url ?? existingArtist?.spotifyArtistUrl ?? null;
@@ -549,36 +418,21 @@ export async function POST(request: Request) {
       spotifyImageUrl ??
       existingArtist?.spotifyImageUrl ??
       spotifyProfile?.imageUrl ??
-      (await fetchSpotifyImageUrl(resolvedSpotifyArtistUrl, resolvedSpotifyArtistId));
+      (await fetchSpotifyImageUrl(resolvedSpotifyArtistUrl, spotifyArtistId));
     const computedAccent = resolvedSpotifyImageUrl
       ? await extractAccentFromImage(resolvedSpotifyImageUrl)
       : null;
-
-    // Fallback: extract from Instagram profile pic if Spotify extraction failed
-    const igProfileUrl = scrapedInstagramProfile?.profileImageUrl ?? existingArtist?.instagramProfileImageUrl;
-    const igAccent = !computedAccent && igProfileUrl
-      ? await extractAccentFromImage(igProfileUrl)
-      : null;
-
-    if (!computedAccent && igAccent) {
-      console.log(`[Ingest] Accent: Spotify image failed, used IG profile image for ${name}`);
-    } else if (!computedAccent && !igAccent) {
-      console.warn(`[Ingest] Accent: No image source available for ${name} (spotify=${!!resolvedSpotifyImageUrl}, ig=${!!igProfileUrl})`);
-    }
-
     const resolvedSpotifyAccent =
-      spotifyAccent ?? computedAccent?.accent ?? igAccent?.accent ?? existingArtist?.spotifyAccent ?? null;
+      spotifyAccent ?? existingArtist?.spotifyAccent ?? computedAccent?.accent ?? null;
     const resolvedSpotifyAccentStrong =
       spotifyAccentStrong ??
-      computedAccent?.accentStrong ??
-      igAccent?.accentStrong ??
       existingArtist?.spotifyAccentStrong ??
+      computedAccent?.accentStrong ??
       resolvedSpotifyAccent;
     const resolvedSpotifyHighlight =
       spotifyHighlight ??
-      computedAccent?.highlight ??
-      igAccent?.highlight ??
       existingArtist?.spotifyHighlight ??
+      computedAccent?.highlight ??
       resolvedSpotifyAccent;
     const derivedEmails = extractEmailsFromTextSafe(
       bio ?? scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? null
@@ -601,136 +455,95 @@ export async function POST(request: Request) {
       scrapedInstagramProfile?.profileImageUrl ??
       existingArtist?.instagramProfileImageUrl ??
       null;
+    const resolvedFollowerCount =
+      followerCount ??
+      scrapedInstagramProfile?.followersCount ??
+      existingArtist?.followerCount ??
+      null;
+    const resolvedLastPostAt =
+      lastPostAt ?? existingArtist?.lastPostAt ?? null;
     const scrapedWebsiteEmails = await discoverEmailsFromUrls([
       resolvedOfficialSiteUrl,
     ]);
     const resolvedEmailsWithWebsite = mergeEmails(resolvedEmails, scrapedWebsiteEmails);
 
-    let resolvedBio = bio ?? scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? undefined;
-    const maxFollowers = Math.max(
-      followerCount ?? 0,
-      scrapedInstagramProfile?.followersCount ?? 0,
-      existingArtist?.followerCount ?? 0
-    );
-    const resolvedFollowerCount = maxFollowers > 0 ? maxFollowers : undefined;
-    const payloadLastPostAt = toDate(lastPostAt);
-    const scrapedLastPostAt = resolvedInstagramPosts?.[0]?.postedAt ? new Date(resolvedInstagramPosts[0].postedAt) : undefined;
-    const existingLastPostAt = existingArtist?.lastPostAt;
-    const dateOptions = [payloadLastPostAt, scrapedLastPostAt, existingLastPostAt].filter(Boolean) as Date[];
-    const resolvedLastPostAt = dateOptions.length > 0 ? new Date(Math.max(...dateOptions.map(d => d.getTime()))) : undefined;
-    let resolvedGenre = genre ?? spotifyProfile?.genres?.[0] ?? existingArtist?.genre ?? undefined;
-    const resolvedCity = city ?? existingArtist?.city ?? undefined;
-    const resolvedState = state ?? existingArtist?.state ?? undefined;
-    const resolvedCountry = country ?? existingArtist?.country ?? undefined;
-    let resolvedLocation = location ?? existingArtist?.location ?? undefined;
-
-    // ── Enrichment Pipeline ────────────────────────────────────────────────
-    // Run if we are still missing location, genre, or bio.
-    // skipGoogle = true during discovery imports to avoid Apify costs;
-    // the enrich:stale script can run all stages.
-    const needsEnrichment = !resolvedLocation || !resolvedGenre || !resolvedBio;
-    if (needsEnrichment) {
-      console.log(`[Ingest] Running enrichment pipeline for "${name}" (missing: ${[
-        !resolvedLocation && 'location',
-        !resolvedGenre && 'genre',
-        !resolvedBio && 'bio',
-      ].filter(Boolean).join(', ')})`);
-      const enrichment = await resolveArtistEnrichment({
-        name,
-        bio: resolvedBio ?? scrapedInstagramProfile?.bio ?? null,
-        externalUrl: resolvedOfficialSiteUrl,
-        rawData: payload.artist as unknown as Record<string, unknown>,
-        skipGoogle: payload.isDiscoveryImport === true, // skip expensive Google search during bulk imports
-      });
-      if (!resolvedLocation && enrichment.location) resolvedLocation = enrichment.location;
-      if (!resolvedGenre && enrichment.genre) resolvedGenre = enrichment.genre;
-      // Only store external bio if we have no bio at all
-      if (!resolvedBio && enrichment.externalBio) {
-        const source = enrichment.externalBioSource === 'lastfm' ? '[Last.fm]' : enrichment.externalBioSource === 'discogs' ? '[Discogs]' : '';
-        resolvedBio = source ? `${enrichment.externalBio}\n\n— ${source}` : enrichment.externalBio;
-      }
-    }
-
+    const resolvedBio = bio ?? scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? null;
     const artist = existingArtist
       ? await prisma.artist.update({
-        where: { id: existingArtist.id },
-        data: {
-          name,
-          instagramHandle,
-          instagramProfileUrl,
-          instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
-          spotifyArtistId: resolvedSpotifyArtistId,
-          spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
-          spotifyImageUrl: resolvedSpotifyImageUrl,
-          spotifyAccent: resolvedSpotifyAccent,
-          spotifyAccentStrong: resolvedSpotifyAccentStrong,
-          spotifyHighlight: resolvedSpotifyHighlight,
-          officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
-          location: resolvedLocation,
-          city: resolvedCity,
-          state: resolvedState,
-          country: resolvedCountry,
-          genre: resolvedGenre,
-          tags: tags ?? undefined,
-          bio: resolvedBio,
-          emails: resolvedEmailsWithWebsite,
-          followerCount: resolvedFollowerCount,
-          lastPostAt: resolvedLastPostAt,
-        },
-      })
+          where: { id: existingArtist.id },
+          data: {
+            name,
+            instagramHandle,
+            instagramProfileUrl,
+            instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
+            spotifyArtistId,
+            spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
+            spotifyImageUrl: resolvedSpotifyImageUrl,
+            spotifyAccent: resolvedSpotifyAccent,
+            spotifyAccentStrong: resolvedSpotifyAccentStrong,
+            spotifyHighlight: resolvedSpotifyHighlight,
+            officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
+            location,
+            city,
+            state,
+            country,
+            genre,
+            tags: tags ?? undefined,
+            bio: resolvedBio,
+            emails: resolvedEmailsWithWebsite,
+            followerCount: resolvedFollowerCount ?? undefined,
+            lastPostAt: toDate(resolvedLastPostAt),
+          },
+        })
       : await prisma.artist.create({
-        data: {
-          name,
-          instagramHandle,
-          instagramProfileUrl,
-          instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
-          spotifyArtistId: resolvedSpotifyArtistId,
-          spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
-          spotifyImageUrl: resolvedSpotifyImageUrl,
-          spotifyAccent: resolvedSpotifyAccent,
-          spotifyAccentStrong: resolvedSpotifyAccentStrong,
-          spotifyHighlight: resolvedSpotifyHighlight,
-          officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
-          location: resolvedLocation,
-          city: resolvedCity,
-          state: resolvedState,
-          country: resolvedCountry,
-          genre: resolvedGenre,
-          tags: tags ?? [],
-          bio: resolvedBio,
-          emails: resolvedEmailsWithWebsite,
-          followerCount: resolvedFollowerCount,
-          lastPostAt: resolvedLastPostAt,
-        },
-      });
+          data: {
+            name,
+            instagramHandle,
+            instagramProfileUrl,
+            instagramProfileImageUrl: resolvedInstagramProfileImageUrl,
+            spotifyArtistId,
+            spotifyArtistUrl: resolvedSpotifyArtistUrl ?? undefined,
+            spotifyImageUrl: resolvedSpotifyImageUrl,
+            spotifyAccent: resolvedSpotifyAccent,
+            spotifyAccentStrong: resolvedSpotifyAccentStrong,
+            spotifyHighlight: resolvedSpotifyHighlight,
+            officialSiteUrl: resolvedOfficialSiteUrl ?? undefined,
+            location,
+            city,
+            state,
+            country,
+            genre,
+            tags: tags ?? [],
+            bio: resolvedBio,
+            emails: resolvedEmailsWithWebsite,
+            followerCount: resolvedFollowerCount ?? undefined,
+            lastPostAt: toDate(resolvedLastPostAt),
+          },
+        });
 
     const leadData = payload.lead;
-    const existingLead = leadData?.id
-      ? await prisma.lead.findUnique({ where: { id: leadData.id } })
-      : await prisma.lead.findFirst({ where: { artistId: artist.id } });
-
-    const lead = existingLead
+    const lead = leadData?.id
       ? await prisma.lead.update({
-        where: { id: existingLead.id },
-        data: {
-          artistId: artist.id,
-          status: leadData?.status ?? undefined,
-          score: leadData?.score ?? undefined,
-          scoreRationale: leadData?.scoreRationale ?? undefined,
-          lastContactedAt: toDate(leadData?.lastContactedAt),
-          nextActionAt: toDate(leadData?.nextActionAt),
-        },
-      })
+          where: { id: leadData.id },
+          data: {
+            artistId: artist.id,
+            status: leadData.status,
+            score: leadData.score ?? undefined,
+            scoreRationale: leadData.scoreRationale,
+            lastContactedAt: toDate(leadData.lastContactedAt),
+            nextActionAt: toDate(leadData.nextActionAt),
+          },
+        })
       : await prisma.lead.create({
-        data: {
-          artistId: artist.id,
-          status: leadData?.status ?? undefined,
-          score: leadData?.score ?? undefined,
-          scoreRationale: leadData?.scoreRationale ?? undefined,
-          lastContactedAt: toDate(leadData?.lastContactedAt),
-          nextActionAt: toDate(leadData?.nextActionAt),
-        },
-      });
+          data: {
+            artistId: artist.id,
+            status: leadData?.status,
+            score: leadData?.score ?? undefined,
+            scoreRationale: leadData?.scoreRationale,
+            lastContactedAt: toDate(leadData?.lastContactedAt),
+            nextActionAt: toDate(leadData?.nextActionAt),
+          },
+        });
 
     const resolvedReleases = mergeReleases(payload.releases, spotifyReleases);
 
@@ -812,37 +625,43 @@ export async function POST(request: Request) {
       );
     }
 
-    if (resolvedInstagramPosts?.length) {
+    const normalizedInstagramPosts = resolvedInstagramPosts?.length
+      ? resolvedInstagramPosts
+          .map(normalizeInstagramPost)
+          .filter((post) => Boolean(post.imageUrl))
+      : [];
+
+    if (normalizedInstagramPosts.length) {
       await Promise.all(
-        resolvedInstagramPosts.map((post) =>
+        normalizedInstagramPosts.map((post) =>
           post.instagramPostId
             ? prisma.instagramPost.upsert({
-              where: { instagramPostId: post.instagramPostId },
-              update: {
-                artistId: artist.id,
-                caption: post.caption,
-                imageUrl: post.imageUrl ?? undefined,
-                postedAt: toDate(post.postedAt),
-                url: post.url,
-              },
-              create: {
-                artistId: artist.id,
-                instagramPostId: post.instagramPostId,
-                caption: post.caption,
-                imageUrl: post.imageUrl ?? undefined,
-                postedAt: toDate(post.postedAt),
-                url: post.url,
-              },
-            })
+                where: { instagramPostId: post.instagramPostId },
+                update: {
+                  artistId: artist.id,
+                  caption: post.caption,
+                  imageUrl: post.imageUrl ?? undefined,
+                  postedAt: toDate(post.postedAt),
+                  url: post.url,
+                },
+                create: {
+                  artistId: artist.id,
+                  instagramPostId: post.instagramPostId,
+                  caption: post.caption,
+                  imageUrl: post.imageUrl ?? undefined,
+                  postedAt: toDate(post.postedAt),
+                  url: post.url,
+                },
+              })
             : prisma.instagramPost.create({
-              data: {
-                artistId: artist.id,
-                caption: post.caption,
-                imageUrl: post.imageUrl ?? undefined,
-                postedAt: toDate(post.postedAt),
-                url: post.url,
-              },
-            })
+                data: {
+                  artistId: artist.id,
+                  caption: post.caption,
+                  imageUrl: post.imageUrl ?? undefined,
+                  postedAt: toDate(post.postedAt),
+                  url: post.url,
+                },
+              })
         )
       );
     }
@@ -870,11 +689,22 @@ export async function POST(request: Request) {
       });
     }
 
-    await scoreLead(lead.id);
-
     return NextResponse.json({
       artistId: artist.id,
       leadId: lead.id,
+      instagramPostsCount: normalizedInstagramPosts.length,
+      instagramProfile: scrapedInstagramProfile
+        ? {
+            bio: scrapedInstagramProfile.bio ?? null,
+            followersCount: scrapedInstagramProfile.followersCount ?? null,
+            profileImageUrl: scrapedInstagramProfile.profileImageUrl ?? null,
+          }
+        : null,
+      instagramPostsSample: normalizedInstagramPosts.slice(0, 1).map((post) => ({
+        instagramPostId: post.instagramPostId ?? null,
+        imageUrl: post.imageUrl ?? null,
+        url: post.url ?? null,
+      })),
     });
   } catch (error) {
     console.error("/api/ingest error", error);

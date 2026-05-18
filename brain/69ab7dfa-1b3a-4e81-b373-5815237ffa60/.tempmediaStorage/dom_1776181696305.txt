@@ -1,0 +1,92 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (38,47)<a class='group relative' href='/' />
+	[1] (38,47)<div >S />
+[2] (38,118)<a href='/' />
+	[3] (38,118)<div  />
+		[4] (8,118)<div  />
+[5] (38,174)<a href='/leads/discover' />
+	[6] (38,174)<div  />
+[7] (38,230)<a href='/leads/drafts' />
+	[8] (38,230)<div  />
+[9] (38,286)<a href='/projects' />
+	[10] (38,286)<div  />
+[11] (38,342)<div  />
+[12] (38,922)<div  />
+	[13] (38,922)<div >KP />
+Lead Intelligence Active
+Dashboard:
+Leads
+[14] (182,417)<a class='block' href='/leads/discover' />
+	[15] (182,417)<div  />
+		[16] (182,417)<div  />
+			[17] (87,371)<div  />
+			[18] (182,463)<div  />
+				[19] (182,453)<h3 >Artist Search />
+				[20] (182,476)<p >Discover new talent and live events. />
+[21] (494,417)<a class='block' href='/leads/drafts' />
+	[22] (494,417)<div  />
+		[23] (494,417)<div  />
+			[24] (399,371)<div  />
+			[25] (494,463)<div  />
+				[26] (494,453)<h3 >Message Drafts />
+				[27] (494,476)<p >Review and send pending outreach. />
+[28] (806,417)<a class='block' href='/projects' />
+	[29] (806,417)<div  />
+		[30] (806,417)<div  />
+			[31] (711,371)<div  />
+			[32] (806,463)<div  />
+				[33] (806,453)<h3 >Active Projects />
+				[34] (806,476)<p >Manage deliverables and workflows. />
+Recent Artists
+[35] (555,588)<button class='group flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-accent/70 hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Refresh Inbox'>↻
+Refresh />
+	↻
+T
+[36] (297,671)<a class='text-lg font-bold text-white truncate hover:text-accent transition-colors block leading-tight mb-1' href='/leads/cmnyel5vd000d5cmb3tn6xp5m'>Tycho />
+San Francisco, CA
+//
+chillwave
+Qualified
+Score:
+56
+%
+P
+[37] (294,790)<a class='text-lg font-bold text-white truncate hover:text-accent transition-colors block leading-tight mb-1' href='/leads/cmnyel5ed00075cmbl6a6f5j6'>Phoebe Bridgers />
+Los Angeles, CA
+//
+Indie folk
+Follow Up
+Score:
+52
+%
+B
+[38] (299,909)<a class='text-lg font-bold text-white truncate hover:text-accent transition-colors block leading-tight mb-1' href='/leads/cmnyel4z500015cmbhnw6prh0'>Billie Eilish />
+Los Angeles, CA
+//
+Alt-pop
+New Lead
+Score:
+52
+%
+View All Dashboard Records →
+Action Required
+Action Required
+[39] (709,697)<a href='/leads/cmnyel5ed00075cmbl6a6f5j6'>Phoebe Bridgers />
+Los Angeles, CA
+Overdue
+2 months ago
+Follow-up Due
+[40] (871,749)<a class='text-xs font-bold uppercase tracking-[0.2em] text-white/40 hover:text-accent-warm transition-all flex items-center gap-1' href='/leads/cmnyel5ed00075cmbl6a6f5j6'>View Profile />
+	[41] (917,749)<span >→ />
+Quick Stats
+Active Leads
+3
+New Artists
+1
+Active Projects
+0
+
+</current_dom>

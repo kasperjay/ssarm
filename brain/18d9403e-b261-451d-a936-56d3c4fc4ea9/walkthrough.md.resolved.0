@@ -1,0 +1,34 @@
+# Walkthrough - Stage 1 Location Hunt Fix
+
+I have fixed the issue where "Mohawk - Outside" was being incorrectly identified as a valid artist location. This was caused by Stage 1 of the location hunt pipeline checking the `venueName` field and the secondary validation being too permissive with hyphenated venue-style strings.
+
+## Changes Made
+
+### Core Logic
+
+#### [location.ts](file:///c:/Users/kp/Documents/spectral-soundworks-app/src/lib/location.ts)
+- **Removed `venueName`** from the Stage 1 `fromRawFields` check. Venues are almost never the artist's home location and were leading to "bunk" results.
+- **Improved `validLocation` validation**:
+    - Added **"mohawk"** to the location blacklist.
+    - Added a **hyphenated string check**: Strings containing " - " are now rejected if they don't also contain a comma (which usually indicates a City, State or Venue, City, State format). This specifically catches "Venue - Stage" patterns like "Mohawk - Outside".
+
+## Verification Results
+
+### Automated Tests
+I created a verification script [test-location-fix.js](file:///c:/Users/kp/Documents/spectral-soundworks-app/scratch/test-location-fix.js) which tests the logic against various samples:
+
+| Input | Expected | Result |
+|-------|----------|--------|
+| "Austin, TX" | "Austin, TX" | ✅ Pass |
+| "Brooklyn" | "Brooklyn" | ✅ Pass |
+| "Mohawk - Outside" | `null` | ✅ Pass |
+| "Mohawk" | `null` | ✅ Pass |
+| "Stubb's - Indoor" | `null` | ✅ Pass |
+| "Worldwide" | `null` | ✅ Pass |
+| "Austin, TX - Mohawk" | "Austin, TX - Mohawk" | ✅ Pass |
+
+> [!NOTE]
+> Strings like "Austin, TX - Mohawk" are still allowed because they contain a comma, suggesting they contain at least some valid geographic data (Austin, TX), even if a venue name is attached. This preserves data quality for detailed location strings.
+
+### Manual Verification
+- Verified that `location.ts` is correctly updated and Stage 1 will no longer yield "Mohawk - Outside" from raw scraper fields.

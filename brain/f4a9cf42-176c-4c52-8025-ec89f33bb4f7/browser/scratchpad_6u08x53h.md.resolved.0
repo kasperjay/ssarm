@@ -1,0 +1,14 @@
+# Task: Verify Novu Inbox Integration
+
+## Checklist
+- [ ] Take screenshot of current page (/leads)
+- [ ] Navigate to home page (/)
+- [ ] Wait 5 seconds for load
+- [ ] Take screenshot of home page
+- [ ] Locate bell icon in sidebar
+- [ ] Click bell icon
+- [ ] Take screenshot of notification popover
+- [ ] Report findings (visibility, popover, errors)
+
+## Observations
+- 

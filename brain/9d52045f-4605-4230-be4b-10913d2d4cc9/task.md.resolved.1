@@ -1,0 +1,19 @@
+- `[x]` Phase 1: Add tests around score components
+  - `[x]` Create `src/lib/scoring-core.test.js` using `node:test`
+  - `[x]` Write test cases for scoring logic, capping, and qualifications
+  - `[x]` Update `package.json` to add `"test"` script
+- `[ ]` Phase 1: Complete Message Delivery
+  - `[ ]` Install `nodemailer` and update `package.json`
+  - `[ ]` Add SMTP environment variables to `.env` configuration
+  - `[ ]` Create `src/lib/email-sender.ts`
+  - `[ ]` Modify `scripts/send-messages.js` to send actual emails via SMTP
+- `[ ]` Phase 2: Add AgentRun Logging
+  - `[ ]` Add `AgentRun` model to `prisma/schema.prisma`
+  - `[ ]` Run `npx prisma db push`
+  - `[ ]` Create `src/lib/agent-runner.js` wrapper
+  - `[ ]` Wrap relevant agents with `withAgentRun`
+- `[ ]` Phase 2: Operations Queue UI
+  - `[ ]` Create `src/app/operations/page.tsx`
+  - `[ ]` Surface Due Follow-ups
+  - `[ ]` Surface High-score uncontacted leads
+  - `[ ]` Surface Stale enrichment failures

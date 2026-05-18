@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Improve Mohawk crawler result quality by implementing a bunk event filter.",
+  "updatedAt": "2026-04-14T16:12:40.140191400Z",
+  "requestFeedback": true
+}

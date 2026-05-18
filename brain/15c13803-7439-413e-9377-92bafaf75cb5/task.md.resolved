@@ -1,0 +1,5 @@
+- [x] Update `isBunkEvent` in `src/lib/utils.ts` with new keywords
+- [x] Update `cleanArtistName` in `src/lib/utils.ts` to handle more noise
+- [x] Create verification script `scratch/verify-empire-fix.js`
+- [x] Run verification and confirm results
+- [x] Create walkthrough

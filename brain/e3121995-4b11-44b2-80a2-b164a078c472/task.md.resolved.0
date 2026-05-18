@@ -1,0 +1,9 @@
+# Lead Details Page Revamp Tasks
+
+- `[ ]` Create `EditableArtistHandle.tsx` component
+- `[/]` Revamp `src/app/leads/[id]/page.tsx`
+    - `[ ]` Update banner with score, status, and profile refresh
+    - `[ ]` Implement side-by-side IG and Spotify cards
+    - `[ ]` Update drafts section to 2 columns (IG + Email)
+    - `[ ]` Move activity timeline to the bottom
+- `[ ]` Verify layout and functionality

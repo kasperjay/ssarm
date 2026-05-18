@@ -1,0 +1,709 @@
+# Responsive Dashboard Upgrade
+
+I've successfully transformed the Spectral Soundworks dashboard to be fully responsive for mobile and tablet contexts, completing the following upgrades:
+
+## 📱 Mobile-First Navigation
+The most significant change was overhauling the persistent navigation logic:
+- The desktop Sidebar now smoothly transforms into a **Bottom Navigation Bar** on mobile devices. This provides a spacious touch-target zone matching native app experiences while naturally reserving vertical screen real-estate for lead data.
+- The top-anchored **Navbar** scales down natively—shrinking paddings, adjusting icon weights, and collapsing the expanded search bar layout to fit snug viewport boundaries without overlapping.
+
+## 🗂️ Fluid Content Grids
+Previously, components relied extensively on fixed pixel heights and strictly multi-column grids.
+- **Hero Headers** dynamically resize typography and container constraints, remaining compact on mobile while blooming with full ambient animations on 4K desktop setups.
+- **Lead Feed List Items** handle narrow boundaries by allowing internal cards to stack elements vertically—collapsing data gracefully down into an edge-to-edge view underneath the mobile score pillars.
+
+## 📐 Safe-Area Padding Adjustments
+
+To ensure that standard page content does not collide with the new bottom bar, the main layout wrapper adjusts margins automatically:
+- `<main pb-24>` activates on mobile, pushing content off the bottom Navigation base.
+- Once hitting a minimum width `(md: breakpoint)`, it returns to standard `pb-0` and slides over `md:ml-24` to correctly position beside the returned Desktop Sidebar.
+
+### Review Code Changes
+See exactly what shifted natively via:
+```diff:Sidebar.tsx
+import React from 'react';
+import Link from 'next/link';
+
+const NavIcon = ({ children, active = false }: { children: React.ReactNode, active?: boolean }) => (
+  <div className={`
+    h-12 w-12 rounded-[18px] flex items-center justify-center transition-all duration-300 cursor-pointer group relative
+    ${active 
+      ? 'bg-accent text-black shadow-[0_0_20px_rgba(0,242,255,0.4)]' 
+      : 'bg-white/5 text-white/40 hover:bg-accent/20 hover:text-accent hover:rounded-[14px]'}
+  `}>
+    {active && <div className="absolute -left-4 w-1 h-8 bg-accent rounded-r-full" />}
+    {children}
+  </div>
+);
+
+export function Sidebar() {
+  return (
+    <aside className="fixed left-0 top-0 bottom-0 w-24 bg-[#0d0d12] z-60 flex flex-col items-center py-8 gap-10">
+      {/* Wave Transition Element */}
+      <div className="absolute top-0 right-[-40px] bottom-0 w-[40px] pointer-events-none overflow-hidden">
+        <div className="h-full w-[80px] bg-[#0d0d12] rounded-l-[100%] shadow-[-20px_0_40px_rgba(0,0,0,0.5)]" />
+      </div>
+
+      {/* Logo */}
+      <Link href="/" className="group relative">
+        <div className="h-14 w-14 rounded-[22px] bg-linear-to-br from-accent to-accent-secondary flex items-center justify-center font-bold text-black shadow-2xl transition-transform group-hover:scale-110">
+           S
+        </div>
+      </Link>
+
+      {/* Main Nav */}
+      <nav className="flex flex-col gap-6 items-center flex-1">
+        <Link href="/">
+          <NavIcon active>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </NavIcon>
+        </Link>
+        <Link href="/leads/discover">
+          <NavIcon>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2 2"/><path d="m7.8 16.2 2-2"/><path d="m14.5 14.5 2 2"/><path d="m9.5 9.5-2-2"/><path d="m18.3 12-2.3 0"/><path d="m5.7 12 2.3 0"/><path d="m12 5.7 0 2.3"/><path d="m12 18.3 0 2.3"/></svg>
+          </NavIcon>
+        </Link>
+        <Link href="/leads/drafts">
+          <NavIcon>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </NavIcon>
+        </Link>
+        <Link href="/projects">
+          <NavIcon>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          </NavIcon>
+        </Link>
+        <div className="h-12 w-12 rounded-[18px] flex items-center justify-center bg-white/5 text-white/20 hover:bg-white/10 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </nav>
+
+      {/* Footer Nav */}
+      <div className="flex flex-col gap-6 items-center">
+        <div className="h-12 w-12 rounded-full border-2 border-accent/30 p-0.5 group cursor-pointer transition-transform hover:scale-110">
+          <div className="h-full w-full rounded-full bg-linear-to-tr from-accent-secondary/40 to-accent/40 flex items-center justify-center text-xs font-bold">
+            KP
+          </div>
+        </div>
+        <div className="text-white/20 hover:text-white transition-colors cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+      </div>
+    </aside>
+  );
+}
+===
+import React from 'react';
+import Link from 'next/link';
+
+const NavIcon = ({ children, active = false }: { children: React.ReactNode, active?: boolean }) => (
+  <div className={`
+    h-12 w-12 rounded-[18px] flex items-center justify-center transition-all duration-300 cursor-pointer group relative
+    ${active 
+      ? 'bg-accent text-black shadow-[0_0_20px_rgba(0,242,255,0.4)]' 
+      : 'bg-white/5 text-white/40 hover:bg-accent/20 hover:text-accent hover:rounded-[14px]'}
+  `}>
+    {active && <div className="absolute -bottom-2 md:bottom-auto md:-left-4 w-1 h-1 md:w-1 md:h-8 bg-accent rounded-full md:rounded-r-full" />}
+    {children}
+  </div>
+);
+
+export function Sidebar() {
+  return (
+    <aside className="fixed bottom-0 left-0 right-0 h-[88px] w-full flex-row md:top-0 md:bottom-0 md:w-24 md:h-auto md:flex-col bg-[#0d0d12]/95 backdrop-blur-2xl md:backdrop-blur-none md:bg-[#0d0d12] z-60 flex items-start md:items-center pt-3 md:py-8 justify-around md:justify-start gap-0 md:gap-10 border-t border-white/5 md:border-t-0 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-none pb-safe px-4 md:px-0">
+      {/* Wave Transition Element */}
+      <div className="hidden md:block absolute top-0 right-[-40px] bottom-0 w-[40px] pointer-events-none overflow-hidden">
+        <div className="h-full w-[80px] bg-[#0d0d12] rounded-l-[100%] shadow-[-20px_0_40px_rgba(0,0,0,0.5)]" />
+      </div>
+
+      {/* Logo */}
+      <Link href="/" className="hidden md:block group relative">
+        <div className="h-14 w-14 rounded-[22px] bg-linear-to-br from-accent to-accent-secondary flex items-center justify-center font-bold text-black shadow-2xl transition-transform group-hover:scale-110">
+           S
+        </div>
+      </Link>
+
+      {/* Main Nav */}
+      <nav className="flex flex-row md:flex-col gap-4 md:gap-6 items-center w-full md:flex-1 justify-around md:justify-center">
+        <Link href="/">
+          <NavIcon active>
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </NavIcon>
+        </Link>
+        <Link href="/leads/discover">
+          <NavIcon>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2 2"/><path d="m7.8 16.2 2-2"/><path d="m14.5 14.5 2 2"/><path d="m9.5 9.5-2-2"/><path d="m18.3 12-2.3 0"/><path d="m5.7 12 2.3 0"/><path d="m12 5.7 0 2.3"/><path d="m12 18.3 0 2.3"/></svg>
+          </NavIcon>
+        </Link>
+        <Link href="/leads/drafts">
+          <NavIcon>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </NavIcon>
+        </Link>
+        <Link href="/projects">
+          <NavIcon>
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          </NavIcon>
+        </Link>
+        <div className="hidden md:flex h-12 w-12 rounded-[18px] items-center justify-center bg-white/5 text-white/20 hover:bg-white/10 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </nav>
+
+      {/* Footer Nav */}
+      <div className="hidden md:flex flex-col gap-6 items-center">
+        <div className="h-12 w-12 rounded-full border-2 border-accent/30 p-0.5 group cursor-pointer transition-transform hover:scale-110">
+          <div className="h-full w-full rounded-full bg-linear-to-tr from-accent-secondary/40 to-accent/40 flex items-center justify-center text-xs font-bold">
+            KP
+          </div>
+        </div>
+        <div className="text-white/20 hover:text-white transition-colors cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+      </div>
+    </aside>
+  );
+}
+```
+```diff:page.tsx
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { formatRelativeDate, formatLocation, clampScore } from "@/lib/utils";
+import { ActionRequiredQueue } from "@/components/ActionRequiredQueue";
+import { GlassCard } from "@/components/GlassCard";
+import { NeonButton } from "@/components/NeonButton";
+import { StatusPill } from "@/components/StatusPill";
+import { RefreshInboxButton } from "@/components/RefreshInboxButton";
+import { ClearDraftsButton } from "@/components/ClearDraftsButton";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await props.searchParams;
+  const skip = parseInt((params?.skip as string) || "0", 10);
+  const now = new Date();
+
+  const [leadRows, newCount, draftCount, followUpCount, overdueLeads, totalInboxCount, projectCount] = await Promise.all([
+    prisma.lead.findMany({
+      include: {
+        artist: {
+          include: {
+            releases: {
+              orderBy: [{ releaseDate: "desc" }, { createdAt: "desc" }],
+              take: 1,
+            },
+            instagramPosts: {
+              where: {
+                imageUrl: { not: "" },
+                OR: [
+                  { caption: { not: "" } },
+                  { url: { not: "" } },
+                ],
+              },
+              orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
+              take: 1,
+            },
+          },
+        },
+        messages: {
+          where: { selected: false },
+          orderBy: { createdAt: "desc" },
+          take: 2,
+        },
+      },
+      where: {
+        status: { in: ["NEW", "QUALIFIED", "FOLLOW_UP"] },
+      },
+      orderBy: [{ score: "desc" }, { updatedAt: "desc" }],
+      take: 3,
+      skip: skip,
+    }),
+    prisma.lead.count({ where: { status: "NEW" } }),
+    prisma.messageDraft.count({ where: { selected: false } }),
+    prisma.lead.count({
+      where: {
+        status: "FOLLOW_UP",
+        nextActionAt: { lte: now },
+      },
+    }),
+    prisma.lead.findMany({
+      where: {
+        status: "FOLLOW_UP",
+        nextActionAt: { lte: now },
+      },
+      include: {
+        artist: true,
+      },
+      orderBy: { nextActionAt: "asc" },
+      take: 5,
+    }),
+    prisma.lead.count({
+      where: {
+        status: { in: ["NEW", "QUALIFIED", "FOLLOW_UP"] },
+      },
+    }),
+    prisma.project.count({ where: { status: "ACTIVE" } }),
+  ]);
+
+  const leads = leadRows.map((lead) => {
+    const latestRelease = lead.artist.releases[0];
+    const score = clampScore(lead.score);
+    return {
+      id: lead.id,
+      name: lead.artist.name,
+      location: formatLocation(
+        lead.artist.location,
+        lead.artist.city,
+        lead.artist.state,
+        lead.artist.country
+      ),
+      genre: lead.artist.genre ?? "Unknown",
+      status: lead.status,
+      score,
+      summary: lead.scoreRationale ?? "Analysis pending...",
+      lastRelease: latestRelease
+        ? `${formatRelativeDate(latestRelease.releaseDate ?? latestRelease.createdAt)} - "${latestRelease.title}"`
+        : "No recent activity",
+    };
+  });
+
+  return (
+    <div className="relative min-h-screen bg-transparent text-white pb-20 selection:bg-accent/30 selection:text-white">
+      
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-12 pt-12">
+        {/* V2 Hero Banner */}
+        <div className="relative h-[320px] w-full rounded-[48px] overflow-hidden group shadow-2xl bg-[#0d0d12] border border-white/5">
+          {/* Premium CSS Hero Background */}
+          <div className="absolute inset-0 bg-linear-to-br from-accent/20 via-transparent to-accent-secondary/20 transition-transform duration-1000 group-hover:scale-110" />
+          <div className="absolute inset-0 opacity-40" style={{ 
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)`,
+            backgroundSize: '24px 24px' 
+          }} />
+          
+          {/* Animated Spectral Elements */}
+          <div className="absolute right-12 inset-y-0 flex items-center gap-1.5 opacity-20 group-hover:opacity-40 transition-opacity duration-700">
+            {[...Array(12)].map((_, i) => (
+              <div 
+                key={i} 
+                className="w-1.5 bg-accent rounded-full animate-pulse" 
+                style={{ 
+                  height: `${30 + (Math.sin(i * 0.5) * 40 + 40)}%`,
+                  animationDelay: `${i * 0.15}s`,
+                  animationDuration: `${1.5 + Math.random()}s`
+                }} 
+              />
+            ))}
+          </div>
+
+          <div className="absolute inset-0 bg-linear-to-r from-[#0d0d12] via-[#0d0d12]/60 to-transparent" />
+          <div className="absolute inset-x-12 bottom-12 max-w-2xl space-y-4">
+             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold uppercase tracking-widest backdrop-blur-md">
+               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+               Lead Intelligence Active
+             </div>
+             <h1 className="text-5xl font-bold tracking-tight text-white leading-tight">
+               Dashboard: <br /> <span className="premium-gradient-text">Leads</span>
+             </h1>
+          </div>
+        </div>
+
+        {/* Featured Card Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <Link href="/leads/discover" className="block">
+            <GlassCard className="relative h-[240px] p-0! overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+              <div className="absolute inset-0 bg-linear-to-b from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="p-8 h-full flex flex-col justify-between relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-accent shadow-xl border border-white/5 group-hover:bg-accent/20 group-hover:text-white transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2 2"/><path d="m7.8 16.2 2-2"/><path d="m14.5 14.5 2 2"/><path d="m9.5 9.5-2-2"/></svg>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-white">Artist Search</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium">Discover new talent and live events.</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-accent/10 blur-3xl rounded-full" />
+            </GlassCard>
+          </Link>
+
+          <Link href="/leads/drafts" className="block">
+            <GlassCard className="relative h-[240px] p-0! overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+               <div className="absolute inset-0 bg-linear-to-b from-accent-secondary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+               <div className="p-8 h-full flex flex-col justify-between relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-accent-secondary shadow-xl border border-white/5 group-hover:bg-accent-secondary/20 group-hover:text-white transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-white">Message Drafts</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium">Review and send pending outreach.</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-accent-secondary/10 blur-3xl rounded-full" />
+            </GlassCard>
+          </Link>
+
+          <Link href="/projects" className="block">
+            <GlassCard className="relative h-[240px] p-0! overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+              <div className="absolute inset-0 bg-linear-to-b from-accent-warm/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="p-8 h-full flex flex-col justify-between relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-accent-warm shadow-xl border border-white/5 group-hover:bg-accent-warm/20 group-hover:text-white transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-white">Active Projects</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium">Manage deliverables and workflows.</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-accent-warm/10 blur-3xl rounded-full" />
+            </GlassCard>
+          </Link>
+        </div>
+
+        {/* Main Dashboard Overhaul */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12 mt-8">
+          
+          {/* Recent Leads Feed */}
+          <section className="space-y-8">
+            <div className="flex items-center justify-between">
+               <h2 className="text-2xl font-bold tracking-tight text-white mb-2">Recent Artists</h2>
+               <div className="flex items-center gap-4">
+                  <RefreshInboxButton totalCount={totalInboxCount} />
+               </div>
+            </div>
+
+            <div className="space-y-6">
+               {(leads.length === 0) ? (
+                 <div className="p-12 border border-dashed border-white/10 rounded-[32px] text-center bg-white/2">
+                   <p className="text-white/40 font-bold uppercase tracking-widest">No Active Leads</p>
+                 </div>
+               ) : (
+                 leads.map((lead) => (
+                   <div key={lead.id} className="group relative p-6 rounded-[32px] bg-white/2 border border-white/5 hover:bg-white/5 transition-all flex items-center gap-6">
+                      <div className="h-20 w-20 rounded-2xl bg-linear-to-br from-white/10 to-white/5 flex items-center justify-center text-xl font-bold text-white/20 group-hover:text-accent transition-colors">
+                        {lead.name[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/leads/${lead.id}`} className="text-lg font-bold text-white truncate hover:text-accent transition-colors block leading-tight mb-1">
+                          {lead.name}
+                        </Link>
+                        <p className="text-xs uppercase tracking-widest text-white/30 font-bold">{lead.location} // {lead.genre}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <StatusPill status={lead.status} />
+                        <span className="text-xs font-sans font-bold text-accent/60 uppercase tracking-tighter">Score: {lead.score}%</span>
+                      </div>
+                   </div>
+                 ))
+               )}
+               <Link href="/leads" className="block text-center p-4 rounded-2xl bg-white/5 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+                 View All Dashboard Records →
+               </Link>
+            </div>
+          </section>
+
+          {/* Right Sidebar: Active Queue & Stats */}
+          <aside className="space-y-12">
+            <div className="space-y-6">
+              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">
+                Action Required
+              </h3>
+              <ActionRequiredQueue initialLeads={overdueLeads} />
+            </div>
+
+            <GlassCard className="bg-white/2 border-white/5">
+              <h4 className="text-xs font-bold uppercase tracking-[0.3em] text-white/30 mb-8 border-b border-white/5 pb-4">Quick Stats</h4>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Active Leads</span>
+                   <span className="text-xl font-bold text-white">{totalInboxCount}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">New Artists</span>
+                   <span className="text-xl font-bold text-accent">{newCount}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Active Projects</span>
+                   <span className="text-xl font-bold text-accent-secondary">{projectCount}</span>
+                </div>
+              </div>
+            </GlassCard>
+          </aside>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+===
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { formatRelativeDate, formatLocation, clampScore } from "@/lib/utils";
+import { ActionRequiredQueue } from "@/components/ActionRequiredQueue";
+import { GlassCard } from "@/components/GlassCard";
+import { NeonButton } from "@/components/NeonButton";
+import { StatusPill } from "@/components/StatusPill";
+import { RefreshInboxButton } from "@/components/RefreshInboxButton";
+import { ClearDraftsButton } from "@/components/ClearDraftsButton";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await props.searchParams;
+  const skip = parseInt((params?.skip as string) || "0", 10);
+  const now = new Date();
+
+  const [leadRows, newCount, draftCount, followUpCount, overdueLeads, totalInboxCount, projectCount] = await Promise.all([
+    prisma.lead.findMany({
+      include: {
+        artist: {
+          include: {
+            releases: {
+              orderBy: [{ releaseDate: "desc" }, { createdAt: "desc" }],
+              take: 1,
+            },
+            instagramPosts: {
+              where: {
+                imageUrl: { not: "" },
+                OR: [
+                  { caption: { not: "" } },
+                  { url: { not: "" } },
+                ],
+              },
+              orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
+              take: 1,
+            },
+          },
+        },
+        messages: {
+          where: { selected: false },
+          orderBy: { createdAt: "desc" },
+          take: 2,
+        },
+      },
+      where: {
+        status: { in: ["NEW", "QUALIFIED", "FOLLOW_UP"] },
+      },
+      orderBy: [{ score: "desc" }, { updatedAt: "desc" }],
+      take: 3,
+      skip: skip,
+    }),
+    prisma.lead.count({ where: { status: "NEW" } }),
+    prisma.messageDraft.count({ where: { selected: false } }),
+    prisma.lead.count({
+      where: {
+        status: "FOLLOW_UP",
+        nextActionAt: { lte: now },
+      },
+    }),
+    prisma.lead.findMany({
+      where: {
+        status: "FOLLOW_UP",
+        nextActionAt: { lte: now },
+      },
+      include: {
+        artist: true,
+      },
+      orderBy: { nextActionAt: "asc" },
+      take: 5,
+    }),
+    prisma.lead.count({
+      where: {
+        status: { in: ["NEW", "QUALIFIED", "FOLLOW_UP"] },
+      },
+    }),
+    prisma.project.count({ where: { status: "ACTIVE" } }),
+  ]);
+
+  const leads = leadRows.map((lead) => {
+    const latestRelease = lead.artist.releases[0];
+    const score = clampScore(lead.score);
+    return {
+      id: lead.id,
+      name: lead.artist.name,
+      location: formatLocation(
+        lead.artist.location,
+        lead.artist.city,
+        lead.artist.state,
+        lead.artist.country
+      ),
+      genre: lead.artist.genre ?? "Unknown",
+      status: lead.status,
+      score,
+      summary: lead.scoreRationale ?? "Analysis pending...",
+      lastRelease: latestRelease
+        ? `${formatRelativeDate(latestRelease.releaseDate ?? latestRelease.createdAt)} - "${latestRelease.title}"`
+        : "No recent activity",
+    };
+  });
+
+  return (
+    <div className="relative min-h-screen bg-transparent text-white pb-20 selection:bg-accent/30 selection:text-white">
+      
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-6 md:gap-12 px-4 md:px-12 pt-6 md:pt-12">
+        {/* V2 Hero Banner */}
+        <div className="relative h-[240px] md:h-[320px] w-full rounded-3xl md:rounded-[48px] overflow-hidden group shadow-2xl bg-[#0d0d12] border border-white/5">
+          {/* Premium CSS Hero Background */}
+          <div className="absolute inset-0 bg-linear-to-br from-accent/20 via-transparent to-accent-secondary/20 transition-transform duration-1000 group-hover:scale-110" />
+          <div className="absolute inset-0 opacity-40" style={{ 
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)`,
+            backgroundSize: '24px 24px' 
+          }} />
+          
+          {/* Animated Spectral Elements */}
+          <div className="absolute right-12 inset-y-0 flex items-center gap-1.5 opacity-20 group-hover:opacity-40 transition-opacity duration-700">
+            {[...Array(12)].map((_, i) => (
+              <div 
+                key={i} 
+                className="w-1.5 bg-accent rounded-full animate-pulse" 
+                style={{ 
+                  height: `${30 + (Math.sin(i * 0.5) * 40 + 40)}%`,
+                  animationDelay: `${i * 0.15}s`,
+                  animationDuration: `${1.5 + Math.random()}s`
+                }} 
+              />
+            ))}
+          </div>
+
+          <div className="absolute inset-0 bg-linear-to-r from-[#0d0d12] via-[#0d0d12]/60 to-transparent" />
+          <div className="absolute inset-x-6 bottom-6 md:inset-x-12 md:bottom-12 max-w-2xl space-y-2 md:space-y-4">
+             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold uppercase tracking-widest backdrop-blur-md">
+               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+               <span className="hidden sm:inline">Lead Intelligence Active</span>
+               <span className="sm:hidden">Active</span>
+             </div>
+             <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+               Dashboard: <br /> <span className="premium-gradient-text">Leads</span>
+             </h1>
+          </div>
+        </div>
+
+        {/* Featured Card Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+          <Link href="/leads/discover" className="block">
+            <GlassCard className="relative h-[240px] p-0! overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+              <div className="absolute inset-0 bg-linear-to-b from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="p-8 h-full flex flex-col justify-between relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-accent shadow-xl border border-white/5 group-hover:bg-accent/20 group-hover:text-white transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2 2"/><path d="m7.8 16.2 2-2"/><path d="m14.5 14.5 2 2"/><path d="m9.5 9.5-2-2"/></svg>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-white">Artist Search</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium">Discover new talent and live events.</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-accent/10 blur-3xl rounded-full" />
+            </GlassCard>
+          </Link>
+
+          <Link href="/leads/drafts" className="block">
+            <GlassCard className="relative h-[240px] p-0! overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+               <div className="absolute inset-0 bg-linear-to-b from-accent-secondary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+               <div className="p-8 h-full flex flex-col justify-between relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-accent-secondary shadow-xl border border-white/5 group-hover:bg-accent-secondary/20 group-hover:text-white transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-white">Message Drafts</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium">Review and send pending outreach.</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-accent-secondary/10 blur-3xl rounded-full" />
+            </GlassCard>
+          </Link>
+
+          <Link href="/projects" className="block">
+            <GlassCard className="relative h-[240px] p-0! overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+              <div className="absolute inset-0 bg-linear-to-b from-accent-warm/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="p-8 h-full flex flex-col justify-between relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-accent-warm shadow-xl border border-white/5 group-hover:bg-accent-warm/20 group-hover:text-white transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-white">Active Projects</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium">Manage deliverables and workflows.</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-accent-warm/10 blur-3xl rounded-full" />
+            </GlassCard>
+          </Link>
+        </div>
+
+        {/* Main Dashboard Overhaul */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 md:gap-12 mt-4 md:mt-8">
+          
+          {/* Recent Leads Feed */}
+          <section className="space-y-8">
+            <div className="flex items-center justify-between">
+               <h2 className="text-2xl font-bold tracking-tight text-white mb-2">Recent Artists</h2>
+               <div className="flex items-center gap-4">
+                  <RefreshInboxButton totalCount={totalInboxCount} />
+               </div>
+            </div>
+
+            <div className="space-y-6">
+               {(leads.length === 0) ? (
+                 <div className="p-12 border border-dashed border-white/10 rounded-[32px] text-center bg-white/2">
+                   <p className="text-white/40 font-bold uppercase tracking-widest">No Active Leads</p>
+                 </div>
+               ) : (
+                 leads.map((lead) => (
+                   <div key={lead.id} className="group relative p-4 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/2 border border-white/5 hover:bg-white/5 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
+                      <div className="h-12 w-12 md:h-20 md:w-20 rounded-xl md:rounded-2xl bg-linear-to-br from-white/10 to-white/5 flex flex-shrink-0 items-center justify-center text-lg md:text-xl font-bold text-white/20 group-hover:text-accent transition-colors">
+                        {lead.name[0]}
+                      </div>
+                      <div className="flex-1 min-w-0 w-full">
+                        <Link href={`/leads/${lead.id}`} className="text-base md:text-lg font-bold text-white truncate hover:text-accent transition-colors block leading-tight mb-1">
+                          {lead.name}
+                        </Link>
+                        <p className="text-[10px] md:text-xs uppercase tracking-widest text-white/30 font-bold truncate">{lead.location} // {lead.genre}</p>
+                      </div>
+                      <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 mt-2 sm:mt-0">
+                        <StatusPill status={lead.status} />
+                        <span className="text-xs font-sans font-bold text-accent/60 uppercase tracking-tighter">Score: {lead.score}%</span>
+                      </div>
+                   </div>
+                 ))
+               )}
+               <Link href="/leads" className="block text-center p-4 rounded-2xl bg-white/5 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+                 View All Dashboard Records →
+               </Link>
+            </div>
+          </section>
+
+          {/* Right Sidebar: Active Queue & Stats */}
+          <aside className="space-y-12">
+            <div className="space-y-6">
+              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/20 border-b border-white/5 pb-4">
+                Action Required
+              </h3>
+              <ActionRequiredQueue initialLeads={overdueLeads} />
+            </div>
+
+            <GlassCard className="bg-white/2 border-white/5">
+              <h4 className="text-xs font-bold uppercase tracking-[0.3em] text-white/30 mb-8 border-b border-white/5 pb-4">Quick Stats</h4>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Active Leads</span>
+                   <span className="text-xl font-bold text-white">{totalInboxCount}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">New Artists</span>
+                   <span className="text-xl font-bold text-accent">{newCount}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                   <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Active Projects</span>
+                   <span className="text-xl font-bold text-accent-secondary">{projectCount}</span>
+                </div>
+              </div>
+            </GlassCard>
+          </aside>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+```

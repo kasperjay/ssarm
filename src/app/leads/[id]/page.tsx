@@ -1,24 +1,18 @@
-export const dynamic = "force-dynamic";
-
 import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { LeadStatus } from "local-prisma-client";
+import { LeadStatus } from "@/generated/prisma";
 import DraftCopy from "./DraftCopy";
 import SendMessageModal from "./SendMessageModal";
-import { GlassCard } from "@/components/GlassCard";
-import { NeonButton } from "@/components/NeonButton";
-import { StatusPill } from "@/components/StatusPill";
-import { DynamicThemeShell } from "@/components/DynamicThemeShell";
-import { EditableArtistName } from "@/components/EditableArtistName";
+import UpdateInstagramModal from "./UpdateInstagramModal";
 import {
   generateDraftsForLead,
+  markContacted,
   refreshLeadData,
   regenerateDraft,
   updateLeadStatus,
-  handleStatusUpdate,
-  trashLeadAction,
 } from "./actions";
 
 const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
@@ -28,52 +22,60 @@ const formatRelativeDate = (date: Date | null | undefined) => {
   const now = new Date();
   const diffMs = date.getTime() - now.getTime();
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-  if (Math.abs(diffDays) < 7) return formatter.format(diffDays, "day");
+  if (Math.abs(diffDays) < 7) {
+    return formatter.format(diffDays, "day");
+  }
   const diffWeeks = Math.round(diffDays / 7);
-  if (Math.abs(diffWeeks) < 5) return formatter.format(diffWeeks, "week");
+  if (Math.abs(diffWeeks) < 5) {
+    return formatter.format(diffWeeks, "week");
+  }
   const diffMonths = Math.round(diffDays / 30);
   return formatter.format(diffMonths, "month");
 };
 
-const formatStatusLabel = (status: string) =>
+const formatStatus = (status: string) =>
   status
     .toLowerCase()
     .split("_")
     .map((word) => word[0]?.toUpperCase() + word.slice(1))
     .join(" ");
 
-const proxiedHelper = (url: string | null) => {
-  if (!url) return undefined;
-  // Proxy Instagram through the server since the server can reach Instagram CDN
-  // even when browsers get blocked. Always proxy Instagram URLs.
-  const isInstagram = url.includes("cdninstagram.com") || url.includes("instagram.com") || url.includes("fbcdn.net");
-  if (isInstagram) {
-    return `/api/proxy?url=${encodeURIComponent(url)}`;
-  }
-  // Spotify and other CDNs go through proxy for CORS / header handling
-  const needsProxy = [
-    "fbcdn.net", "instagram.com", "fbsbx.com", "cdninstagram.com",
-    "scdn.co", "spotifycdn.com", "i.scdn.co",
-  ].some((d) => url.includes(d));
-  if (needsProxy) {
-    return `/api/proxy?url=${encodeURIComponent(url)}`;
-  }
-  return url;
+const formatLocation = (
+  location: string | null,
+  city: string | null,
+  state: string | null,
+  country: string | null
+) => {
+  if (location) return location;
+  const parts = [city, state, country].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "Unknown";
 };
 
-const normalizeHex = (value?: string | null) => {
-  if (!value) return null;
-  const cleaned = value.trim().replace(/^#/, "");
-  if (/^[0-9a-fA-F]{3}$/.test(cleaned)) return `#${cleaned}`;
-  if (/^[0-9a-fA-F]{6}$/.test(cleaned)) return `#${cleaned}`;
-  return null;
+const hexToRgb = (hex?: string | null) => {
+  if (!hex) return null;
+  const normalized = hex.replace("#", "");
+  if (normalized.length !== 6) return null;
+  const value = Number.parseInt(normalized, 16);
+  if (Number.isNaN(value)) return null;
+  return {
+    r: (value >> 16) & 255,
+    g: (value >> 8) & 255,
+    b: value & 255,
+  };
 };
 
-const statusOptions: LeadStatus[] = ["NEW", "QUALIFIED", "CONTACTED", "FOLLOW_UP", "WON", "LOST"];
+const statusOptions: LeadStatus[] = [
+  "NEW",
+  "QUALIFIED",
+  "CONTACTED",
+  "FOLLOW_UP",
+  "WON",
+  "LOST",
+];
 
 type LeadDetailPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ rPage?: string; pPage?: string; igPage?: string; emailPage?: string }>;
+  searchParams: Promise<{ rPage?: string; pPage?: string; debug?: string }>;
 };
 
 const parsePage = (value?: string) => {
@@ -81,33 +83,16 @@ const parsePage = (value?: string) => {
   return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
 };
 
-function hrefWith(params: {
-  rPage: number;
-  pPage: number;
-  igPage: number;
-  emailPage: number;
-}) {
-  const search = new URLSearchParams({
-    rPage: String(params.rPage),
-    pPage: String(params.pPage),
-    igPage: String(params.igPage),
-    emailPage: String(params.emailPage),
-  });
-  return `?${search.toString()}`;
-}
-
-export default async function LeadDetailPage({ params, searchParams }: LeadDetailPageProps) {
+export default async function LeadDetailPage({
+  params,
+  searchParams,
+}: LeadDetailPageProps) {
   const { id } = await params;
-  const { rPage, pPage, igPage, emailPage } = await searchParams;
-
+  const { rPage, pPage, debug } = await searchParams;
   const releasePage = parsePage(rPage);
   const postPage = parsePage(pPage);
-  const igDraftPage = parsePage(igPage);
-  const emailDraftPage = parsePage(emailPage);
-
-  const releasePageSize = 1;
-  const postPageSize = 10;
-  const draftPageSize = 2;
+  const debugMode = debug === "1";
+  const pageSize = 1;
 
   let lead = await prisma.lead.findUnique({
     where: { id },
@@ -118,12 +103,13 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
     },
   });
 
-  if (!lead) notFound();
+  if (!lead) {
+    notFound();
+  }
 
   const hasReachoutDraft = lead.messages.some((message) => message.source === "reachout");
-  const canGenerateDrafts = lead.status === "NEW" || lead.status === "QUALIFIED";
-  if (!hasReachoutDraft && canGenerateDrafts) {
-    await generateDraftsForLead(lead.id, { shouldRevalidate: false });
+  if (!hasReachoutDraft) {
+    await generateDraftsForLead(lead.id, null, { revalidate: false });
     lead = await prisma.lead.findUnique({
       where: { id },
       include: {
@@ -136,377 +122,659 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
   }
 
   const spotifyImageUrl = lead.artist.spotifyImageUrl;
-  const themeImageUrl = spotifyImageUrl ? `/api/proxy?url=${encodeURIComponent(spotifyImageUrl)}` : null;
+  const accentStyle = lead.artist.spotifyAccent
+    ? ({
+        "--accent": lead.artist.spotifyAccent,
+        "--accent-strong": lead.artist.spotifyAccentStrong ?? lead.artist.spotifyAccent,
+        "--highlight": lead.artist.spotifyHighlight ?? lead.artist.spotifyAccent,
+      } as CSSProperties)
+    : undefined;
+  const accentRgb = hexToRgb(lead.artist.spotifyAccent);
+  const accentOverlay = accentRgb
+    ? `radial-gradient(circle_at_top, rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.25), transparent 60%)`
+    : "radial-gradient(circle_at_top, rgba(35,211,255,0.2), transparent 60%)";
+  const headerStyle = spotifyImageUrl
+    ? undefined
+    : {
+        backgroundImage: `${accentOverlay}, radial-gradient(circle_at_20%_20%, rgba(139,92,246,0.22), transparent 45%), linear-gradient(180deg, rgba(5,7,10,0.95), rgba(5,7,10,1))`,
+      };
 
   const postWhere = {
     artistId: lead.artist.id,
-    imageUrl: { notIn: ["", " "] },
+    imageUrl: { not: null },
   };
 
   const [releaseRows, postRows, releaseCount, postCount] = await Promise.all([
     prisma.release.findMany({
       where: { artistId: lead.artist.id },
-      orderBy: [
-        { spotifyTrackId: { sort: "desc", nulls: "last" } },
-        { spotifyReleaseId: { sort: "desc", nulls: "last" } },
-        { releaseDate: "desc" },
-        { createdAt: "desc" },
-      ],
-      skip: (releasePage - 1) * releasePageSize,
-      take: releasePageSize,
+      orderBy: [{ releaseDate: "desc" }, { createdAt: "desc" }],
+      skip: (releasePage - 1) * pageSize,
+      take: pageSize,
     }),
     prisma.instagramPost.findMany({
       where: postWhere,
       orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
-      skip: (postPage - 1) * postPageSize,
-      take: postPageSize,
+      skip: (postPage - 1) * pageSize,
+      take: pageSize,
     }),
     prisma.release.count({ where: { artistId: lead.artist.id } }),
     prisma.instagramPost.count({ where: postWhere }),
   ]);
-
-  const releaseTotalPages = Math.max(1, Math.ceil(releaseCount / releasePageSize));
-  const postTotalPages = Math.max(1, Math.ceil(postCount / postPageSize));
+  const releaseTotalPages = Math.max(1, Math.ceil(releaseCount / pageSize));
+  const postTotalPages = Math.max(1, Math.ceil(postCount / pageSize));
   const featuredRelease = releaseRows[0] ?? null;
-
-  const instagramAvatar = proxiedHelper(lead.artist.instagramProfileImageUrl ?? postRows[0]?.imageUrl ?? null);
-  const releaseDate = featuredRelease?.releaseDate ?? featuredRelease?.createdAt ?? null;
-
-  const reachoutDrafts = lead.messages.filter((m) => !m.selected && m.source === "reachout");
-  const igDrafts = reachoutDrafts.filter((m) => !m.tone?.toLowerCase().includes("email"));
-  const emailDrafts = reachoutDrafts.filter((m) => m.tone?.toLowerCase().includes("email"));
-
-  const igDraftTotalPages = Math.max(1, Math.ceil(igDrafts.length / draftPageSize));
-  const emailDraftTotalPages = Math.max(1, Math.ceil(emailDrafts.length / draftPageSize));
-
-  const igDraftSlice = igDrafts.slice((igDraftPage - 1) * draftPageSize, igDraftPage * draftPageSize);
-  const emailDraftSlice = emailDrafts.slice((emailDraftPage - 1) * draftPageSize, emailDraftPage * draftPageSize);
-
-  const score = lead.score?.toFixed(0) || "0";
-  const palette = [
-    normalizeHex(lead.artist.spotifyAccent),
-    normalizeHex(lead.artist.spotifyAccentStrong),
-    normalizeHex(lead.artist.spotifyHighlight),
-  ].filter((v, i, arr): v is string => Boolean(v) && arr.indexOf(v) === i);
-
-  const accentColors = {
-    accent: lead.artist.spotifyAccent ?? "#00f2ff",
-    accentStrong: lead.artist.spotifyAccentStrong ?? "#7000ff",
-    highlight: lead.artist.spotifyHighlight ?? "#ffffff",
+  const featuredPost = postRows[0] ?? null;
+  const instagramAvatar =
+    lead.artist.instagramProfileImageUrl ?? featuredPost?.imageUrl ?? null;
+const instagramBio = lead.artist.bio ?? "No bio yet.";
+  const toProxyInstagramImage = (url: string | null) => {
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname;
+      if (
+        host.endsWith(".instagram.com") ||
+        host.endsWith(".cdninstagram.com") ||
+        host.endsWith(".fbcdn.net") ||
+        host.includes("instagram") ||
+        host.includes("fbcdn")
+      ) {
+        return `/api/image?url=${encodeURIComponent(url)}`;
+      }
+      return url;
+    } catch {
+      return url;
+    }
   };
 
-  const renderDraftCard = (message: (typeof reachoutDrafts)[number]) => (
-    <GlassCard key={message.id} className="p-6! bg-white/2 border-white/5 hover:border-accent/20">
-      <div className="flex flex-col gap-5">
-        <div className="flex items-center justify-between">
-          <span className="px-3 py-1 rounded-full bg-accent/10 text-xs font-bold text-accent uppercase tracking-widest border border-accent/20">
-            {message.tone || "Draft"}
-          </span>
-          <DraftCopy text={message.body} />
-        </div>
-
-        <p className="text-base text-white/80 leading-relaxed font-serif italic pl-4 border-l-2 border-accent/30">
-          &quot;{message.body}&quot;
-        </p>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/5">
-          <details className="relative group/details">
-            <summary className="list-none cursor-pointer flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6 6-6" /></svg>
-              Tune Variant
-            </summary>
-            <div className="absolute left-0 bottom-full mb-4 z-20 w-56 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl">
-              <div className="group/tone relative">
-                <div className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors cursor-default">
-                  Change Tone
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
-                </div>
-                <div className="hidden group-hover/tone:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl animate-in fade-in slide-in-from-left-2 transition-all">
-                  {["professional", "casual"].map((hint) => (
-                    <form key={hint} action={regenerateDraft}>
-                      <input type="hidden" name="leadId" value={lead.id} />
-                      <input type="hidden" name="draftId" value={message.id} />
-                      <input type="hidden" name="tone" value={message.tone || "Draft"} />
-                      <input type="hidden" name="styleHint" value={`more ${hint}`} />
-                      <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors">
-                        more {hint}
-                      </button>
-                    </form>
-                  ))}
-                </div>
-              </div>
-
-              <div className="group/style relative mt-1">
-                <div className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors cursor-default">
-                  Change Style
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
-                </div>
-                <div className="hidden group-hover/style:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl animate-in fade-in slide-in-from-left-2 transition-all">
-                  {["boring", "fun"].map((hint) => (
-                    <form key={hint} action={regenerateDraft}>
-                      <input type="hidden" name="leadId" value={lead.id} />
-                      <input type="hidden" name="draftId" value={message.id} />
-                      <input type="hidden" name="tone" value={message.tone || "Draft"} />
-                      <input type="hidden" name="styleHint" value={`more ${hint}`} />
-                      <button type="submit" className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-accent hover:bg-white/5 transition-colors">
-                        more {hint}
-                      </button>
-                    </form>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </details>
-
-          <SendMessageModal
-            leadId={lead.id}
-            label="Review + Send"
-            defaultBody={message.body}
-            source="draft"
-            variant="primary"
-          />
-        </div>
-      </div>
-    </GlassCard>
-  );
-
   return (
-    <DynamicThemeShell imageUrl={themeImageUrl} artistName={lead.artist.name} genre={lead.artist.genre} accentColors={accentColors}>
-      <div className="relative min-h-screen pb-20 selection:bg-accent/30 selection:text-white">
-        <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-6 pt-12">
-          <div className="relative h-[400px] w-full rounded-[40px] overflow-hidden group shadow-2xl">
-            {themeImageUrl && (
-              <img
-                src={themeImageUrl}
-                alt={lead.artist.name}
-                className="absolute"
-                style={{ top: '0', left: '0', width: '100%', height: '340px', objectFit: 'cover', objectPosition: 'center top' }}
-                loading="eager"
+    <div
+      className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(35,211,255,0.18),_transparent_55%),radial-gradient(circle_at_20%_20%,_rgba(139,92,246,0.2),_transparent_45%),linear-gradient(180deg,_rgba(5,7,10,0.95),_rgba(5,7,10,1))]"
+      style={accentStyle}
+    >
+      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col gap-8 px-6 py-10">
+        <header
+          className="relative flex flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-[color:var(--surface)] bg-cover bg-center p-8 shadow-[0_30px_80px_-60px_rgba(35,211,255,0.35)]"
+          style={headerStyle}
+        >
+          {spotifyImageUrl ? (
+            <div className="pointer-events-none absolute inset-0 z-0">
+              <Image
+                src={spotifyImageUrl}
+                alt={`${lead.artist.name} banner`}
+                fill
+                priority
+                sizes="(min-width: 1024px) 1024px, 100vw"
+                className="object-cover"
               />
-            )}
-            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-            <div
-              className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-8 p-8"
-              style={{ height: '180px', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.1)' }}
-            >
-              <div className="space-y-1 max-w-[75%]">
-                <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-white/50 hover:text-accent transition-colors mb-3">
-                  <span>← Back</span>
-                </Link>
-                <div className="text-[2.5rem] leading-[1] font-black tracking-tight text-white" style={{ fontFamily: 'var(--font-display)' }}>
-                  <EditableArtistName artistId={lead.artist.id} initialName={lead.artist.name} />
-                </div>
-                <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.3em] text-white/50">
-                  {lead.artist.location && <span>{lead.artist.location}</span>}
-                  <span>{lead.artist.genre || "Social Profile"}</span>
-                </div>
+            </div>
+          ) : null}
+          <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
+            <div className="rounded-2xl border border-white/15 bg-[color:var(--surface-glass)] p-4 shadow-[0_20px_60px_-45px_rgba(5,7,10,0.8)] backdrop-blur-lg">
+              <Link
+                href="/"
+                className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]"
+              >
+                Back to Lead Desk
+              </Link>
+              <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl leading-tight text-[color:var(--foreground)] md:text-5xl">
+                {lead.artist.name}
+              </h1>
+              <p className="text-sm text-[color:var(--muted)]">
+                {formatLocation(
+                  lead.artist.location,
+                  lead.artist.city,
+                  lead.artist.state,
+                  lead.artist.country
+                )}
+                {lead.artist.genre ? ` · ${lead.artist.genre}` : ""}
+              </p>
+            </div>
+            <div className="flex flex-1 flex-col gap-3 rounded-2xl border border-white/15 bg-[color:var(--surface-glass-strong)] p-4 shadow-[0_20px_60px_-45px_rgba(5,7,10,0.8)] backdrop-blur-lg">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <form
+                  action={async (formData) => {
+                    "use server";
+                    const status = formData.get("status");
+                    if (typeof status === "string" && statusOptions.includes(status as LeadStatus)) {
+                      await updateLeadStatus({ leadId: lead.id, status: status as LeadStatus });
+                    }
+                  }}
+                  className="flex flex-wrap items-center gap-2"
+                >
+                  <label className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                    Status
+                  </label>
+                  <select
+                    name="status"
+                    defaultValue={lead.status}
+                    className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-2 text-xs font-semibold text-[color:var(--foreground)]"
+                  >
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {formatStatus(status)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="rounded-full bg-[color:var(--foreground)] px-4 py-2 text-xs font-semibold text-[color:var(--surface)] transition hover:bg-white/80"
+                  >
+                    Update
+                  </button>
+                </form>
+                <form action={refreshLeadData} className="flex justify-end">
+                  <input type="hidden" name="leadId" value={lead.id} />
+                  <button
+                    type="submit"
+                    className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent-strong)]"
+                  >
+                    Refresh data
+                  </button>
+                </form>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <form
+                  action={async () => {
+                    "use server";
+                    await markContacted({ leadId: lead.id });
+                  }}
+                >
+                  <button
+                    type="submit"
+                    className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-2 text-xs font-semibold text-[color:var(--foreground)] transition hover:border-[color:var(--accent)]"
+                  >
+                    Mark contacted
+                  </button>
+                </form>
+                {[3, 7, 14].map((days) => (
+                  <form
+                    key={days}
+                    action={async () => {
+                      "use server";
+                      const nextActionAt = new Date();
+                      nextActionAt.setDate(nextActionAt.getDate() + days);
+                      await markContacted({ leadId: lead.id, nextActionAt });
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      className="rounded-full border border-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent-strong)]"
+                    >
+                      +{days} days
+                    </button>
+                  </form>
+                ))}
+                <SendMessageModal
+                  leadId={lead.id}
+                  label="Send custom"
+                  source="custom"
+                  variant="primary"
+                />
               </div>
             </div>
           </div>
-
-          <div className="space-y-10">
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/3 px-4 py-3">
-              <form
-                action={`/api/leads/${lead.id}/status`}
-                method="POST"
-                className="flex flex-wrap items-center gap-3"
-              >
-                <input type="hidden" name="leadId" value={lead.id} />
-                <select
-                  name="status"
-                  defaultValue={lead.status}
-                  className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white/70 focus:border-accent focus:outline-none"
+          <div className="relative z-20 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                Latest release
+              </p>
+              {featuredRelease?.url ? (
+                <Link
+                  href={featuredRelease.url}
+                  target="_blank"
+                  className="mt-2 inline-flex text-lg font-semibold text-[color:var(--foreground)] transition hover:text-[color:var(--accent)]"
                 >
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status} className="bg-[#0f0f0f] text-white">
-                      {formatStatusLabel(status)}
-                    </option>
-                  ))}
-                </select>
-                <NeonButton variant="outline" size="sm" type="submit">Update Status</NeonButton>
-              </form>
-
-              <form action={refreshLeadData}>
-                <input type="hidden" name="leadId" value={lead.id} />
-                <NeonButton type="submit" variant="outline" size="sm">Update Profile</NeonButton>
-              </form>
-
-              <div className="ml-auto">
-                <StatusPill status={lead.status} />
-              </div>
+                  {featuredRelease.title}
+                </Link>
+              ) : (
+                <p className="mt-2 text-lg font-semibold text-[color:var(--foreground)]">
+                  {featuredRelease?.title ?? "No release data"}
+                </p>
+              )}
+              <p className="text-xs text-[color:var(--muted)]">
+                {featuredRelease?.releaseDate
+                  ? formatRelativeDate(featuredRelease.releaseDate)
+                  : "Unknown"}
+              </p>
             </div>
+            <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                Instagram
+              </p>
+              <p className="mt-2 text-lg font-semibold text-[color:var(--foreground)]">
+                {lead.artist.followerCount?.toLocaleString() ?? "Unknown"} followers
+              </p>
+              <p className="text-xs text-[color:var(--muted)]">
+                {lead.artist.lastPostAt
+                  ? `Last post ${formatRelativeDate(lead.artist.lastPostAt)}`
+                  : "No recent post"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                  Lead notes
+                </p>
+                <div className="rounded-xl border border-white/10 bg-[color:var(--surface)] px-3 py-2 text-center">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                    Lead Score
+                  </p>
+                  <p className="text-lg font-semibold text-[color:var(--foreground)]">
+                    {lead.score?.toFixed(0) ?? "-"}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 text-sm text-[color:var(--foreground)]">
+                {lead.scoreRationale ?? "No rationale added yet."}
+              </p>
+            </div>
+          </div>
+        </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <GlassCard className="p-6! bg-white/2 border-white/5">
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="h-16 w-16 rounded-2xl overflow-hidden border border-white/10 bg-black/30 shrink-0">
-                    {instagramAvatar ? (
-                      <img src={instagramAvatar} alt={lead.artist.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-white/20 text-xs font-bold">IG</div>
-                    )}
-                  </div>
-                  <div className="space-y-2 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">@{(lead.artist.instagramHandle || "unknown").replace(/^@/, "")}</p>
-                    <p className="text-xs text-white/55 leading-relaxed line-clamp-3">{lead.artist.bio || "No Instagram bio available."}</p>
-                    <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
-                      <span>{lead.artist.followerCount?.toLocaleString() || "0"} followers</span>
-                      <span>Last post {formatRelativeDate(lead.artist.lastPostAt)}</span>
+        <main className="flex flex-col gap-8">
+          <section className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-3xl border border-white/10 bg-[color:var(--surface-strong)] p-6 shadow-[0_40px_90px_-70px_rgba(35,211,255,0.3)]">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-[color:var(--foreground)]">
+                  Instagram Posts
+                </h2>
+                <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                  {postCount} total
+                </span>
+              </div>
+              <div className="mt-4 flex flex-col gap-4">
+                <div className="rounded-2xl border border-white/10 bg-[color:var(--surface)] p-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-[color:var(--surface-strong)]">
+                      {instagramAvatar ? (
+                        <img
+                          src={toProxyInstagramImage(instagramAvatar)}
+                          alt={`${lead.artist.name} avatar`}
+                          width={64}
+                          height={64}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                          IG
+                        </div>
+                      )}
                     </div>
+                    <div className="flex-1 min-w-[200px]">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-semibold text-[color:var(--foreground)]">
+                          @{lead.artist.instagramHandle ?? lead.artist.name}
+                        </p>
+                        <UpdateInstagramModal
+                          leadId={lead.id}
+                          currentHandle={lead.artist.instagramHandle}
+                        />
+                      </div>
+                      <p className="text-xs text-[color:var(--muted)]">
+                        {lead.artist.followerCount?.toLocaleString() ?? "Unknown"} followers ·{" "}
+                        {lead.artist.lastPostAt
+                          ? `Last post ${formatRelativeDate(lead.artist.lastPostAt)}`
+                          : "No recent post"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 max-h-28 overflow-y-auto text-sm text-[color:var(--foreground)] pr-1">
+                    {instagramBio}
                   </div>
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-white/35">Latest Posts</h3>
-                    <div className="flex items-center gap-2 text-xs font-bold text-white/35">
-                      <Link
-                        href={hrefWith({ rPage: releasePage, pPage: Math.max(1, postPage - 1), igPage: igDraftPage, emailPage: emailDraftPage })}
-                        className={`px-2 py-1 rounded border ${postPage > 1 ? "border-white/20 hover:border-accent/40" : "border-white/5 opacity-40 pointer-events-none"}`}
-                      >
-                        Prev
-                      </Link>
-                      <span>{postPage}/{postTotalPages}</span>
-                      <Link
-                        href={hrefWith({ rPage: releasePage, pPage: Math.min(postTotalPages, postPage + 1), igPage: igDraftPage, emailPage: emailDraftPage })}
-                        className={`px-2 py-1 rounded border ${postPage < postTotalPages ? "border-white/20 hover:border-accent/40" : "border-white/5 opacity-40 pointer-events-none"}`}
-                      >
-                        Next
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory custom-scrollbar">
-                    {postRows.length === 0 ? (
-                      <div className="text-xs text-white/35 py-8">No Instagram posts available.</div>
-                    ) : (
-                      postRows.map((post) => (
-                        <a
-                          key={post.id}
-                          href={post.url || "#"}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="snap-start shrink-0 w-[220px] rounded-2xl border border-white/10 bg-black/30 overflow-hidden hover:border-accent/30 transition-all"
-                        >
-                          <div className="h-[150px] w-full bg-black/30">
-                            {post.imageUrl ? (
-                              <img src={proxiedHelper(post.imageUrl)} alt="Instagram post" className="h-full w-full object-cover" />
+                {featuredPost ? (
+                  <div className="rounded-2xl border border-white/10 bg-[color:var(--surface)] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-[0.25em] text-[color:var(--muted)]">
+                    {formatRelativeDate(featuredPost.postedAt ?? featuredPost.createdAt)}
+                    </p>
+                  {featuredPost.url ? (
+                    <Link
+                      href={featuredPost.url}
+                      className="text-xs text-[color:var(--accent-strong)]"
+                      target="_blank"
+                    >
+                      Open post
+                    </Link>
+                  ) : null}
+                </div>
+                      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(260px,0.6fr)_1.4fr]">
+                        <div className="aspect-square overflow-hidden rounded-2xl border border-white/10 bg-[color:var(--surface-strong)]">
+                          {featuredPost.imageUrl ? (
+                            <img
+                              src={toProxyInstagramImage(featuredPost.imageUrl)}
+                              alt="Instagram post"
+                              width={400}
+                              height={400}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                              <div className="flex h-full min-h-[160px] items-center justify-center text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                                No image
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col justify-between gap-3">
+                            <div className="text-sm text-[color:var(--foreground)] max-h-40 overflow-y-auto pr-1">
+                              {featuredPost.caption ?? "No caption."}
+                            </div>
+                            {featuredPost.url ? (
+                              <Link
+                                href={featuredPost.url}
+                                className="inline-flex items-center text-xs font-semibold text-[color:var(--accent)]"
+                                target="_blank"
+                              >
+                                View on Instagram
+                              </Link>
                             ) : null}
                           </div>
-                          <div className="p-3 space-y-1">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">{formatRelativeDate(post.postedAt || post.createdAt)}</p>
-                            <p className="text-xs text-white/70 line-clamp-2">{post.caption || "No caption"}</p>
-                          </div>
-                        </a>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </GlassCard>
-
-              <GlassCard className="p-6! bg-white/2 border-white/5">
-                <div className="space-y-5">
-                  <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-white/35">Spotify</h3>
-
-                  {featuredRelease ? (
-                    <iframe
-                      style={{ borderRadius: '12px' }}
-                      src={
-                        featuredRelease.spotifyTrackId
-                          ? `https://open.spotify.com/embed/track/${featuredRelease.spotifyTrackId}`
-                          : featuredRelease.spotifyReleaseId
-                          ? `https://open.spotify.com/embed/album/${featuredRelease.spotifyReleaseId}`
-                          : featuredRelease.url
-                          ? `https://open.spotify.com/embed${featuredRelease.url.split('spotify.com')[1]}`
-                          : ""
-                      }
-                      width="100%"
-                      height="352"
-                      frameBorder="0"
-                      allowFullScreen
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      loading="lazy"
-                    />
+                      </div>
+                    </div>
                   ) : (
-                    <p className="text-xs text-white/35">No releases available.</p>
+                    <div className="rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface)] p-6 text-sm text-[color:var(--muted)]">
+                      No Instagram posts yet.
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 flex items-center justify-between text-xs text-[color:var(--muted)]">
+                <Link
+                  href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.max(1, postPage - 1)}`}
+                  className={`rounded-full border border-white/10 px-3 py-1 ${
+                    postPage === 1 ? "pointer-events-none opacity-50" : "hover:border-[color:var(--accent)]"
+                  }`}
+                >
+                  Previous
+                </Link>
+                <span>
+                  Page {postPage} of {postTotalPages}
+                </span>
+                <Link
+                  href={`/leads/${lead.id}?rPage=${releasePage}&pPage=${Math.min(postTotalPages, postPage + 1)}`}
+                  className={`rounded-full border border-white/10 px-3 py-1 ${
+                    postPage === postTotalPages
+                      ? "pointer-events-none opacity-50"
+                      : "hover:border-[color:var(--accent)]"
+                  }`}
+                >
+                  Next
+                </Link>
+              </div>
+              {debugMode ? (
+                <div className="mt-4 rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface)] p-4 text-xs text-[color:var(--muted)]">
+                  <p className="mb-2 font-semibold text-[color:var(--foreground)]">Instagram Debug</p>
+                  <pre className="whitespace-pre-wrap break-words">
+                    {JSON.stringify(
+                      postRows.map((post) => ({
+                        id: post.id,
+                        instagramPostId: post.instagramPostId,
+                        imageUrl: post.imageUrl,
+                        url: post.url,
+                      })),
+                      null,
+                      2
+                    )}
+                  </pre>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-[color:var(--surface-strong)] p-6">
+              <div className="grid h-full grid-rows-[auto_1fr_auto] gap-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-[color:var(--foreground)]">
+                    Recent Releases
+                  </h2>
+                  <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                    {releaseCount} total
+                  </span>
+                </div>
+                <div className="flex flex-col gap-4">
+                  {featuredRelease ? (
+                    <div className="rounded-2xl border border-white/10 bg-[color:var(--surface)] p-5 sm:p-6">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="h-48 w-48 overflow-hidden rounded-[32px] border border-white/10 bg-[color:var(--surface-strong)] sm:h-56 sm:w-56">
+                          {featuredRelease.imageUrl ? (
+                            <img
+                              src={featuredRelease.imageUrl}
+                              alt={`${featuredRelease.title} cover`}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                              Art
+                            </div>
+                          )}
+                        </div>
+                        {featuredRelease.url ? (
+                          <iframe
+                            src={featuredRelease.url.replace("open.spotify.com/", "open.spotify.com/embed/")}
+                            width="100%"
+                            height="232"
+                            allow="encrypted-media; clipboard-write; fullscreen; picture-in-picture"
+                            className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)]"
+                            title="Spotify player"
+                          />
+                        ) : null}
+                        <div className="flex w-full flex-col items-center gap-2 text-center">
+                          {featuredRelease.url ? (
+                            <Link
+                              href={featuredRelease.url}
+                              target="_blank"
+                              className="text-xl font-semibold text-[color:var(--foreground)] underline decoration-[color:var(--accent)] decoration-2 underline-offset-4"
+                            >
+                              {featuredRelease.title}
+                            </Link>
+                          ) : (
+                            <p className="text-xl font-semibold text-[color:var(--foreground)]">
+                              {featuredRelease.title}
+                            </p>
+                          )}
+                          <p className="text-sm text-[color:var(--muted)]">
+                            {formatRelativeDate(featuredRelease.releaseDate ?? featuredRelease.createdAt)}
+                          </p>
+                          <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs text-[color:var(--muted)]">
+                            {featuredRelease.releaseType ? (
+                              <span className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-1">
+                                {featuredRelease.releaseType}
+                              </span>
+                            ) : null}
+                            {lead.artist.genre ? (
+                              <span className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-1">
+                                {lead.artist.genre}
+                              </span>
+                            ) : null}
+                            {lead.artist.name ? (
+                              <span className="rounded-full border border-white/10 bg-[color:var(--surface-strong)] px-3 py-1">
+                                {lead.artist.name}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface)] p-6 text-sm text-[color:var(--muted)]">
+                      No releases yet.
+                    </div>
                   )}
                 </div>
-              </GlassCard>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/25">Generated Replies</h3>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <GlassCard className="p-5! bg-white/2 border-white/5">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/35">IG DM</p>
-                    <div className="flex items-center gap-2 text-xs font-bold text-white/35">
-                      <Link
-                        href={hrefWith({ rPage: releasePage, pPage: postPage, igPage: Math.max(1, igDraftPage - 1), emailPage: emailDraftPage })}
-                        className={`px-2 py-1 rounded border ${igDraftPage > 1 ? "border-white/20 hover:border-accent/40" : "border-white/5 opacity-40 pointer-events-none"}`}
-                      >
-                        Prev
-                      </Link>
-                      <span>{igDraftPage}/{igDraftTotalPages}</span>
-                      <Link
-                        href={hrefWith({ rPage: releasePage, pPage: postPage, igPage: Math.min(igDraftTotalPages, igDraftPage + 1), emailPage: emailDraftPage })}
-                        className={`px-2 py-1 rounded border ${igDraftPage < igDraftTotalPages ? "border-white/20 hover:border-accent/40" : "border-white/5 opacity-40 pointer-events-none"}`}
-                      >
-                        Next
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    {igDraftSlice.length === 0 ? <p className="text-xs text-white/35">No IG drafts yet.</p> : igDraftSlice.map(renderDraftCard)}
-                  </div>
-                </GlassCard>
-
-                <GlassCard className="p-5! bg-white/2 border-white/5">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/35">Email</p>
-                    <div className="flex items-center gap-2 text-xs font-bold text-white/35">
-                      <Link
-                        href={hrefWith({ rPage: releasePage, pPage: postPage, igPage: igDraftPage, emailPage: Math.max(1, emailDraftPage - 1) })}
-                        className={`px-2 py-1 rounded border ${emailDraftPage > 1 ? "border-white/20 hover:border-accent/40" : "border-white/5 opacity-40 pointer-events-none"}`}
-                      >
-                        Prev
-                      </Link>
-                      <span>{emailDraftPage}/{emailDraftTotalPages}</span>
-                      <Link
-                        href={hrefWith({ rPage: releasePage, pPage: postPage, igPage: igDraftPage, emailPage: Math.min(emailDraftTotalPages, emailDraftPage + 1) })}
-                        className={`px-2 py-1 rounded border ${emailDraftPage < emailDraftTotalPages ? "border-white/20 hover:border-accent/40" : "border-white/5 opacity-40 pointer-events-none"}`}
-                      >
-                        Next
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    {emailDraftSlice.length === 0 ? <p className="text-xs text-white/35">No email drafts for this lead.</p> : emailDraftSlice.map(renderDraftCard)}
-                  </div>
-                </GlassCard>
+                <div className="flex items-center justify-between text-xs text-[color:var(--muted)]">
+                  <Link
+                    href={`/leads/${lead.id}?rPage=${Math.max(1, releasePage - 1)}&pPage=${postPage}`}
+                    className={`rounded-full border border-white/10 px-3 py-1 ${
+                      releasePage === 1 ? "pointer-events-none opacity-50" : "hover:border-[color:var(--accent)]"
+                    }`}
+                  >
+                    Previous
+                  </Link>
+                  <span>
+                    Page {releasePage} of {releaseTotalPages}
+                  </span>
+                  <Link
+                    href={`/leads/${lead.id}?rPage=${Math.min(releaseTotalPages, releasePage + 1)}&pPage=${postPage}`}
+                    className={`rounded-full border border-white/10 px-3 py-1 ${
+                      releasePage === releaseTotalPages
+                        ? "pointer-events-none opacity-50"
+                        : "hover:border-[color:var(--accent)]"
+                    }`}
+                  >
+                    Next
+                  </Link>
+                </div>
               </div>
             </div>
+          </section>
 
-            <GlassCard className="p-4! bg-white/2 border-white/5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">Activity History</h3>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">{lead.activities.length}</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {lead.activities.slice(0, 6).map((activity) => (
-                  <div key={activity.id} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
-                    <p className="text-xs text-white/60 line-clamp-2">{activity.note || "Activity"}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/25 mt-1">{formatRelativeDate(activity.occurredAt)}</p>
+          <section className="rounded-3xl border border-white/10 bg-[color:var(--surface-strong)] p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-[color:var(--foreground)]">
+                Outreach Drafts
+              </h2>
+              <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                {lead.messages.length} drafts
+              </span>
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {lead.messages.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface)] p-6 text-sm text-[color:var(--muted)] sm:col-span-2 xl:col-span-3">
+                  No drafts yet.
+                </div>
+              ) : (
+                lead.messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className="group relative flex flex-col gap-3 rounded-2xl border border-white/10 bg-[color:var(--surface)] p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-xs uppercase tracking-[0.25em] text-[color:var(--muted)]">
+                        {message.tone ?? "Draft"}
+                      </p>
+                      <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                        <DraftCopy text={message.body} />
+                        <details className="relative">
+                          <summary className="list-none rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--accent)] cursor-pointer">
+                            Edit
+                          </summary>
+                          <div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-2 shadow-[0_20px_40px_-30px_rgba(0,0,0,0.5)]">
+                            <form action={regenerateDraft}>
+                              <input type="hidden" name="leadId" value={lead.id} />
+                              <input type="hidden" name="draftId" value={message.id} />
+                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                              <input type="hidden" name="styleHint" value="more professional" />
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                                More professional
+                              </button>
+                            </form>
+                            <form action={regenerateDraft}>
+                              <input type="hidden" name="leadId" value={lead.id} />
+                              <input type="hidden" name="draftId" value={message.id} />
+                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                              <input type="hidden" name="styleHint" value="more casual" />
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                                More casual
+                              </button>
+                            </form>
+                            <form action={regenerateDraft}>
+                              <input type="hidden" name="leadId" value={lead.id} />
+                              <input type="hidden" name="draftId" value={message.id} />
+                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                              <input type="hidden" name="styleHint" value="more fun" />
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                                More fun
+                              </button>
+                            </form>
+                            <form action={regenerateDraft}>
+                              <input type="hidden" name="leadId" value={lead.id} />
+                              <input type="hidden" name="draftId" value={message.id} />
+                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                              <input type="hidden" name="styleHint" value="more boring" />
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                                More boring
+                              </button>
+                            </form>
+                            <form action={regenerateDraft}>
+                              <input type="hidden" name="leadId" value={lead.id} />
+                              <input type="hidden" name="draftId" value={message.id} />
+                              <input type="hidden" name="tone" value={message.tone ?? "Draft"} />
+                              <input type="hidden" name="styleHint" value="random" />
+                              <button type="submit" className="flex w-full items-center justify-between rounded-xl px-2 py-1 text-xs text-[color:var(--foreground)] transition hover:bg-white/5">
+                                Random
+                              </button>
+                            </form>
+                            <div className="mt-1 border-t border-white/10 pt-1">
+                              <SendMessageModal
+                                leadId={lead.id}
+                                label="Customize"
+                                defaultBody={message.body}
+                                source="draft-edit"
+                              />
+                            </div>
+                          </div>
+                        </details>
+                        <SendMessageModal
+                          leadId={lead.id}
+                          label="Send"
+                          defaultBody={message.body}
+                          source="draft"
+                          variant="primary"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-sm text-[color:var(--foreground)]">{message.body}</p>
                   </div>
-                ))}
-              </div>
-            </GlassCard>
-          </div>
-        </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-white/10 bg-[color:var(--surface)] p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold text-[color:var(--foreground)]">
+                Activity Timeline
+              </h2>
+              <span className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                {lead.activities.length} events
+              </span>
+            </div>
+            <div className="mt-4 flex flex-col gap-3">
+              {lead.activities.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/20 bg-[color:var(--surface-strong)] p-4 text-xs text-[color:var(--muted)]">
+                  No activity yet.
+                </div>
+              ) : (
+                lead.activities.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="rounded-2xl border border-white/10 bg-[color:var(--surface-strong)] p-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[10px] uppercase tracking-[0.25em] text-[color:var(--muted)]">
+                        {formatStatus(activity.type)}
+                      </p>
+                      <p className="text-[10px] text-[color:var(--muted)]">
+                        {formatRelativeDate(activity.occurredAt)}
+                      </p>
+                    </div>
+                    {activity.note ? (
+                      <p className="mt-2 text-xs text-[color:var(--foreground)]">
+                        {activity.note}
+                      </p>
+                    ) : null}
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </main>
       </div>
-    </DynamicThemeShell>
+    </div>
   );
 }

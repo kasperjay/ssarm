@@ -1,0 +1,17 @@
+April 2026
+[0] (186,534)<a class='mec-color-hover' href='https://empireatx.com/events/emo-night-karaoke-2/' />
+	[1] (186,492)<img  />
+Apr 16 2026
+[2] (463,493)<a class='mec-color-hover' href='https://empireatx.com/events/emo-night-karaoke-2/'>Emo Night Karaoke />
+[3] (186,672)<a class='mec-color-hover' href='https://empireatx.com/events/clockwork-music-presents-jay-electronica-with-stove-god-cooks/' />
+	[4] (186,631)<img  />
+Apr 17 2026
+[5] (589,641)<a class='mec-color-hover' href='https://empireatx.com/events/clockwork-music-presents-jay-electronica-with-stove-god-cooks/'>Clockwork Music Presents: Jay Electronica with Stove God Cooks />
+[6] (186,824)<a class='mec-color-hover' href='https://empireatx.com/events/nappy-roots-at-empire-control-room/' />
+	[7] (186,783)<img  />
+Apr 18 2026
+[8] (564,792)<a class='mec-color-hover' href='https://empireatx.com/events/nappy-roots-at-empire-control-room/'>Nappy Roots at Empire Control Room />
+[9] (186,963)<a class='mec-color-hover' href='https://empireatx.com/events/autumn-pre-show-showcase-party/' />
+	[10] (186,921)<img  />
+Apr 23 2026
+[11] (602,922)<a class='mec-color-hover' href='https://empireatx.com/events/autumn-pre-show-showcase-party/'>Autumn Pre-Show Showcase + Party />

@@ -1,0 +1,4 @@
+- [ ] Implement `isBunkEvent` utility in `src/lib/utils.ts`
+- [ ] Integrate filter into `src/app/leads/discover/page.tsx`
+- [ ] Create and run `scratch/test-filter.js` to verify against bunk results
+- [ ] Final verification and walkthrough

@@ -1,0 +1,32 @@
+- `[x]` Phase 1: Add tests around score components
+  - `[x]` Create `src/lib/scoring-core.test.js` using `node:test`
+  - `[x]` Write test cases for scoring logic, capping, and qualifications
+  - `[x]` Update `package.json` to add `"test"` script
+- `[x]` Phase 1: Complete Message Delivery
+  - `[x]` Install `nodemailer` and update `package.json`
+  - `[x]` Add SMTP environment variables to `.env` configuration
+  - `[x]` Create `src/lib/email-sender.ts`
+  - `[x]` Modify `scripts/send-messages.js` to send actual emails via SMTP
+- `[x]` Phase 2: Add AgentRun Logging
+  - `[x]` Add `AgentRun` model to `prisma/schema.prisma`
+  - `[x]` Run `npx prisma db push`
+  - `[x]` Create `src/lib/agent-runner.js` wrapper
+  - `[x]` Wrap relevant agents with `withAgentRun`
+- `[x]` Phase 2: Operations Queue UI
+  - `[x]` Create `src/app/operations/page.tsx`
+  - `[x]` Surface Due Follow-ups
+  - `[x]` Surface High-score uncontacted leads
+  - `[x]` Surface Stale enrichment failures
+- `[x]` Phase 3: Structured Contact Confidence & Source Tracking
+  - `[x]` Add `ContactInfo` model to `prisma/schema.prisma`
+  - `[x]` Update `discover-contacts.js` to upsert `ContactInfo` records
+  - `[x]` Wrap `discover-contacts.js` with `withAgentRun`
+- `[x]` Phase 3: Harden Duplicate Merge & Standardizations
+  - `[x]` Add `MergeProposal` model to `prisma/schema.prisma`
+  - `[x]` Update `detect-duplicates.js` to default dry-run and persist proposals
+  - `[x]` Add Activity audit trail on merge with artist snapshot
+  - `[x]` Wrap `detect-duplicates.js` with `withAgentRun`
+  - `[x]` Update `standardize-genres.js` to default dry-run
+  - `[x]` Wrap `standardize-genres.js` with `withAgentRun`
+- `[x]` Phase 4: Replace README Boilerplate
+  - `[x]` Write full project setup, env vars, scripts, data model, and operations docs

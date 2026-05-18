@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Expanded the bunk detection filters to exclude tribute bands, event nights (Emo/Dad Rock), and common venue/city names that were leaking into discovery results. Added \"Come and Take It\" to the location blacklist and improved event title parsing.",
+  "updatedAt": "2026-04-14T19:42:19.664954100Z",
+  "version": "1"
+}

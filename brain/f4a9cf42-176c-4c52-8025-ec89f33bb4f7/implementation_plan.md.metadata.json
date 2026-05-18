@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Update the application launch and database scripts to support Podman as an alternative to Docker. This includes engine detection, machine status checks, and support for podman-compose.",
+  "updatedAt":  "2026-05-05T20:32:29.779682300Z",
+  "requestFeedback":  true
+}

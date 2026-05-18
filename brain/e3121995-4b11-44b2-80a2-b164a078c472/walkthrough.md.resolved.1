@@ -1,0 +1,25 @@
+# Lead Details Page Refinement Walkthrough
+
+The lead details page has been significantly enhanced with functional playback, improved social readability, and a more informative banner.
+
+## Key Refinements
+
+### 1. Unified Cinematic Banner with Bio
+- **Bio Integration**: The artist's bio is now featured directly in the banner, providing immediate background context.
+- **Attribution Logic**: Automatically detects and separates source attribution (e.g., Last.fm, Discogs) from the main bio text for a cleaner look.
+
+### 2. Full-Frame Instagram Discovery
+- **Enlarged View**: Instagram posts are now displayed one at a time in a large frame (`postPageSize = 1`), allowing artist visuals to take center stage.
+- **Enhanced Readability**: Captions have been moved below the image and increased in size (`text-lg/xl`), making them much easier to read at a glance.
+- **Paginated Navigation**: Smooth navigation through the post history using the dedicated control buttons.
+
+### 3. Functional Spotify Player
+- **Actual Playback**: The player mockup has been replaced with a real **Spotify Embed Iframe**. 
+- **Embed Logic**: Automatically transforms standard Spotify URLs into embeddable ones, ensuring the "Play" button works instantly.
+- **Discography Sync**: The "Previous/Next" buttons remain functional, updating the player with different releases from the artist's history.
+
+## Verification
+- [x] Spotify Embed functional for multiple releases.
+- [x] Bio properly formatted and visible in the banner.
+- [x] IG posts correctly paginated and captions readable.
+- [x] Mobile/Responsive layout preserves the new card structures.

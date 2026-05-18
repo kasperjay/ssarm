@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { PrismaClient } = require("../prisma/generated-client");
+const { PrismaClient } = require("../src/generated/prisma");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 

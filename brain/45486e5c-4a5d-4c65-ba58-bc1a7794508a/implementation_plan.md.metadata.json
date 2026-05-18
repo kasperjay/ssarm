@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan for Spectral Soundworks progress review, fixes, and new features.\nIncludes:\n- MergeProposal UI in Operations page.\n- Pipeline Health Agent script.\n- Metric snapshot table in Prisma.\n- Lead-to-Project conversion logic.\n- Outreach QA Agent.",
+  "updatedAt":  "2026-05-06T05:28:46.645775900Z",
+  "requestFeedback":  true
+}

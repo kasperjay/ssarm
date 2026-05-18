@@ -1,3 +1,5 @@
+import { ApifyClient } from "apify-client";
+
 type InstagramPostInput = {
   instagramPostId?: string | null;
   caption?: string | null;
@@ -22,22 +24,23 @@ const getNumber = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 
 const getPath = (value: unknown, path: Array<string | number>) => {
-  let current: any = value;
+  let current: unknown = value;
   for (const key of path) {
     if (Array.isArray(current)) {
       current = current[key as number];
     } else if (current && typeof current === "object") {
-      current = (current as Record<string, any>)[key as string];
+      current = (current as Record<string, unknown>)[key as string];
     } else {
       return null;
     }
   }
-  return current ?? null;
+  return current;
 };
 
 const toIsoDate = (value: unknown) => {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    const ms = value > 1e12 ? value : value * 1000;
+  const numeric = getNumber(value);
+  if (numeric !== null) {
+    const ms = numeric > 1e12 ? numeric : numeric * 1000;
     const date = new Date(ms);
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
@@ -51,14 +54,19 @@ const toIsoDate = (value: unknown) => {
 const buildInstagramPostUrl = (shortcode: string | null) =>
   shortcode ? `https://www.instagram.com/p/${shortcode}/` : null;
 
+const isInstagramPostUrl = (value: string | null) =>
+  Boolean(value) && /instagram\.com\/(p|reel|tv)\//i.test(value as string);
+
 const mapInstagramPost = (item: Record<string, unknown>): InstagramPostInput | null => {
-  const shortcode =
-    getString(item.shortCode) || getString(item.shortcode) || getString(item.code);
   const instagramPostId =
-    getString(item.id) || shortcode || getString(item.postId) || getString(item.pk);
+    getString(item.id) ||
+    getString(item.shortCode) ||
+    getString(item.shortcode) ||
+    getString(item.code);
   const caption =
     getString(item.caption) ||
     getString(item.text) ||
+    getString(item.description) ||
     getString(getPath(item, ["edge_media_to_caption", "edges", 0, "node", "text"]));
   const postedAt =
     toIsoDate(item.timestamp) ||
@@ -69,7 +77,10 @@ const mapInstagramPost = (item: Record<string, unknown>): InstagramPostInput | n
   const url =
     getString(item.url) ||
     getString(item.postUrl) ||
-    (shortcode ? `https://www.instagram.com/p/${shortcode}/` : null);
+    getString(item.link) ||
+    buildInstagramPostUrl(
+      getString(item.shortCode) || getString(item.shortcode) || getString(item.code)
+    );
   const imageUrl =
     getString(item.displayUrl) ||
     getString(item.display_url) ||
@@ -91,41 +102,6 @@ const mapInstagramPost = (item: Record<string, unknown>): InstagramPostInput | n
   };
 };
 
-async function callApifyActor(actorId: string, input: any, token: string) {
-  // Use 'acts' endpoint as it's the standard for runs
-  const normalizedActorId = actorId.replace(/\//g, "~");
-  const response = await fetch(`https://api.apify.com/v2/acts/${normalizedActorId}/runs?token=${token}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input)
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Apify call failed: ${response.status} ${text}`);
-  }
-
-  const { data } = await response.json();
-  const runId = data.id;
-  const datasetId = data.defaultDatasetId;
-
-  // Wait for completion (longer polling)
-  let status = data.status;
-  let attempts = 0;
-  while ((status === "RUNNING" || status === "READY") && attempts < 30) {
-    await new Promise(r => setTimeout(r, 2000));
-    const statusRes = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${token}`);
-    const statusData = await statusRes.json();
-    status = statusData.data.status;
-    attempts++;
-  }
-
-  const itemsRes = await fetch(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${token}`);
-  const items = await itemsRes.json();
-  console.log(`[DEBUG] Apify Actor ${actorId} finished with status ${status}. Items: ${items.length}`);
-  return items;
-}
-
 export const fetchInstagramPosts = async (
   username: string,
   limit = 6
@@ -133,46 +109,41 @@ export const fetchInstagramPosts = async (
   const token = process.env.APIFY_TOKEN;
   if (!token) return [];
 
-  const actorId = process.env.APIFY_IG_ACTOR_ID || "apify/instagram-profile-scraper";
+  const actorId = process.env.APIFY_IG_POSTS_ACTOR_ID || "apify/instagram-scraper";
   const envLimit = Number.parseInt(process.env.APIFY_IG_RESULTS_LIMIT ?? "", 10);
   const resolvedLimit = Number.isFinite(envLimit) && envLimit > 0 ? envLimit : limit;
+  const client = new ApifyClient({ token });
   const cleanUsername = username.replace(/^@/, "").trim();
   if (!cleanUsername) return [];
 
-  try {
-    const rawItems = await callApifyActor(actorId, {
-      usernames: [cleanUsername],
-      resultsLimit: resolvedLimit,
-      resultsType: "posts",
+  const runActor = async (input: Record<string, unknown>) => {
+    const run = await client.actor(actorId).call(input);
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    return items;
+  };
+
+  let items = await runActor({
+    directUrls: [`https://www.instagram.com/${cleanUsername}/`],
+    resultsType: "posts",
+    resultsLimit: resolvedLimit,
+  });
+
+  if (!items.length) {
+    items = await runActor({
+      search: cleanUsername,
       searchType: "user",
       searchLimit: 1,
-    }, token);
-
-    // Some actors return posts in a 'latestPosts' array inside a profile item
-    // Others return flat items. We'll handle both.
-    let items = rawItems;
-    if (rawItems[0]?.latestPosts && Array.isArray(rawItems[0].latestPosts)) {
-      items = [...rawItems[0].latestPosts, ...rawItems.slice(1)];
-    }
-
-    const mapped = items
-      .map((item: any) => mapInstagramPost(item as Record<string, unknown>))
-      .filter((item: any): item is InstagramPostInput => Boolean(item));
-
-    // Dedup by instagramPostId
-    const seen = new Set<string>();
-    const unique = mapped.filter((p: InstagramPostInput) => {
-      if (!p.instagramPostId) return true;
-      if (seen.has(p.instagramPostId)) return false;
-      seen.add(p.instagramPostId);
-      return true;
+      resultsType: "posts",
+      resultsLimit: resolvedLimit,
     });
-
-    return unique.slice(0, resolvedLimit);
-  } catch (error) {
-    console.error("fetchInstagramPosts error", error);
-    return [];
   }
+
+  const mapped = items
+    .map((item) => mapInstagramPost(item as Record<string, unknown>))
+    .filter((item): item is InstagramPostInput => Boolean(item))
+    .filter((item) => Boolean(item.imageUrl));
+
+  return mapped.slice(0, resolvedLimit);
 };
 
 export const fetchInstagramProfile = async (
@@ -181,45 +152,56 @@ export const fetchInstagramProfile = async (
   const token = process.env.APIFY_TOKEN;
   if (!token) return null;
 
-  const actorId = process.env.APIFY_IG_ACTOR_ID || "apify/instagram-profile-scraper";
+  const actorId =
+    process.env.APIFY_IG_PROFILE_ACTOR_ID || "apify/instagram-scraper";
+  const client = new ApifyClient({ token });
   const cleanUsername = username.replace(/^@/, "").trim();
   if (!cleanUsername) return null;
 
-  try {
-    const items = await callApifyActor(actorId, {
-      usernames: [cleanUsername],
-      resultsLimit: 1,
-      searchType: "user",
-    }, token);
+  const run = await client.actor(actorId).call({
+    directUrls: [`https://www.instagram.com/${cleanUsername}/`],
+    resultsType: "details",
+    resultsLimit: 1,
+  });
 
-    const profile = items[0] as Record<string, unknown> | undefined;
-    if (!profile) return null;
+  const { items } = await client.dataset(run.defaultDatasetId).listItems();
+  const raw = items[0] as Record<string, unknown> | undefined;
+  if (!raw) return null;
+  const profile =
+    (raw.user as Record<string, unknown> | undefined) ||
+    (raw.profile as Record<string, unknown> | undefined) ||
+    raw;
 
-    const profileImageUrl =
-      getString(profile.profilePicUrl) ??
-      getString(profile.profilePicUrlHd) ??
-      getString(profile.profilePicUrlHD) ??
-      getString(profile.profile_pic_url_hd as string | undefined) ??
-      getString(profile.profile_pic_url as string | undefined) ??
-      getString(profile.avatar) ??
-      getString(profile.avatarUrl) ??
-      getString(profile.profileImageUrl) ??
-      getString(profile.profilePictureUrl);
+  const profileImageUrl =
+    getString(profile.profilePicUrl) ??
+    getString(profile.profilePicUrlHd) ??
+    getString(profile.profilePicUrlHD) ??
+    getString(profile.profile_pic_url_hd as string | undefined) ??
+    getString(profile.profile_pic_url as string | undefined) ??
+    getString(profile.avatar) ??
+    getString(profile.avatarUrl) ??
+    getString(profile.profileImageUrl) ??
+    getString(profile.profilePictureUrl) ??
+    getString(profile.profile_picture as string | undefined);
 
-    return {
-      fullName: getString(profile.fullName),
-      bio: getString(profile.biography) ?? getString(profile.bio),
-      followersCount: getNumber(profile.followersCount),
-      businessEmail: getString(profile.businessEmail) ?? getString(profile.email),
-      externalUrl:
-        getString(profile.externalUrl) ??
-        getString(profile.externalURL) ??
-        getString(profile.website) ??
-        getString(profile.websiteUrl),
-      profileImageUrl,
-    };
-  } catch (error) {
-    console.error("fetchInstagramProfile error", error);
-    return null;
-  }
+  return {
+    fullName: getString(profile.fullName),
+    bio: getString(profile.biography) ?? getString(profile.bio),
+    followersCount:
+      getNumber(profile.followersCount) ??
+      getNumber(profile.followers) ??
+      getNumber(profile.followedBy) ??
+      getNumber(profile.edge_followed_by?.count) ??
+      getNumber(profile.followersCountByRegion) ??
+      getNumber(
+        (profile.followed_by as Record<string, unknown> | undefined)?.count as number
+      ),
+    businessEmail: getString(profile.businessEmail) ?? getString(profile.email),
+    externalUrl:
+      getString(profile.externalUrl) ??
+      getString(profile.externalURL) ??
+      getString(profile.website) ??
+      getString(profile.websiteUrl),
+    profileImageUrl,
+  };
 };

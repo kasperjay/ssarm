@@ -1,0 +1,71 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+Operations Queue
+Action items and pipeline bottlenecks requiring manual review.
+Due Follow-ups
+3
+items
+[0] (44,204)<a class='font-bold text-lg hover:text-[#00FF9D] transition-colors' href='/leads/cmnyel5ed00075cmbl6a6f5j6'>Phoebe Bridgers />
+Status:
+FOLLOW_UP
+94
+days
+overdue
+Last Activity:
+[SCORE-UPDATE] Score: 52/100. proximity: Los Angeles (4pts); 2,672,027 followers (5pts); active posting (72d ago, 9pts); 11 releases (15pts); profile 100% complete (10pts); engagement signals (3pts); genre "Indie folk" (6pts)
+[1] (19,335)<a class='font-bold text-lg hover:text-[#00FF9D] transition-colors' href='/leads/cmnyel5vd000d5cmb3tn6xp5m'>Tycho />
+Status:
+QUALIFIED
+89
+days
+overdue
+Last Activity:
+[SCORE-UPDATE] Score: 56/100. proximity: San Francisco (4pts); 900,000 followers (5pts); active posting (41d ago, 12pts); 11 releases (15pts); profile 100% complete (10pts); engagement signals (4pts); genre "chillwave" (6pts)
+[2] (28,467)<a class='font-bold text-lg hover:text-[#00FF9D] transition-colors' href='/leads/cmnyel4z500015cmbhnw6prh0'>Billie Eilish />
+Status:
+NEW
+87
+days
+overdue
+Last Activity:
+[SCORE-UPDATE] Score: 52/100. proximity: Los Angeles (4pts); 125,260,395 followers (5pts); active posting (71d ago, 9pts); 11 releases (15pts); profile 100% complete (10pts); engagement signals (3pts); genre "Alt-pop" (6pts)
+Ready to Message
+20
+items
+[3] (46,667)<a class='font-bold text-lg hover:text-[#00FF9D] transition-colors' href='/leads/cmnz0zy40016hmgmbu2uhnf65'>MIDNITE HELLION />
+Genre:
+heavy metal
+82
+/100
+[4] (21,739)<a class='font-bold text-lg hover:text-[#00FF9D] transition-colors' href='/leads/cmnz13c5w01hemgmb56si4tk6'>BRUKA />
+Genre:
+black metal
+82
+/100
+[5] (46,811)<a class='font-bold text-lg hover:text-[#00FF9D] transition-colors' href='/leads/cmnz1ira602w5mgmb7bmy9frr'>TRANSIT METHOD />
+Genre:
+progressive metal
+82
+/100
+[6] (39,882)<a class='font-bold text-lg hover:text-[#00FF9D] transition-colors' href='/leads/cmnz19l0w0241mgmbaycq513r'>THE EX-FACES />
+Genre:
+glam rock
+82
+/100
+THE ALMAS
+Genre:
+hard rock
+82
+/100
+[7] (14,24)<a class='flex flex-col items-center gap-0.5 text-accent' href='/' />
+	[8] (14,34)<span >Home />
+[9] (36,24)<a class='flex flex-col items-center gap-0.5 text-white/40 hover:text-accent transition-colors' href='/leads/discover' />
+	[10] (36,34)<span >Search />
+[11] (59,24)<a class='flex flex-col items-center gap-0.5 text-white/40 hover:text-accent transition-colors' href='/leads/drafts' />
+	[12] (59,34)<span >Drafts />
+[13] (86,24)<a class='flex flex-col items-center gap-0.5 text-white/40 hover:text-accent transition-colors' href='/projects' />
+	[14] (86,34)<span >Projects />
+
+</current_dom>

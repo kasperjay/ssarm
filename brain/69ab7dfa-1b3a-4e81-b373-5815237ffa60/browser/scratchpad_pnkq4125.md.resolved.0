@@ -1,0 +1,10 @@
+# Mobile Responsiveness Verification Plan
+
+- [ ] Verify Dashboard (Home) at 375px width
+- [ ] Verify Lead Detail page at 375px width
+- [ ] Verify Lead Discovery page at 375px width
+- [ ] Verify Projects page at 375px width
+
+## Notes
+- Resolution: 375x812 (iPhone 12 Pro)
+- Target: http://localhost:3000

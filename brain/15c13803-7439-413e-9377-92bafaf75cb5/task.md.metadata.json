@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_TASK",
+  "summary": "Finalized tasks for fixing the Empire crawler. All filters and cleaning logic have been updated and verified with a 100% pass rate in the verification script.",
+  "updatedAt": "2026-04-14T21:50:07.568361900Z",
+  "version": "1"
+}

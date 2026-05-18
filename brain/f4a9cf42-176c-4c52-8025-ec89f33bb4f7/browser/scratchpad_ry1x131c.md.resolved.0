@@ -1,0 +1,14 @@
+# Novu Verification Task Checklist
+
+- [x] Navigate to http://localhost:3000
+- [x] Verify page load and capture initial screenshot
+- [ ] Check for Novu bell icon in the left sidebar
+- [ ] Check console logs for any Novu-related errors
+- [ ] Click the bell icon and verify popover opens
+- [ ] Capture screenshot of the popover
+- [ ] Report final findings
+
+## Findings
+- Application failed to load with a `PrismaClientKnownRequestError`.
+- `Invalid prisma.lead.findMany() invocation` shown on the home page.
+- Console logs still show build errors related to missing default exports in `GlassCard.tsx` and `prisma.ts`, despite the main agent's attempt to fix them.

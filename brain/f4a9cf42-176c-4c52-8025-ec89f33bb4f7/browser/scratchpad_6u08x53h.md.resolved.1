@@ -1,0 +1,17 @@
+# Task: Verify Novu Inbox Integration
+
+## Checklist
+- [x] Take screenshot of current page (/leads)
+- [x] Navigate to home page (/)
+- [x] Wait 5 seconds for load
+- [x] Take screenshot of home page
+- [ ] Locate bell icon in sidebar
+- [ ] Click bell icon
+- [ ] Take screenshot of notification popover
+- [ ] Report findings (visibility, popover, errors)
+
+## Observations
+- Initial screenshot of /leads taken.
+- Navigated to / and encountered a PrismaClientKnownRequestError (server-side exception).
+- This error is likely due to the database not being migrated for new models (AgentRun, ContactInfo, MergeProposal).
+- Need to check if the sidebar and Novu bell icon are still rendered despite the error.

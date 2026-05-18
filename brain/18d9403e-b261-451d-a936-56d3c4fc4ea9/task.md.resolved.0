@@ -1,0 +1,6 @@
+- [ ] Create verification script `scratch/test-location-fix.js`
+- [ ] Modify `src/lib/location.ts`
+  - [ ] Remove `venueName` from Stage 1 keys
+  - [ ] Update `validLocation` with better blacklisting and hyphen check
+- [ ] Run verification script and confirm fix
+- [ ] Create walkthrough

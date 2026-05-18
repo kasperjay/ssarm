@@ -23,44 +23,6 @@ const getInstagramHandle = (payload) => {
   return payload?.igUsername || "";
 };
 
-/* ─── Send Queue ─────────────────────────────────────────────
- * All /ig/send requests are added to this queue and processed
- * one at a time. This prevents the dm-send-lock contention that
- * occurs when multiple sends are triggered simultaneously.
- * ─────────────────────────────────────────────────────────── */
-const sendQueue = [];
-let queueRunning = false;
-
-function runQueue() {
-  if (queueRunning || sendQueue.length === 0) return;
-  queueRunning = true;
-
-  const { payloadFile, resolve } = sendQueue.shift();
-  const scriptPath = path.join(BOT_ROOT, "run_ig_send.sh");
-
-  console.log(`▶ Queue processing: ${payloadFile} (${sendQueue.length} remaining)`);
-
-  const child = spawn("/bin/bash", [scriptPath], {
-    env: { ...process.env, HOOK_: payloadFile },
-    stdio: "inherit", // pipe output to server console for visibility
-  });
-
-  child.on("exit", (code) => {
-    console.log(`■ Queue item done (exit ${code}): ${payloadFile}`);
-    queueRunning = false;
-    resolve(code);
-    // Process next item after a short breath
-    setTimeout(runQueue, 500);
-  });
-
-  child.on("error", (err) => {
-    console.error("Queue runner error:", err);
-    queueRunning = false;
-    resolve(1);
-    setTimeout(runQueue, 500);
-  });
-}
-
 app.post("/ig/send", async (req, res) => {
   const secret = req.header("x-webhook-secret") || req.header("x-secret") || "";
   if (!INBOUND_SECRET || secret !== INBOUND_SECRET) {
@@ -89,22 +51,19 @@ app.post("/ig/send", async (req, res) => {
     return res.status(500).json({ ok: false, error: "failed to persist payload" });
   }
 
-  const queuePos = sendQueue.length + (queueRunning ? 1 : 0);
-  console.log(`✅ inbound /ig/send → @${igHandle} (queue position: ${queuePos})`);
+  console.log("✅ inbound /ig/send", new Date().toISOString());
+  console.log(`Payload saved: ${payloadFile}`);
 
-  const itemDone = new Promise((resolve) => {
-    sendQueue.push({ payloadFile, resolve });
+  const scriptPath = path.join(BOT_ROOT, "run_ig_send.sh");
+  const child = spawn("/bin/bash", [scriptPath], {
+    env: { ...process.env, HOOK_: payloadFile },
+    stdio: "ignore",
+    detached: true,
   });
 
-  // Kick off queue processing (no-op if already running)
-  runQueue();
+  child.unref();
 
-  return res.status(202).json({
-    ok: true,
-    queued: true,
-    queuePosition: queuePos,
-    payloadFile,
-  });
+  return res.status(202).json({ ok: true, queued: true, payloadFile });
 });
 
 app.get("/ig/status", async (req, res) => {

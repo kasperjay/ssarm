@@ -1,0 +1,80 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+404
+This page could not be found.
+[0] (9,34)<a class='flex flex-col items-center gap-0.5 text-accent' href='/' />
+	[1] (9,44)<span >Home />
+[2] (31,34)<a class='flex flex-col items-center gap-0.5 text-white/40 hover:text-accent transition-colors' href='/leads/discover' />
+	[3] (31,44)<span >Search />
+[4] (54,34)<a class='flex flex-col items-center gap-0.5 text-white/40 hover:text-accent transition-colors' href='/leads/drafts' />
+	[5] (54,44)<span >Drafts />
+[6] (81,34)<a class='flex flex-col items-center gap-0.5 text-white/40 hover:text-accent transition-colors' href='/projects' />
+	[7] (81,44)<span >Projects />
+[8] (117,34)<button class='nv-popoverTrigger nv-button nv-inbox__popoverTrigger 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-2.5 nt-rounded-xl before:nt-rounded-xl after:nt-rounded-xl focus-visible:nt-rounded-xl 🔔' />
+	[9] (117,34)<span  />
+		[10] (117,34)<div  />
+		[11] (129,14)<span  />
+[12] (122,101)<button class='nv-dropdownTrigger nv-button nv-inboxStatus__dropdownTrigger 🔔 🔔 nt-relative nt-outline-none focus-visible:nt-outline-nonefocus-visible:nt-ring-2 🔔 nt-inline-flex nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-rounded-md focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 nt-gap-0.5' />
+	[13] (116,101)<span >Inbox />
+[14] (295,101)<button class='nv-dropdownTrigger nv-button nv-moreActions__dropdownTrigger 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md 🔔 nt-relative nt-transition nt-outline-none focus-visible:nt-outline-nonefocus-visible:nt-ring-2 focus-visible:nt-ring-primary focus-visible:nt-ring-offset-2 🔔' />
+[15] (319,101)<button class='nv-button nv-preferences__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md' />
+[16] (217,170)<a class='nv-notification 🔔 nt-transition nt-w-full nt-text-sm hover:nt-bg-primary-alpha-25 nt-group nt-relative nt-flex nt-items-start nt-p-4 nt-gap-2 [&:not(:first-child)]:nt-border-t nt-border-neutral-alpha-100 nt-cursor-pointer' />
+	[17] (98,170)<div  />
+	[18] (116,154)<img  />
+	[19] (225,170)<div  />
+		[20] (225,160)<div  />
+			[21] (225,146)<p >Basic Notification />
+			[22] (225,167)<p >No buttons, just a simple message. Perfect for announcements or alerts />
+		[23] (309,147)<div  />
+			[24] (296,147)<button class='nv-button nv-notificationRead__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md' />
+			[25] (309,147)<button class='nv-dropdownTrigger nv-button nv-notificationSnooze__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md 🔔 nt-relative nt-transition nt-outline-none focus-visible:nt-outline-nonefocus-visible:nt-ring-2 focus-visible:nt-ring-primary focus-visible:nt-ring-offset-2' />
+			[26] (322,147)<button class='nv-button nv-notificationArchive__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md' />
+		[27] (225,195)<div >15h ago />
+[28] (217,281)<a class='nv-notification 🔔 nt-transition nt-w-full nt-text-sm hover:nt-bg-primary-alpha-25 nt-group nt-relative nt-flex nt-items-start nt-p-4 nt-gap-2 [&:not(:first-child)]:nt-border-t nt-border-neutral-alpha-100 nt-cursor-pointer' />
+	[29] (98,281)<div  />
+	[30] (116,249)<img  />
+	[31] (225,281)<div  />
+		[32] (225,254)<div  />
+			[33] (225,241)<p >Notification with a Single Action />
+			[34] (225,261)<p >Use a single, clear
+to send users to a specific page or feature />
+				[35] (208,254)<strong >Primary Action />
+		[36] (309,242)<div  />
+			[37] (296,242)<button class='nv-button nv-notificationRead__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md' />
+			[38] (309,242)<button class='nv-dropdownTrigger nv-button nv-notificationSnooze__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md 🔔 nt-relative nt-transition nt-outline-none focus-visible:nt-outline-nonefocus-visible:nt-ring-2 focus-visible:nt-ring-primary focus-visible:nt-ring-offset-2' />
+			[39] (322,242)<button class='nv-button nv-notificationArchive__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md' />
+		[40] (225,295)<div  />
+			[41] (158,295)<button class='nv-button nv-notificationPrimaryAction__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-content-[""] before:nt-content-[""] [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 nt-bg-gradient-to-b nt-from-20% nt-from-primary-foreground-alpha-200 nt-to-transparent nt-bg-primary nt-text-primary-foreground nt-shadow-[0_0_0_0.5px_var(--nv-color-primary-600)] nt-relative before:nt-absolute before:nt-inset-0 before:nt-border before:nt-border-primary-foreground-alpha-100 after:nt-absolute after:nt-inset-0 after:nt-opacity-0 hover:after:nt-opacity-100 after:nt-transition-opacity after:nt-bg-gradient-to-b after:nt-from-primary-foreground-alpha-50 after:nt-to-transparent nt-h-6 nt-px-2 nt-py-1 nt-rounded-md focus-visible:nt-rounded-md before:nt-rounded-md after:nt-rounded-md'>Primary Action />
+		[42] (225,322)<div >15h ago />
+[43] (217,407)<a class='nv-notification 🔔 nt-transition nt-w-full nt-text-sm hover:nt-bg-primary-alpha-25 nt-group nt-relative nt-flex nt-items-start nt-p-4 nt-gap-2 [&:not(:first-child)]:nt-border-t nt-border-neutral-alpha-100 nt-cursor-pointer' />
+	[44] (98,407)<div  />
+	[45] (116,375)<img  />
+	[46] (225,407)<div  />
+		[47] (225,381)<div  />
+			[48] (225,367)<p >Notification with Multiple Actions />
+			[49] (225,388)<p >Add
+and
+to give users more choices, like
+or
+. />
+				[50] (156,381)<strong >Primary />
+				[51] (212,381)<strong >Secondary Actions />
+				[52] (177,395)<strong >View />
+				[53] (205,395)<strong >Dismiss />
+		[54] (309,368)<div  />
+			[55] (296,368)<button class='nv-button nv-notificationRead__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md' />
+			[56] (309,368)<button class='nv-dropdownTrigger nv-button nv-notificationSnooze__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md 🔔 nt-relative nt-transition nt-outline-none focus-visible:nt-outline-nonefocus-visible:nt-ring-2 focus-visible:nt-ring-primary focus-visible:nt-ring-offset-2' />
+			[57] (322,368)<button class='nv-button nv-notificationArchive__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-absolute after:nt-content-[""] before:nt-content-[""] before:nt-absolute [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 hover:nt-bg-neutral-alpha-100 nt-text-foreground-alpha-600 hover:nt-text-foreground-alpha-800 nt-p-1 nt-rounded-md after:nt-rounded-md before:nt-rounded-md focus-visible:nt-rounded-md' />
+		[58] (225,421)<div  />
+			[59] (158,421)<button class='nv-button nv-notificationPrimaryAction__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-content-[""] before:nt-content-[""] [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 nt-bg-gradient-to-b nt-from-20% nt-from-primary-foreground-alpha-200 nt-to-transparent nt-bg-primary nt-text-primary-foreground nt-shadow-[0_0_0_0.5px_var(--nv-color-primary-600)] nt-relative before:nt-absolute before:nt-inset-0 before:nt-border before:nt-border-primary-foreground-alpha-100 after:nt-absolute after:nt-inset-0 after:nt-opacity-0 hover:after:nt-opacity-100 after:nt-transition-opacity after:nt-bg-gradient-to-b after:nt-from-primary-foreground-alpha-50 after:nt-to-transparent nt-h-6 nt-px-2 nt-py-1 nt-rounded-md focus-visible:nt-rounded-md before:nt-rounded-md after:nt-rounded-md'>Primary Action />
+			[60] (222,421)<button class='nv-button nv-notificationSecondaryAction__button 🔔 nt-inline-flex nt-gap-4 nt-items-center nt-justify-center nt-whitespace-nowrap nt-text-sm nt-font-medium nt-transition-colors disabled:nt-pointer-events-none disabled:nt-opacity-50 after:nt-content-[""] before:nt-content-[""] [&_svg]:nt-pointer-events-none [&_svg]:nt-shrink-0 focus-visible:nt-outline-none focus-visible:nt-ring-2 focus-visible:nt-ring-ring focus-visible:nt-ring-offset-2 nt-bg-secondary nt-text-secondary-foreground nt-shadow-[0_0_0_0.5px_var(--nv-color-secondary-600)] nt-relative before:nt-absolute before:nt-inset-0 before:nt-border before:nt-border-secondary-foreground-alpha-100 after:nt-absolute after:nt-inset-0 after:nt-opacity-0 hover:after:nt-opacity-100 after:nt-transition-opacity after:nt-bg-gradient-to-b after:nt-from-secondary-foreground-alpha-50 after:nt-to-transparent nt-h-6 nt-px-2 nt-py-1 nt-rounded-md focus-visible:nt-rounded-md before:nt-rounded-md after:nt-rounded-md'>Secondary Action />
+		[61] (225,448)<div >15h ago />
+Development mode
+•
+[62] (247,645)<a class='nt-z-10 nt-flex nt-items-center nt-gap-1 nt-justify-center' href='https://go.novu.co/powered?ref=localhost' />
+	[63] (235,645)<span >Inbox by />
+	[64] (264,645)<span >Novu />
+
+</current_dom>

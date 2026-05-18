@@ -1,0 +1,8 @@
+# Novu Inbox Integration Verification Plan
+
+- [ ] Open http://localhost:3000
+- [ ] Wait for page load
+- [ ] Capture screenshot
+- [ ] Verify bell icon visibility in sidebar
+- [ ] Check console logs for errors
+- [ ] Report findings

@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { PrismaClient } = require("../prisma/generated-client");
+const { PrismaClient } = require("../src/generated/prisma");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 
@@ -24,8 +24,9 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
-
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 // String similarity utilities
 function normalizeString(str) {
@@ -113,14 +114,15 @@ function findDuplicates(artists, similarityThreshold = 0.85) {
   return duplicates;
 }
 
-async function mergeArtists(primaryArtistId, duplicateArtistId, proposalId, dryRun = true) {
+async function mergeArtists(primaryArtistId, duplicateArtistId, dryRun = false) {
   const primary = await prisma.artist.findUnique({ where: { id: primaryArtistId } });
-  const duplicate = await prisma.artist.findUnique({ where: { id: duplicateArtistId }, include: { leads: true } });
+  const duplicate = await prisma.artist.findUnique({ where: { id: duplicateArtistId } });
 
   if (!primary || !duplicate) {
     return { success: false, error: "Artist not found" };
   }
 
+  // Merge strategy: Keep primary, take missing data from duplicate
   const mergedData = {
     name: primary.name,
     instagramHandle: primary.instagramHandle || duplicate.instagramHandle,
@@ -129,78 +131,76 @@ async function mergeArtists(primaryArtistId, duplicateArtistId, proposalId, dryR
     city: primary.city || duplicate.city,
     bio: primary.bio || duplicate.bio,
     officialSiteUrl: primary.officialSiteUrl || duplicate.officialSiteUrl,
+    bandcampUrl: primary.bandcampUrl || duplicate.bandcampUrl,
     emails: [...new Set([...(primary.emails || []), ...(duplicate.emails || [])])],
   };
 
   if (!dryRun) {
-    const snapshot = JSON.stringify({
-      id: duplicate.id,
-      name: duplicate.name,
-      instagramHandle: duplicate.instagramHandle,
-      spotifyArtistId: duplicate.spotifyArtistId,
-      genre: duplicate.genre,
-      city: duplicate.city,
-      bio: duplicate.bio,
-      emails: duplicate.emails,
+    // Move all leads from duplicate to primary
+    await prisma.lead.updateMany({
+      where: { artistId: duplicateArtistId },
+      data: { artistId: primaryArtistId },
     });
 
-    // Move all leads, releases, Instagram posts from duplicate to primary
-    await prisma.lead.updateMany({ where: { artistId: duplicateArtistId }, data: { artistId: primaryArtistId } });
-    await prisma.release.updateMany({ where: { artistId: duplicateArtistId }, data: { artistId: primaryArtistId } });
-    await prisma.instagramPost.updateMany({ where: { artistId: duplicateArtistId }, data: { artistId: primaryArtistId } });
+    // Move all releases from duplicate to primary
+    await prisma.release.updateMany({
+      where: { artistId: duplicateArtistId },
+      data: { artistId: primaryArtistId },
+    });
+
+    // Move all Instagram posts from duplicate to primary
+    await prisma.instagramPost.updateMany({
+      where: { artistId: duplicateArtistId },
+      data: { artistId: primaryArtistId },
+    });
 
     // Update primary with merged data
-    await prisma.artist.update({ where: { id: primaryArtistId }, data: mergedData });
-
-    // Leave audit Activity on any lead now associated with primary
-    const primaryLeads = await prisma.lead.findMany({ where: { artistId: primaryArtistId }, take: 5 });
-    for (const lead of primaryLeads) {
-      await prisma.activity.create({
-        data: {
-          leadId: lead.id,
-          type: "NOTE",
-          note: `[MERGE] Merged duplicate artist "${duplicate.name}" (${duplicate.id}) into this record. Snapshot: ${snapshot}`,
-        },
-      });
-    }
-
-    // Mark the proposal as applied
-    if (proposalId) {
-      await prisma.mergeProposal.update({
-        where: { id: proposalId },
-        data: { status: "APPLIED" },
-      });
-    }
+    await prisma.artist.update({
+      where: { id: primaryArtistId },
+      data: mergedData,
+    });
 
     // Delete the duplicate
-    await prisma.artist.delete({ where: { id: duplicateArtistId } });
+    await prisma.artist.delete({
+      where: { id: duplicateArtistId },
+    });
 
     return { success: true, primaryId: primaryArtistId, merged: duplicateArtistId };
   }
 
-  return { success: true, primaryId: primaryArtistId, merged: duplicateArtistId, dryRun: true, preview: mergedData };
+  return {
+    success: true,
+    primaryId: primaryArtistId,
+    merged: duplicateArtistId,
+    dryRun: true,
+    preview: mergedData,
+  };
 }
 
-
 async function main() {
-  // Default to dry-run unless --live is explicitly passed
-  const dryRun = !process.argv.includes("--live");
+  const dryRun = process.argv.includes("--dry-run");
   const thresholdIndex = process.argv.indexOf("--threshold");
   const threshold = thresholdIndex !== -1 ? parseFloat(process.argv[thresholdIndex + 1]) : 0.85;
   const autoMerge = process.argv.includes("--auto-merge");
 
   console.log("🔍 Duplicate Artist Detection & Merging");
-  console.log(`Mode: ${dryRun ? "DRY RUN (default -- pass --live to apply)" : "LIVE"} | Similarity Threshold: ${(threshold * 100).toFixed(0)}%`);
+  console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"} | Similarity Threshold: ${(threshold * 100).toFixed(0)}%`);
   if (autoMerge) console.log("Strategy: Auto-merge HIGH confidence duplicates");
   console.log();
 
+  // Fetch all artists
   const artists = await prisma.artist.findMany({
-    include: { _count: { select: { leads: true, releases: true } } },
+    include: {
+      _count: {
+        select: { leads: true, releases: true },
+      },
+    },
   });
 
   if (artists.length === 0) {
     console.log("✓ No artists to check");
-    return { duplicatesFound: 0, merged: 0 };
+    await prisma.$disconnect();
+    process.exit(0);
   }
 
   console.log(`Checking ${artists.length} artists for duplicates...`);
@@ -210,85 +210,66 @@ async function main() {
 
   if (duplicates.length === 0) {
     console.log("✅ No duplicates found");
-    return { duplicatesFound: 0, merged: 0 };
+    await prisma.$disconnect();
+    process.exit(0);
   }
 
   console.log(`🚨 Found ${duplicates.length} potential duplicates:\n`);
 
+  // Group by certainty
   const highConfidence = duplicates.filter((d) => d.spotifyMatch || d.instagramMatch);
-  const mediumConfidence = duplicates.filter((d) => !d.spotifyMatch && !d.instagramMatch && parseFloat(d.similarity) > 0.95);
-  const lowConfidence = duplicates.filter((d) => !d.spotifyMatch && !d.instagramMatch && parseFloat(d.similarity) <= 0.95);
+  const mediumConfidence = duplicates.filter(
+    (d) => !d.spotifyMatch && !d.instagramMatch && parseFloat(d.similarity) > 0.95
+  );
+  const lowConfidence = duplicates.filter(
+    (d) => !d.spotifyMatch && !d.instagramMatch && parseFloat(d.similarity) <= 0.95
+  );
 
   if (highConfidence.length > 0) {
     console.log("🔴 HIGH CONFIDENCE (exact IDs):");
-    highConfidence.forEach((d) => console.log(`  ${d.primaryName} ↔ ${d.duplicateName} (${d.similarity}%, ${d.mergeReason})`));
+    highConfidence.forEach((d) => {
+      console.log(`  ${d.primaryName} ↔ ${d.duplicateName} (${d.similarity}%, ${d.mergeReason})`);
+    });
     console.log();
   }
+
   if (mediumConfidence.length > 0) {
     console.log("🟡 MEDIUM CONFIDENCE (95%+ similarity):");
-    mediumConfidence.forEach((d) => console.log(`  ${d.primaryName} ↔ ${d.duplicateName} (${d.similarity}%)`));
+    mediumConfidence.forEach((d) => {
+      console.log(`  ${d.primaryName} ↔ ${d.duplicateName} (${d.similarity}%)`);
+    });
     console.log();
   }
+
   if (lowConfidence.length > 0) {
     console.log("🟢 LOW CONFIDENCE (below 95%):");
-    lowConfidence.slice(0, 5).forEach((d) => console.log(`  ${d.primaryName} ↔ ${d.duplicateName} (${d.similarity}%)`));
-    if (lowConfidence.length > 5) console.log(`  ... and ${lowConfidence.length - 5} more`);
+    lowConfidence.slice(0, 5).forEach((d) => {
+      console.log(`  ${d.primaryName} ↔ ${d.duplicateName} (${d.similarity}%)`);
+    });
+    if (lowConfidence.length > 5) {
+      console.log(`  ... and ${lowConfidence.length - 5} more`);
+    }
     console.log();
   }
 
-  // Always persist proposals to DB for review
-  if (!dryRun || autoMerge) {
-    console.log("💾 Persisting merge proposals to database...");
-    for (const dup of duplicates) {
-      const confidence = (dup.spotifyMatch || dup.instagramMatch) ? "HIGH" : parseFloat(dup.similarity) > 0.95 ? "MEDIUM" : "LOW";
-      try {
-        await prisma.mergeProposal.upsert({
-          where: { duplicateArtistId: dup.duplicate },
-          create: {
-            primaryArtistId: dup.primary,
-            duplicateArtistId: dup.duplicate,
-            primaryName: dup.primaryName,
-            duplicateName: dup.duplicateName,
-            similarityScore: parseFloat(dup.similarity),
-            confidence,
-            reason: dup.mergeReason,
-            status: "PENDING",
-          },
-          update: {
-            primaryArtistId: dup.primary,
-            primaryName: dup.primaryName,
-            similarityScore: parseFloat(dup.similarity),
-            confidence,
-            reason: dup.mergeReason,
-            status: "PENDING",
-          },
-        });
-      } catch (err) {
-        console.error(`  Failed to upsert proposal for ${dup.duplicateName}: ${err.message}`);
-      }
-    }
-    console.log(`  Saved ${duplicates.length} proposals.\n`);
-  }
-
-  let mergedCount = 0;
-
+  // Auto-merge if enabled
   if (autoMerge && !dryRun) {
     console.log("🔄 Auto-merging high confidence duplicates...");
+    let merged = 0;
     for (const dup of highConfidence) {
       try {
-        const proposal = await prisma.mergeProposal.findUnique({ where: { duplicateArtistId: dup.duplicate } });
-        const result = await mergeArtists(dup.primary, dup.duplicate, proposal?.id || null, false);
+        const result = await mergeArtists(dup.primary, dup.duplicate, false);
         if (result.success) {
-          mergedCount++;
+          merged++;
           console.log(`  ✓ Merged ${dup.duplicateName} into ${dup.primaryName}`);
         }
       } catch (error) {
         console.error(`  ✗ Failed to merge ${dup.duplicateName}: ${error.message}`);
       }
     }
-    console.log(`\nMerged ${mergedCount} artists`);
+    console.log(`\nMerged ${merged} artists`);
   } else if (autoMerge && dryRun) {
-    console.log("⚠️  DRY RUN: Would merge high confidence duplicates (pass --live to apply)");
+    console.log("⚠️  DRY RUN: Would merge high confidence duplicates");
   }
 
   console.log();
@@ -299,18 +280,14 @@ async function main() {
   console.log(`  Low confidence: ${lowConfidence.length}`);
 
   if (dryRun && !autoMerge) {
-    console.log("\n💡 Tip: Run with --live --auto-merge to apply high confidence merges");
+    console.log("\n💡 Tip: Run with --auto-merge to merge high confidence duplicates");
   }
 
-  return { duplicatesFound: duplicates.length, merged: mergedCount };
+  await prisma.$disconnect();
+  process.exit(0);
 }
 
-withAgentRun("detect-duplicates", { dryRun: !process.argv.includes("--live") }, main)
-  .catch((error) => {
-    console.error("Fatal error:", error.message);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-    await pool.end();
-  });
+main().catch((error) => {
+  console.error("Fatal error:", error.message);
+  process.exit(1);
+});

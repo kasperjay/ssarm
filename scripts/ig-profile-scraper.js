@@ -2,7 +2,9 @@ const { ApifyClient } = require("apify-client");
 
 const CONFIG = {
   apifyToken: process.env.APIFY_TOKEN,
-  actorId: process.env.APIFY_IG_ACTOR_ID || "apify/instagram-profile-scraper",
+  profileActorId:
+    process.env.APIFY_IG_PROFILE_ACTOR_ID || "apify/instagram-scraper",
+  postsActorId: process.env.APIFY_IG_POSTS_ACTOR_ID || "apify/instagram-scraper",
   ingestUrl: process.env.INGEST_URL || "http://localhost:3000/api/ingest",
   resultsLimit: Number.parseInt(process.env.APIFY_IG_RESULTS_LIMIT || "6", 10),
 };
@@ -99,24 +101,38 @@ const extractEmailsFromText = (value) => {
 };
 
 const fetchProfile = async (client, username) => {
-  const run = await client.actor(CONFIG.actorId).call({
-    usernames: [username],
+  const run = await client.actor(CONFIG.profileActorId).call({
+    directUrls: [`https://www.instagram.com/${username}/`],
+    resultsType: "details",
     resultsLimit: 1,
-    searchType: "user",
   });
   const { items } = await client.dataset(run.defaultDatasetId).listItems();
   return items[0] || null;
 };
 
 const fetchPosts = async (client, username, limit) => {
-  const run = await client.actor(CONFIG.actorId).call({
-    usernames: [username],
-    resultsLimit: limit,
+  const runActor = async (input) => {
+    const run = await client.actor(CONFIG.postsActorId).call(input);
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    return items;
+  };
+
+  let items = await runActor({
+    directUrls: [`https://www.instagram.com/${username}/`],
     resultsType: "posts",
-    searchType: "user",
-    searchLimit: 1,
+    resultsLimit: limit,
   });
-  const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+  if (!items.length) {
+    items = await runActor({
+      search: username,
+      searchType: "user",
+      searchLimit: 1,
+      resultsType: "posts",
+      resultsLimit: limit,
+    });
+  }
+
   return items;
 };
 

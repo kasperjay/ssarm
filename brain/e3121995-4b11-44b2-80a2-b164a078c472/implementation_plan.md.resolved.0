@@ -1,0 +1,62 @@
+# Lead Details Page Revamp
+
+Revamp the lead details page to optimize space and improve usability by consolidating key actions in the banner and creating focused interactive cards for Instagram and Spotify data.
+
+## User Review Required
+
+> [!IMPORTANT]
+> The Spotify playback buttons will use the `rPage` query parameter to navigate through the discography, causing a full page revalidation. This is consistent with current pagination but might feel slightly less "app-like" than a pure client-side state player.
+
+## Proposed Changes
+
+### Banner Section Consolidation
+
+#### [MODIFY] [page.tsx](file:///c:/Users/kp/Documents/spectral-soundworks-app/src/app/leads/[id]/page.tsx)
+- Move **Lead Score**, **Lead Status**, and **Update Profile** button into the `Cinematic Artist Header`.
+- Adjust layout to be a multi-row or dense grid within the banner.
+
+### Instagram Card
+
+#### [NEW] [EditableArtistHandle.tsx](file:///c:/Users/kp/Documents/spectral-soundworks-app/src/components/EditableArtistHandle.tsx)
+- Create a component similar to `EditableArtistName` but for updating the `instagramHandle`.
+
+#### [MODIFY] [page.tsx](file:///c:/Users/kp/Documents/spectral-soundworks-app/src/app/leads/[id]/page.tsx)
+- Implement unified IG card with avatar, handle (editable), followers, and last post status at the top.
+- Horizontal scrollable carousel for recent posts below the profile info.
+
+### Spotify Playback Card
+
+#### [MODIFY] [page.tsx](file:///c:/Users/kp/Documents/spectral-soundworks-app/src/app/leads/[id]/page.tsx)
+- Implement "Now Playing" style card.
+- Big album art (proxied).
+- Track/Album info.
+- Playback controls:
+    - `Previous` (rPage - 1)
+    - `Next` (rPage + 1)
+- Release date / Recency text at the bottom.
+
+### Drafts Section
+
+#### [MODIFY] [page.tsx](file:///c:/Users/kp/Documents/spectral-soundworks-app/src/app/leads/[id]/page.tsx)
+- Split drafts into two columns: **Instagram Reachout** and **Email Outreach**.
+- If no email is present, IG column takes full width.
+- Ensure all "Tune", "Copy", and "Send" functionalities are preserved in each column.
+
+### Activity Timeline
+
+#### [MODIFY] [page.tsx](file:///c:/Users/kp/Documents/spectral-soundworks-app/src/app/leads/[id]/page.tsx)
+- Move to a full-width section at the bottom of the page.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- N/A (UI focused)
+
+### Manual Verification
+- Verify layout responsiveness on desktop and mobile.
+- Test "Edit Handle" functionality.
+- Test Spotify "Next/Previous" buttons and ensure they cycle through the discography correctly.
+- Verify that "Update Status" and "Update Profile" in the banner function correctly.
+- Check draft columns layout with and without artist emails.

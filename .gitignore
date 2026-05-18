@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files (can opt-in for committing if needed)
 .env*
 
 # vercel
@@ -40,25 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Prisma generated client
 /src/generated/prisma
-/prisma/generated-client
-
-# Database dumps and logs
-*.sql
-*.log
-.next_log*
-.next_novu*
-
-# Chat exports and CSV data
-*.csv
-
-# Runtime caches and tool artifacts
-/.node/
-/npm_cache/
-/tmp/
 
 # IG DM bot runtime artifacts
 /integrations/ig-dm-bot/node_modules
 /integrations/ig-dm-bot/logs
-/integrations/ig-dm-bot/data/
+/integrations/ig-dm-bot/data/*.json

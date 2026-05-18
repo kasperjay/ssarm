@@ -1,0 +1,8 @@
+- [x] Create verification script `scratch/test-location-fix.js`
+- [x] Modify `src/lib/location.ts` (Mohawk fix)
+- [x] Run verification script and confirm fix
+- [x] Expand bunk filtering for "Come and Take It" and Tributes
+  - [x] Modify `src/lib/utils.ts` (`isBunkEvent`)
+  - [x] Update `src/lib/location.ts` (`validLocation` blacklist)
+  - [x] Update verification scripts
+- [x] Create walkthrough

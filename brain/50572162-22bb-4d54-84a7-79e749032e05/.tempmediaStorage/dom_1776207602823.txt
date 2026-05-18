@@ -1,0 +1,82 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (500,525)<div  />
+	[1] (38,23)<a class='cx_font14--JnlZz cx_fontSemiBold--yntYr cx_lh24--RRIQ9 cx_flex--uQqQ4 cx_flexNowrap--b420A' href='/community'>Community />
+		[2] (14,23)<div  />
+	[3] (132,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+		[4] (132,23)<div >Design resources />
+			[5] (168,23)<span  />
+	[6] (213,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+		[7] (213,23)<div >Websites />
+			[8] (234,23)<span  />
+	[9] (280,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+		[10] (280,23)<div >Figma Make />
+	[11] (350,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+		[12] (350,23)<div >Extensions />
+			[13] (374,23)<span  />
+	[14] (429,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+		[15] (429,23)<div >Whiteboarding />
+			[16] (461,23)<span  />
+	[17] (514,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+		[18] (514,23)<div >Presentations />
+			[19] (544,23)<span  />
+	[20] (851,23)<div  />
+		[21] (798,23)<span  />
+		[22] (861,23)<input aria-label='Search' class='x1iyjqo2 xh8yej3 x5yr21d x1md70p1 xc342km x1a2a7pz x1fuw9x7 x1i3afut xeuugli xuzfeq1 x8yk33q x1e00guj x18zpg43 x22v61l x14tcjof' placeholder='Search' role='combobox' />
+	[23] (934,23)<button class='auth_buttons--logInButton--4zCRk shared--_button--xItz0 text--fontPos11--rO47d text--_fontBase--VaHfk'>Log in />
+	[24] (973,23)<button class='auth_buttons--signUpButton--72eLF shared--_button--xItz0 text--fontPos11--rO47d text--_fontBase--VaHfk'>Sign up />
+	[25] (147,174)<button >About />
+		About
+	[26] (206,174)<button  />
+		0
+	4 outline style button for your Tech landing page.
+	The UI Kit includes design and a prototype
+	Preview
+	A
+	[27] (402,932)<input class='comments--commentInput--OoNgj text--fontPos14--QJNQC text--_fontBase--VaHfk' placeholder='Add a comment' />
+	[28] (762,275)<a class='tags_container--tag--7LZdh text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/ui-kits/components'>Components />
+	[29] (746,318)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=button&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#button />
+	[30] (782,318)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=colorful&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#colorful />
+	[31] (814,318)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=dark&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#dark />
+	[32] (754,349)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=dark%20mode&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#dark mode />
+	[33] (821,349)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=landing%20page%20design&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#landing page design />
+	[34] (748,381)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=minimal&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#minimal />
+	[35] (781,381)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=neon&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#neon />
+	[36] (821,381)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=neon%20effect&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#neon effect />
+	[37] (747,412)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=shades&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#shades />
+	[38] (779,412)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=tech&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#tech />
+	[39] (800,412)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=ui&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#ui />
+	[40] (822,412)<a class='tags_container--v1Tag--Fi70E text--fontPos13--5OfL8 text--_fontBase--VaHfk' href='/community/search?query=ui%20kit&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all'>#ui kit />
+	[41] (742,538)<div class='social_links--copyLinkButton--5ei6M social_links--socialLink--KP8-x resource_page--pill--bx2wA' role='button' />
+	[42] (769,538)<a class='social_links--socialLink--KP8-x resource_page--pill--bx2wA' href='https://twitter.com/intent/tweet?url=https://www.figma.com/community/file/1167582521848413727/dark-neon-effect-buttons-ui-animation&text=Check%20out%20Dark%20Neon%20Effect%20Buttons%20%7C%20UI%20%2B%20animation%20by%20Daniele%20Brusca%20on%20%40figma%3A' />
+	[43] (796,538)<a class='social_links--socialLink--KP8-x resource_page--pill--bx2wA' href='https://www.facebook.com/sharer/sharer.php?u=https://www.figma.com/community/file/1167582521848413727/dark-neon-effect-buttons-ui-animation' />
+	For Figma
+	3 years ago
+	[44] (816,740)<a class='metadata--shareLinkText--OTFeE' href='mailto:dbvisualdesign@gmail.com'>dbvisualdesign@gmail.com />
+	[45] (810,764)<a class='basic_form--inlineLink--aRePo blue_link--blueLink--4ER8T ' href='https://creativecommons.org/licenses/by/4.0/'>CC BY 4.0 />
+	[46] (500,332)<div  />
+		[47] (500,332)<div  />
+			[48] (500,332)<div role='presentation' />
+				[49] (615,118)<button aria-label='Close' class='_19xx72g0 base-icon-button__baseIconButton__TXKzr icon-button__iconButton__CTj-- icon-button__ghost__1ok6j' />
+				[50] (500,157)<button class='brand_buttons--brandButton---M0AN auth_view--brandButton--K2XZu auth_view--brandButtonBase--yT1mh auth_brand--figmaSans--503qN brand_buttons--fullWidth--wxuBy brand_buttons--hollowButton--DR02c auth_view--brandButton--K2XZu auth_view--brandButtonBase--yT1mh auth_brand--figmaSans--503qN brand_buttons--figmaSans--DrTle' />
+					[51] (500,157)<span  />
+						[52] (500,157)<span  />
+							[53] (442,157)<span  />
+							[54] (509,157)<span >Continue with Google />
+				or
+				[55] (500,250)<label class='x10l6tqk x1lliihq xuzi1b7 xtvhhri x1j6dyjg xo1l8bm xjbqb8w x14qv3re xgwajed x11vz743 x563n8i'>Email />
+				[56] (500,261)<input class='xjyslct x14qv3re x1lliihq xh8yej3 x9dczf4 x9f619 x1kxipp6 xosj86m xc8nv1x x1kogg8i x101yacv x1pga9m1 x17410jd xqhu3d4 xbwv0bw xc342km xng3xce x9r1u3d xm3xvbb x1gnnqk1 xugdvvj xpdc0an xcwqlvo xxqzaim x1robv96 x1cluluk lazy_input--lazyInput--Ltb6r' id='email' placeholder='Email' />
+				[57] (500,317)<label class='x10l6tqk x1lliihq xuzi1b7 xtvhhri x1j6dyjg xo1l8bm xjbqb8w x14qv3re xgwajed x11vz743 x563n8i'>Password />
+				[58] (500,328)<input class='xjyslct x14qv3re x1lliihq xh8yej3 x9dczf4 x9f619 x1kxipp6 xosj86m xc8nv1x x1kogg8i x101yacv x1pga9m1 x17410jd xqhu3d4 xbwv0bw xc342km xng3xce x9r1u3d xm3xvbb x1gnnqk1 xugdvvj xpdc0an xcwqlvo xxqzaim x1robv96 x1cluluk lazy_input--lazyInput--Ltb6r' id='current-password' placeholder='Password' />
+				[59] (500,401)<button class='brand_buttons--brandButton---M0AN auth_view--brandButton--K2XZu auth_view--brandButtonBase--yT1mh auth_brand--figmaSans--503qN brand_buttons--fullWidth--wxuBy brand_buttons--brandButtonHoverIconEffects--3yLPb brand_buttons--figmaSans--DrTle' />
+					[60] (500,401)<span >Log in />
+						[61] (478,401)<span  />
+				[62] (500,450)<a class='_14d74zf0' href='#'>Use single sign-on />
+				[63] (500,486)<a class='_14d74zf0' href='#'>Reset password />
+				No account?
+				[64] (526,520)<a class='_14d74zf0' href='#'>Create one />
+	[65] (976,969)<button aria-label='Help' class='_19xx72g0 base-icon-button__baseIconButton__TXKzr icon-button__iconButton__CTj-- icon-button__primary__R4q5D icon-button__fullRadius__0i-4D icon-button__largeSize__jKNM1' id=':r7:' />
+
+</current_dom>

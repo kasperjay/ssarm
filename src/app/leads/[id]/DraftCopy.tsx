@@ -12,19 +12,16 @@ export default function DraftCopy({ text }: DraftCopyProps) {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+    window.setTimeout(() => setCopied(false), 1500);
   };
 
   return (
     <button
       type="button"
       onClick={handleCopy}
-      className={`rounded-full border border-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest transition-all ${copied
-          ? "bg-accent/20 text-accent border-accent/40"
-          : "bg-white/5 text-muted hover:text-foreground hover:bg-white/10 hover:border-white/20"
-        }`}
+      className="rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--accent)]"
     >
-      {copied ? "Copied" : "Copy Draft"}
+      {copied ? "Copied" : "Copy"}
     </button>
   );
 }

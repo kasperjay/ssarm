@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { PrismaClient } = require("../prisma/generated-client");
+const { PrismaClient } = require("../src/generated/prisma");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 
@@ -18,15 +18,17 @@ if (fs.existsSync(envPath)) {
     const key = trimmed.slice(0, index).trim();
     const rawValue = trimmed.slice(index + 1).trim();
     if (key && process.env[key] === undefined) {
-      process.env[key] = rawValue.replace(/^['"]|['"]$/g, "");
+      const value = rawValue.replace(/^['"]|['"]$/g, "");
+      process.env[key] = value;
     }
   }
 }
 
-const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
-// ── Email utilities ───────────────────────────────────────────────────────────
-
+// Email utilities (mirrors src/lib/email.ts)
 const EMAIL_REGEX = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 
 const LINK_HUB_HOSTS = new Set([
@@ -46,14 +48,19 @@ const normalizeUrl = (value) => {
   const trimmed = value.trim();
   if (!trimmed) return null;
   try {
-    if (!/^https?:\/\//i.test(trimmed)) return new URL(`https://${trimmed}`).toString();
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return new URL(`https://${trimmed}`).toString();
+    }
     return new URL(trimmed).toString();
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 const extractEmailsFromText = (value) => {
   if (!value) return [];
-  return (value.match(EMAIL_REGEX) || []).map((e) => e.toLowerCase());
+  const matches = value.match(EMAIL_REGEX) || [];
+  return matches.map((email) => email.toLowerCase());
 };
 
 const extractLinks = (html, baseUrl) => {
@@ -63,21 +70,38 @@ const extractLinks = (html, baseUrl) => {
   while ((match = hrefRegex.exec(html))) {
     const raw = match[1];
     if (!raw || raw.startsWith("#") || raw.startsWith("mailto:")) continue;
-    try { links.add(new URL(raw, baseUrl).toString()); } catch {}
+    try {
+      const url = new URL(raw, baseUrl);
+      links.add(url.toString());
+    } catch {}
   }
   return Array.from(links);
 };
 
 const isSocialHost = (url) => {
-  try { return SOCIAL_HOSTS.has(new URL(url).hostname.toLowerCase()); } catch { return true; }
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return SOCIAL_HOSTS.has(host);
+  } catch {
+    return true;
+  }
 };
 
 const isLinkHubHost = (url) => {
-  try { return LINK_HUB_HOSTS.has(new URL(url).hostname.toLowerCase()); } catch { return false; }
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return LINK_HUB_HOSTS.has(host);
+  } catch {
+    return false;
+  }
 };
 
 const sameHost = (a, b) => {
-  try { return new URL(a).hostname.toLowerCase() === new URL(b).hostname.toLowerCase(); } catch { return false; }
+  try {
+    return new URL(a).hostname.toLowerCase() === new URL(b).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
 };
 
 const fetchHtml = async (url, timeoutMs = 6000) => {
@@ -91,27 +115,34 @@ const fetchHtml = async (url, timeoutMs = 6000) => {
     });
     if (!response.ok) return null;
     return await response.text();
-  } catch { return null; }
-  finally { clearTimeout(timeout); }
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 const pickContactLinks = (links, baseUrl) => {
   const keywords = ["contact", "booking", "press", "management", "inquiries", "inquiry", "connect", "about"];
   return links.filter((link) => {
     if (!sameHost(link, baseUrl)) return false;
-    const p = new URL(link).pathname.toLowerCase();
-    return keywords.some((kw) => p.includes(kw));
+    const path = new URL(link).pathname.toLowerCase();
+    return keywords.some((keyword) => path.includes(keyword));
   });
 };
 
-const pickExternalLinks = (links) => links.filter((l) => !isSocialHost(l) && !isLinkHubHost(l));
+const pickExternalLinks = (links) =>
+  links.filter((link) => !isSocialHost(link) && !isLinkHubHost(link));
 
 const discoverEmailsFromUrls = async (urls) => {
-  const normalized = urls.map(normalizeUrl).filter(Boolean);
+  const normalized = urls
+    .map((value) => normalizeUrl(value))
+    .filter((value) => Boolean(value));
+
   const emails = new Set();
   const visited = new Set();
   const queue = [...normalized];
-  const maxPages = parseInt(process.env.EMAIL_SCRAPE_MAX_PAGES || "5", 10) || 5;
+  const maxPages = Number.parseInt(process.env.EMAIL_SCRAPE_MAX_PAGES || "5", 10) || 5;
 
   while (queue.length && visited.size < maxPages) {
     const url = queue.shift();
@@ -121,125 +152,150 @@ const discoverEmailsFromUrls = async (urls) => {
     const html = await fetchHtml(url);
     if (!html) continue;
 
-    for (const email of extractEmailsFromText(html)) emails.add(email);
+    for (const email of extractEmailsFromText(html)) {
+      emails.add(email);
+    }
+
     if (emails.size > 0) continue;
 
     const links = extractLinks(html, url);
-    if (isLinkHubHost(url)) { queue.push(...pickExternalLinks(links).slice(0, 3)); continue; }
-    queue.push(...pickContactLinks(links, url).slice(0, 3));
+
+    if (isLinkHubHost(url)) {
+      const external = pickExternalLinks(links).slice(0, 3);
+      queue.push(...external);
+      continue;
+    }
+
+    const contactLinks = pickContactLinks(links, url).slice(0, 3);
+    queue.push(...contactLinks);
   }
 
   return Array.from(emails);
 };
 
-// ── Contact confidence scoring ────────────────────────────────────────────────
-
+// Contact confidence scoring
 function scoreContactConfidence(email, discoveryMethod) {
   let score = 0;
   let confidence = "uncertain";
 
-  if (discoveryMethod === "official-website") { score = 90; confidence = "verified"; }
-  else if (discoveryMethod === "verified-db") { score = 85; confidence = "verified"; }
-  else if (discoveryMethod === "band-website") { score = 75; confidence = "verified"; }
-  else if (discoveryMethod === "contact-page") { score = 70; confidence = "inferred"; }
-  else if (discoveryMethod === "social-profile") { score = 60; confidence = "inferred"; }
-  else if (discoveryMethod === "pattern-match") { score = 40; confidence = "uncertain"; }
+  // Method-based scoring
+  if (discoveryMethod === "official-website") {
+    score = 90;
+    confidence = "verified";
+  } else if (discoveryMethod === "verified-db") {
+    score = 85;
+    confidence = "verified";
+  } else if (discoveryMethod === "band-website") {
+    score = 75;
+    confidence = "verified";
+  } else if (discoveryMethod === "contact-page") {
+    score = 70;
+    confidence = "inferred";
+  } else if (discoveryMethod === "social-profile") {
+    score = 60;
+    confidence = "inferred";
+  } else if (discoveryMethod === "pattern-match") {
+    score = 40;
+    confidence = "uncertain";
+  }
 
-  const local = email.split("@")[0].toLowerCase();
-  if (["booking", "contact", "info", "hello"].some((kw) => local.includes(kw))) {
+  // Email format checks
+  const localPart = email.split("@")[0].toLowerCase();
+  if (
+    localPart.includes("booking") ||
+    localPart.includes("contact") ||
+    localPart.includes("info") ||
+    localPart.includes("hello")
+  ) {
     score = Math.min(score + 10, 95);
-  } else if (["noreply", "no-reply", "bounce"].some((kw) => local.includes(kw))) {
+  } else if (
+    localPart.includes("noreply") ||
+    localPart.includes("no-reply") ||
+    localPart.includes("bounce")
+  ) {
     score = Math.max(score - 30, 20);
   }
 
   return { score, confidence };
 }
 
-// ── Per-lead discovery ────────────────────────────────────────────────────────
-
 async function discoverContactsForLead(lead, dryRun = false) {
-  const result = {
+  const discoveryResults = {
     leadId: lead.id,
     artistName: lead.artist.name,
     emailsFound: [],
+    contactMethods: [],
     confidence: "uncertain",
     activityLogged: false,
   };
 
+  // Gather potential URLs
   const urlsToCheck = [
     lead.artist.officialSiteUrl,
+    lead.artist.bandcampUrl,
     lead.artist.instagramHandle && `https://instagram.com/${lead.artist.instagramHandle}`,
   ].filter(Boolean);
 
-  if (urlsToCheck.length === 0) return result;
+  if (urlsToCheck.length === 0) {
+    return discoveryResults;
+  }
 
   try {
-    const rawEmails = await discoverEmailsFromUrls(urlsToCheck);
-    if (rawEmails.length === 0) return result;
+    // Discover emails from URLs
+    const discoveredEmails = await discoverEmailsFromUrls(urlsToCheck);
 
-    const sourceType = lead.artist.officialSiteUrl ? "band-website" : "social-profile";
-    const sourceUrl = lead.artist.officialSiteUrl || `https://instagram.com/${lead.artist.instagramHandle}`;
+    if (discoveredEmails.length > 0) {
+      // Score each email
+      const scoredEmails = discoveredEmails.map((email) => {
+        const { score, confidence } = scoreContactConfidence(
+          email,
+          lead.artist.officialSiteUrl ? "band-website" : "social-profile"
+        );
+        return { email, score, confidence };
+      });
 
-    const scored = rawEmails
-      .map((email) => {
-        const { score, confidence } = scoreContactConfidence(email, sourceType);
-        return { email, score, confidence, sourceUrl, sourceType };
-      })
-      .sort((a, b) => b.score - a.score);
+      // Sort by score
+      scoredEmails.sort((a, b) => b.score - a.score);
 
-    result.emailsFound = scored;
-    result.confidence = scored[0]?.confidence || "uncertain";
+      discoveryResults.emailsFound = scoredEmails;
+      discoveryResults.confidence = scoredEmails[0]?.confidence || "uncertain";
 
-    if (!dryRun) {
-      const existingEmails = lead.artist.emails || [];
-      const newItems = scored.filter((e) => !existingEmails.includes(e.email));
+      // Update lead if not a dry run
+      if (!dryRun) {
+        // Get existing emails
+        const existingEmails = lead.artist.emails || [];
+        const newEmails = scoredEmails
+          .map((e) => e.email)
+          .filter((e) => !existingEmails.includes(e));
 
-      for (const item of newItems) {
-        await prisma.contactInfo.upsert({
-          where: { artistId_email: { artistId: lead.artist.id, email: item.email } },
-          create: {
-            artistId: lead.artist.id,
-            email: item.email,
-            confidence: item.confidence,
-            score: item.score,
-            sourceUrl: item.sourceUrl || null,
-            sourceType: item.sourceType || null,
-          },
-          update: {
-            confidence: item.confidence,
-            score: item.score,
-            sourceUrl: item.sourceUrl || null,
-            sourceType: item.sourceType || null,
-          },
-        });
-      }
+        if (newEmails.length > 0) {
+          await prisma.artist.update({
+            where: { id: lead.artist.id },
+            data: {
+              emails: [...existingEmails, ...newEmails],
+            },
+          });
 
-      if (newItems.length > 0) {
-        await prisma.artist.update({
-          where: { id: lead.artist.id },
-          data: { emails: [...existingEmails, ...newItems.map((e) => e.email)] },
-        });
+          // Log discovery activity
+          const emailsList = newEmails.join(", ");
+          await prisma.activity.create({
+            data: {
+              leadId: lead.id,
+              type: "NOTE",
+              note: `[AUTO-DISCOVER] Found contact: ${emailsList}. Confidence: ${discoveryResults.confidence}`,
+            },
+          });
 
-        const emailsList = newItems.map((e) => `${e.email} (${e.confidence}, ${e.score}%)`).join(", ");
-        await prisma.activity.create({
-          data: {
-            leadId: lead.id,
-            type: "NOTE",
-            note: `[AUTO-DISCOVER] Found contact(s): ${emailsList}`,
-          },
-        });
-
-        result.activityLogged = true;
+          discoveryResults.activityLogged = true;
+        }
       }
     }
   } catch (error) {
     console.error(`Error discovering contacts for ${lead.artist.name}:`, error.message);
   }
 
-  return result;
+  return discoveryResults;
 }
-
-// ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
@@ -252,54 +308,79 @@ async function main() {
   if (onlyMissing) console.log("Filter: Only artists with missing emails");
   console.log();
 
-  const query = {
+  // Find leads to process
+  let query = {
     include: { artist: true },
     take: limit,
     orderBy: { updatedAt: "desc" },
-    ...(onlyMissing ? { where: { artist: { emails: { equals: [] } } } } : {}),
   };
+
+  if (onlyMissing) {
+    query.where = {
+      artist: {
+        emails: { equals: [] },
+      },
+    };
+  }
 
   const leads = await prisma.lead.findMany(query);
 
   if (leads.length === 0) {
     console.log("✓ No leads to process");
-    return { discovered: 0, totalEmails: 0, errors: 0 };
+    await prisma.$disconnect();
+    process.exit(0);
   }
 
   console.log(`Processing ${leads.length} leads...`);
   console.log();
 
-  const counts = { total: leads.length, discovered: 0, verified: 0, inferred: 0, uncertain: 0, totalEmails: 0, errors: 0 };
+  const results = {
+    total: leads.length,
+    discovered: 0,
+    verified: 0,
+    inferred: 0,
+    uncertain: 0,
+    totalEmails: 0,
+    errors: 0,
+  };
+
   const discoveries = [];
 
   for (const lead of leads) {
     try {
       const discovery = await discoverContactsForLead(lead, dryRun);
+
       if (discovery.emailsFound.length > 0) {
-        counts.discovered++;
-        counts.totalEmails += discovery.emailsFound.length;
-        if (discovery.confidence === "verified") counts.verified++;
-        else if (discovery.confidence === "inferred") counts.inferred++;
-        else counts.uncertain++;
+        results.discovered++;
+        results.totalEmails += discovery.emailsFound.length;
+
+        if (discovery.confidence === "verified") results.verified++;
+        else if (discovery.confidence === "inferred") results.inferred++;
+        else results.uncertain++;
+
         discoveries.push(discovery);
       }
     } catch (error) {
       console.error(`Error processing lead ${lead.id}:`, error.message);
-      counts.errors++;
+      results.errors++;
     }
   }
 
+  // Display results
   console.log("📊 Results:");
-  console.log(`  Leads processed: ${counts.total}`);
-  console.log(`  Contacts discovered: ${counts.discovered}`);
-  console.log(`  Total emails found: ${counts.totalEmails}`);
+  console.log(`  Leads processed: ${results.total}`);
+  console.log(`  Contacts discovered: ${results.discovered}`);
+  console.log(`  Total emails found: ${results.totalEmails}`);
+  console.log();
 
-  if (counts.discovered > 0) {
-    console.log("\nConfidence Breakdown:");
-    console.log(`  Verified: ${counts.verified}`);
-    console.log(`  Inferred: ${counts.inferred}`);
-    console.log(`  Uncertain: ${counts.uncertain}`);
-    console.log("\nSample discoveries (first 5):");
+  if (results.discovered > 0) {
+    console.log("Confidence Breakdown:");
+    console.log(`  Verified: ${results.verified}`);
+    console.log(`  Inferred: ${results.inferred}`);
+    console.log(`  Uncertain: ${results.uncertain}`);
+    console.log();
+
+    console.log("Sample discoveries (first 5):");
     discoveries.slice(0, 5).forEach((d) => {
       console.log(`  ${d.artistName}:`);
       d.emailsFound.slice(0, 2).forEach((e) => {
@@ -309,18 +390,15 @@ async function main() {
   }
 
   if (dryRun) {
-    console.log("\n⚠️  DRY RUN: No ContactInfo records or emails saved to database");
+    console.log();
+    console.log("⚠️  DRY RUN: No emails saved to database");
   }
 
-  return { discovered: counts.discovered, totalEmails: counts.totalEmails, errors: counts.errors };
+  await prisma.$disconnect();
+  process.exit(results.errors > 0 ? 1 : 0);
 }
 
-withAgentRun("discover-contacts", { dryRun: process.argv.includes("--dry-run") }, main)
-  .catch((error) => {
-    console.error("Fatal error:", error.message);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-    await pool.end();
-  });
+main().catch((error) => {
+  console.error("Fatal error:", error.message);
+  process.exit(1);
+});

@@ -1,0 +1,7 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Improve bunk detection logic in utils.ts and location.ts to exclude tribute bands, specific event nights (Emo/Dad Rock), and common venue/city names that leak into discovery results.",
+  "updatedAt": "2026-04-14T19:41:16.690991Z",
+  "version": "1",
+  "requestFeedback": true
+}

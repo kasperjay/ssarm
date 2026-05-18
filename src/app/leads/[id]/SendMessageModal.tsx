@@ -1,18 +1,14 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState, useTransition } from "react";
 import { sendMessage } from "./actions";
-import { GlassCard } from "@/components/GlassCard";
-import { NeonButton } from "@/components/NeonButton";
 
 type SendMessageModalProps = {
   leadId: string;
   label: string;
   defaultBody?: string;
   source?: string;
-  variant?: "primary" | "ghost" | "lime" | "amber" | "pink" | "outline";
-  className?: string;
+  variant?: "primary" | "ghost";
 };
 
 export default function SendMessageModal({
@@ -21,105 +17,76 @@ export default function SendMessageModal({
   defaultBody = "",
   source,
   variant = "ghost",
-  className = "",
 }: SendMessageModalProps) {
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState(defaultBody);
-  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const openModal = () => {
     setBody(defaultBody);
-    setError(null);
     setOpen(true);
   };
 
   const handleSubmit = () => {
-    setError(null);
     startTransition(async () => {
-      const result = await sendMessage({ leadId, body, source });
-      if (!result?.ok) {
-        setError(result?.error || "An unexpected error occurred.");
-      }
+      await sendMessage({ leadId, body, source });
+      setOpen(false);
     });
   };
 
+  const buttonClassName =
+    variant === "primary"
+      ? "rounded-full bg-[color:var(--accent)] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[color:var(--accent-strong)]"
+      : "rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--accent)]";
+
   return (
     <>
-      <NeonButton
-        variant={variant === "primary" ? "lime" : variant}
-        size="sm"
-        onClick={openModal}
-        className={className}
-      >
+      <button type="button" className={buttonClassName} onClick={openModal}>
         {label}
-      </NeonButton>
-      {open && mounted ? createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-black/60">
-          <div className="relative w-full max-w-2xl animate-in zoom-in-95 duration-200">
-            <GlassCard variant="strong" className="p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold uppercase tracking-widest text-accent">Message Editor</p>
-                  <h3 className="text-xl font-bold tracking-tight">Outgoing Message</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="rounded-full bg-white/5 p-2 text-muted hover:text-foreground transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              </div>
-
-              {error ? (
-                <div className="rounded-xl border border-error/20 bg-error/10 p-4 text-xs font-bold text-error uppercase tracking-widest">
-                  Error: {error}
-                </div>
-              ) : null}
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted">Message Content</label>
-                  <span className="text-xs font-sans font-bold text-muted/50">{body.length} Characters</span>
-                </div>
-                <textarea
-                  value={body}
-                  onChange={(event) => setBody(event.target.value)}
-                  rows={10}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 p-5 text-sm leading-relaxed text-foreground/90 outline-none focus:border-accent transition-colors resize-none scrollbar-hide font-serif italic"
-                />
-                <p className="text-xs text-muted italic">
-                  Messages are logged to activity history for relationship tracking.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="px-6 py-2 text-xs font-bold uppercase tracking-widest text-muted hover:text-foreground transition-colors"
-                >
-                  Cancel
-                </button>
-                <NeonButton
-                  disabled={isPending}
-                  onClick={handleSubmit}
-                  variant="lime"
-                  size="lg"
-                >
-                  {isPending ? "Sending..." : "Send Message"}
-                </NeonButton>
-              </div>
-            </GlassCard>
+      </button>
+      {open ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-2xl rounded-3xl border border-black/10 bg-[color:var(--surface-strong)] p-6 shadow-[0_40px_80px_-50px_rgba(12,63,56,0.6)]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-[color:var(--foreground)]">
+                Send Message
+              </h3>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full border border-black/10 px-3 py-1 text-xs font-semibold text-[color:var(--muted)]"
+              >
+                Close
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-[color:var(--muted)]">
+              Edit the message before sending. This will log a MESSAGE_SENT activity.
+            </p>
+            <textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              rows={8}
+              className="mt-4 w-full rounded-2xl border border-black/10 bg-[color:var(--surface)] p-4 text-sm text-[color:var(--foreground)] outline-none focus:border-[color:var(--accent)]"
+            />
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full border border-black/10 px-4 py-2 text-xs font-semibold text-[color:var(--muted)]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={handleSubmit}
+                className="rounded-full bg-[color:var(--foreground)] px-4 py-2 text-xs font-semibold text-[color:var(--surface)] transition hover:bg-black/80 disabled:opacity-60"
+              >
+                {isPending ? "Sending" : "Send"}
+              </button>
+            </div>
           </div>
-        </div>,
-        document.body
+        </div>
       ) : null}
     </>
   );

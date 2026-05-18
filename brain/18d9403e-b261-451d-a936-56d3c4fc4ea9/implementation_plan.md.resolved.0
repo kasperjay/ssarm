@@ -1,0 +1,26 @@
+# Fix Stage 1 Location Hunt - Mohawk Validation
+
+The user reported that "Mohawk - Outside" is being incorrectly identified as a valid artist location during "Stage 1" of the enrichment pipeline. This happens because Stage 1 checks various raw data fields, including `venueName`, which often contains the name of the venue where an event was held rather than the artist's home location.
+
+## User Review Required
+
+> [!IMPORTANT]
+> Removing `venueName` from Stage 1 ensures that we don't accidentally use a performance venue as an artist's home location. This is generally the correct behavior for artist enrichment, but if there are specific scrapers where `venueName` was the *only* source of location data, those artists may now default to missing location until Stage 2+ (IG Bio, MusicBrainz, etc.) kicks in.
+
+## Proposed Changes
+
+### Logic & Helpers
+
+#### [MODIFY] [location.ts](file:///c:/Users/kp/Documents/spectral-soundworks-app/src/lib/location.ts)
+- Remove `venueName` from the sequence of keys checked in `fromRawFields` (Stage 1).
+- Update `validLocation` helper:
+    - Add "Mohawk" to the `blacklist` (standardize on Austin's most common bunk venue result).
+    - Add a check for hyphenated strings (e.g., "Venue - Stage") which are common in event data but rare in real city names.
+
+## Verification Plan
+
+### Automated Tests
+- I will create a scratch script `scratch/test-location-fix.js` to verify that "Mohawk - Outside" and other venue-like strings are now rejected by `validLocation` and the enrichment flow.
+
+### Manual Verification
+- N/A (Backend logic change)

@@ -1,0 +1,112 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (38,23)<a class='cx_font14--JnlZz cx_fontSemiBold--yntYr cx_lh24--RRIQ9 cx_flex--uQqQ4 cx_flexNowrap--b420A' href='/community'>Community />
+	[1] (14,23)<div  />
+[2] (132,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+	[3] (132,23)<div >Design resources />
+		[4] (168,23)<span  />
+[5] (213,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+	[6] (213,23)<div >Websites />
+		[7] (234,23)<span  />
+[8] (280,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+	[9] (280,23)<div >Figma Make />
+[10] (350,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+	[11] (350,23)<div >Extensions />
+		[12] (374,23)<span  />
+[13] (429,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+	[14] (429,23)<div >Whiteboarding />
+		[15] (461,23)<span  />
+[16] (514,23)<div class='cx_flex--uQqQ4 cx_itemsCenter--q5Zbc' role='button' />
+	[17] (514,23)<div >Presentations />
+		[18] (544,23)<span  />
+[19] (851,23)<div  />
+	[20] (798,23)<span  />
+	[21] (861,23)<input aria-label='Search' class='x1iyjqo2 xh8yej3 x5yr21d x1md70p1 xc342km x1a2a7pz x1fuw9x7 x1i3afut xeuugli xuzfeq1 x8yk33q x1e00guj x18zpg43 x22v61l x14tcjof' placeholder='Search' role='combobox' />
+[22] (934,23)<button class='auth_buttons--logInButton--4zCRk shared--_button--xItz0 text--fontPos11--rO47d text--_fontBase--VaHfk'>Log in />
+[23] (973,23)<button class='auth_buttons--signUpButton--72eLF shared--_button--xItz0 text--fontPos11--rO47d text--_fontBase--VaHfk'>Sign up />
+Dark Neon Effect Buttons | UI + animation
+[24] (147,106)<button >About />
+	About
+[25] (206,106)<button  />
+	0
+[26] (828,87)<button class='cta_button--duplicateButtonContainerNoIcon--UvzxV cta_button--duplicateButtonContainer--9o2Gy cta_button--buttonBase--aj8VW text--fontNeg14--TmjQA text--_fontBase--VaHfk text--_negText--7Cnf0' />
+	[27] (828,87)<div  />
+A
+[28] (402,442)<input class='comments--commentInput--OoNgj text--fontPos14--QJNQC text--_fontBase--VaHfk' placeholder='Add a comment' />
+For Figma
+3 years ago
+[29] (816,250)<a class='metadata--shareLinkText--OTFeE' href='mailto:dbvisualdesign@gmail.com'>dbvisualdesign@gmail.com />
+[30] (810,274)<a class='basic_form--inlineLink--aRePo blue_link--blueLink--4ER8T ' href='https://creativecommons.org/licenses/by/4.0/'>CC BY 4.0 />
+Figma
+[31] (154,690)<a href='https://www.figma.com/'>Figma.com />
+[32] (166,721)<a href='https://www.figma.com/downloads/'>Figma Downloads />
+[33] (156,753)<a href='https://www.figma.com/tools/'>Design tools />
+[34] (163,784)<a href='https://www.figma.com/resource-library/'>Resource library />
+[35] (150,815)<a href='https://www.figma.com/solutions/'>Solutions />
+[36] (146,847)<a href='https://www.figma.com/pricing/'>Pricing />
+[37] (159,878)<a href='https://www.figma.com/release-notes/'>Release notes />
+Tools
+[38] (327,690)<a href='https://www.figma.com/color-palette-generator/'>Color palette generator />
+[39] (306,721)<a href='https://www.figma.com/color-wheel/'>Color wheel />
+[40] (319,753)<a href='https://www.figma.com/color-picker/'>Image Color picker />
+[41] (319,784)<a href='https://www.figma.com/gradient-generator/'>Gradient generator />
+[42] (327,815)<a href='https://www.figma.com/lorem-ipsum-generator/'>Lorem Ipsum generator />
+[43] (302,847)<a href='https://www.figma.com/gif-maker/'>Gif Maker />
+[44] (313,878)<a href='https://www.figma.com/colors/'>Color Meanings />
+Top categories
+[45] (476,690)<a href='/community/strategic-planning/project-plans'>Project plan templates />
+[46] (483,721)<a href='/community/instagram-templates/highlight-covers'>Instagram highlight covers />
+[47] (481,753)<a href='/community/resume-templates/simple'>Simple resume templates />
+[48] (474,784)<a href='/community/classroom-activities/family-tree'>Family tree templates />
+[49] (474,815)<a href='/community/resume-templates/professional'>Professional resumes />
+[50] (469,847)<a href='/community/illustrations/design'>Design illustrations />
+[51] (475,878)<a href='/community/portfolio-templates/web-design'>Web design portfolios />
+Recommended Plugins
+[52] (625,690)<a href='/community/editing-effects/logo-creator'>Logo creation plugins />
+[53] (604,721)<a href='/community/import-export/gifs'>Gif Export />
+[54] (616,753)<a href='/community/development/code-generators'>Code generators />
+[55] (607,784)<a href='/community/accessibility/i18n'>i18n plugins />
+[56] (615,815)<a href='/community/editing-effects/gradients'>Gradient plugins />
+[57] (611,847)<a href='/community/import-export/figma-to-code'>Figma to code />
+[58] (638,878)<a href='/community/editing-effects/remove-bg'>Background remover plugins />
+Explore
+[59] (759,690)<a href='/community/design-inspirations/mood-boards'>Moodboards />
+[60] (762,721)<a href='/community/shapes-colors/vector'>Vector shapes />
+[61] (772,753)<a href='/community/mobile-apps/iphone'>iPhone app designs />
+[62] (764,784)<a href='/community/website-templates/menu'>Website menus />
+[63] (770,815)<a href='/community/icons/social-media'>Social media icons />
+[64] (757,847)<a href='/community/ui-kits/mockups'>UI mockups />
+[65] (781,878)<a href='/community/team-meetings/retrospective'>Retro meeting templates />
+[66] (155,950)<a href='https://www.figma.com' />
+•
+[67] (234,991)<a href='https://www.figma.com/auto-sitemaps/figma-community-index.xml' />
+•
+[68] (306,991)<a href='https://help.figma.com/hc/articles/360038510573-Figma-Community-Guidelines' />
+•
+[69] (392,991)<a href='https://www.figma.com/legal/tos/' />
+[70] (500,332)<div  />
+	[71] (500,332)<div  />
+		[72] (500,332)<div role='presentation' />
+			[73] (615,118)<button aria-label='Close' class='_19xx72g0 base-icon-button__baseIconButton__TXKzr icon-button__iconButton__CTj-- icon-button__ghost__1ok6j' />
+			[74] (500,157)<button class='brand_buttons--brandButton---M0AN auth_view--brandButton--K2XZu auth_view--brandButtonBase--yT1mh auth_brand--figmaSans--503qN brand_buttons--fullWidth--wxuBy brand_buttons--hollowButton--DR02c auth_view--brandButton--K2XZu auth_view--brandButtonBase--yT1mh auth_brand--figmaSans--503qN brand_buttons--figmaSans--DrTle' />
+				[75] (500,157)<span  />
+					[76] (500,157)<span  />
+						[77] (442,157)<span  />
+						[78] (509,157)<span >Continue with Google />
+			or
+			[79] (500,250)<label class='x10l6tqk x1lliihq xuzi1b7 xtvhhri x1j6dyjg xo1l8bm xjbqb8w x14qv3re xgwajed x11vz743 x563n8i'>Email />
+			[80] (500,261)<input class='xjyslct x14qv3re x1lliihq xh8yej3 x9dczf4 x9f619 x1kxipp6 xosj86m xc8nv1x x1kogg8i x101yacv x1pga9m1 x17410jd xqhu3d4 xbwv0bw xc342km xng3xce x9r1u3d xm3xvbb x1gnnqk1 xugdvvj xpdc0an xcwqlvo xxqzaim x1robv96 x1cluluk lazy_input--lazyInput--Ltb6r' id='email' placeholder='Email' />
+			[81] (500,317)<label class='x10l6tqk x1lliihq xuzi1b7 xtvhhri x1j6dyjg xo1l8bm xjbqb8w x14qv3re xgwajed x11vz743 x563n8i'>Password />
+			[82] (500,328)<input class='xjyslct x14qv3re x1lliihq xh8yej3 x9dczf4 x9f619 x1kxipp6 xosj86m xc8nv1x x1kogg8i x101yacv x1pga9m1 x17410jd xqhu3d4 xbwv0bw xc342km xng3xce x9r1u3d xm3xvbb x1gnnqk1 xugdvvj xpdc0an xcwqlvo xxqzaim x1robv96 x1cluluk lazy_input--lazyInput--Ltb6r' id='current-password' placeholder='Password' />
+			[83] (500,401)<button class='brand_buttons--brandButton---M0AN auth_view--brandButton--K2XZu auth_view--brandButtonBase--yT1mh auth_brand--figmaSans--503qN brand_buttons--fullWidth--wxuBy brand_buttons--brandButtonHoverIconEffects--3yLPb brand_buttons--figmaSans--DrTle' />
+				[84] (500,401)<span >Log in />
+					[85] (478,401)<span  />
+			[86] (500,450)<a class='_14d74zf0' href='#'>Use single sign-on />
+			[87] (500,486)<a class='_14d74zf0' href='#'>Reset password />
+			No account?
+			[88] (526,520)<a class='_14d74zf0' href='#'>Create one />
+[89] (976,969)<button aria-label='Help' class='_19xx72g0 base-icon-button__baseIconButton__TXKzr icon-button__iconButton__CTj-- icon-button__primary__R4q5D icon-button__fullRadius__0i-4D icon-button__largeSize__jKNM1' id=':r7:' />
+
+</current_dom>

@@ -1,0 +1,18 @@
+# Task: Verify Novu Inbox Integration
+
+## Checklist
+- [x] Take screenshot of current page (/leads)
+- [x] Navigate to home page (/)
+- [x] Wait 5 seconds for load
+- [x] Take screenshot of home page
+- [ ] Locate bell icon in sidebar
+- [ ] Click bell icon
+- [ ] Take screenshot of notification popover
+- [ ] Report findings (visibility, popover, errors)
+
+## Observations
+- Both / and /leads (and /operations) are crashing with a PrismaClientKnownRequestError.
+- The error is "Invalid `prisma.lead.findMany()` invocation", likely due to unapplied migrations.
+- The sidebar is NOT visible because the entire page is replaced by the Next.js error overlay.
+- HOWEVER, a Novu-branded button (red with "N 1 Issue") is visible in the bottom-left corner of the screen, apparently on top of the error overlay or as a floating element.
+- I will attempt to click this icon to see if the Novu Inbox popover opens.

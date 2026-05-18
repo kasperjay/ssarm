@@ -2,8 +2,11 @@
 
 const fs = require("fs");
 const path = require("path");
+const { PrismaClient } = require("../src/generated/prisma");
+const { PrismaPg } = require("@prisma/adapter-pg");
+const { Pool } = require("pg");
 
-// Load .env BEFORE requiring dependencies that use it
+// Load .env
 const envPath = path.join(process.cwd(), ".env");
 if (fs.existsSync(envPath)) {
   const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
@@ -21,7 +24,9 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 const getArg = (name) => {
   const index = process.argv.indexOf(name);
@@ -30,10 +35,6 @@ const getArg = (name) => {
 };
 
 const hasFlag = (name) => process.argv.includes(name);
-
-// Base URL for API calls
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
 
 // Configuration
 const STALE_INSTAGRAM_DAYS = 60;  // Posts older than 60 days
@@ -156,123 +157,29 @@ async function enrichArtist(artist, dryRun = false) {
 }
 
 async function getArtistsToEnrich(options) {
-  const { limit = 100 } = options;
-  
-  // Exclude anything updated in the last 10 minutes to avoid batch overlap
-  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+  const { limit = 100, dryRun = false } = options;
 
   return prisma.artist.findMany({
-    where: {
-      updatedAt: { lt: tenMinutesAgo },
-    },
     take: limit,
     orderBy: { updatedAt: "asc" },
   });
-}
-
-// â”€â”€â”€ Location backfill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-async function fixArtistLocations(options = {}) {
-  const { limit = 100, dryRun = false, skipGoogle = false } = options;
-
-  // Because scripts/ is CJS, we use the ingest API as a bridge instead of
-  // importing location.ts directly. This keeps the script dependency-light.
-
-  const artists = await prisma.artist.findMany({
-    where: {
-      OR: [
-        { location: null },
-        { genre: null },
-        { bio: null },
-      ],
-    },
-    take: limit,
-    orderBy: { updatedAt: "asc" },
-  });
-
-  console.log(`\nðŸ” Found ${artists.length} artists missing location, genre, or bio.\n`);
-  if (dryRun) {
-    for (const a of artists) {
-      const missing = [!a.location && "location", !a.genre && "genre", !a.bio && "bio"].filter(Boolean);
-      console.log(`  [DRY RUN] Would enrich "${a.name}" (missing: ${missing.join(", ")})`);
-    }
-    return;
-  }
-
-  let updated = 0;
-  let failed = 0;
-
-  for (const artist of artists) {
-    try {
-      const missing = [!artist.location && "location", !artist.genre && "genre", !artist.bio && "bio"].filter(Boolean);
-      process.stdout.write(`  Enriching "${artist.name}" (missing: ${missing.join(", ")})...`);
-
-      // Re-ingest via API which runs the full enrichment pipeline
-      const res = await fetch(`${baseUrl}/api/ingest`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          artist: {
-            name: artist.name,
-            instagramHandle: artist.instagramHandle,
-            spotifyArtistId: artist.spotifyArtistId,
-            location: artist.location,
-            genre: artist.genre,
-            bio: artist.bio,
-            officialSiteUrl: artist.officialSiteUrl,
-          },
-          skipInstagramFetch: true,
-          skipSpotifyFetch: true,
-          isDiscoveryImport: skipGoogle,
-        }),
-      });
-
-      if (res.ok) {
-        process.stdout.write(" âœ“\n");
-        updated++;
-      } else {
-        const errText = await res.text();
-        process.stdout.write(` âœ— (${res.status}: ${errText.substring(0, 80)})\n`);
-        failed++;
-      }
-
-      // MusicBrainz rate limit: 1 req/sec. The pipeline itself also delays,
-      // but we add extra breathing room here between artists.
-      await new Promise((r) => setTimeout(r, 1500));
-    } catch (err) {
-      process.stdout.write(` âœ— (${err.message})\n`);
-      failed++;
-    }
-  }
-
-  console.log(`\nðŸ“ Location/Genre/Bio Backfill: ${updated} updated, ${failed} failed`);
 }
 
 async function main() {
   const dryRun = hasFlag("--dry-run");
-  const fixLocations = hasFlag("--fix-locations");
-  const skipGoogle = hasFlag("--no-google");
   const limitArg = getArg("--limit");
   const limit = limitArg ? parseInt(limitArg, 10) : 100;
 
-  console.log("ðŸ“Š Data Enrichment & Staleness Agent");
+  console.log("📊 Data Enrichment & Staleness Agent");
   console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"} | Limit: ${limit}`);
   console.log();
 
-  // â”€â”€ Location / Genre / Bio backfill mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  if (fixLocations) {
-    console.log("ðŸ“ Running location/genre/bio backfill...");
-    if (skipGoogle) console.log("   (Skipping Google/homepage stages â€” --no-google)");
-    await fixArtistLocations({ limit, dryRun, skipGoogle });
-    return { processedCount: 0 };
-  }
-
-  // â”€â”€ Normal staleness check mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const artists = await getArtistsToEnrich({ limit });
+  const artists = await getArtistsToEnrich({ limit, dryRun });
 
   if (artists.length === 0) {
-    console.log("âœ“ No artists to enrich");
-    return { processedCount: 0 };
+    console.log("✓ No artists to enrich");
+    await prisma.$disconnect();
+    process.exit(0);
   }
 
   console.log(`Checking ${artists.length} artists for stale data...`);
@@ -282,8 +189,6 @@ async function main() {
     total: artists.length,
     healthy: 0,
     needsRefresh: 0,
-    refreshed: 0,
-    failed: 0,
     staleInstagram: 0,
     staleReleases: 0,
     lowEngagement: 0,
@@ -296,8 +201,6 @@ async function main() {
 
       if (enrichResult.status === "healthy") {
         results.healthy++;
-        
-        // No refresh needed, artist is already healthy
       } else {
         results.needsRefresh++;
         
@@ -306,60 +209,6 @@ async function main() {
           if (check.type === "stale_releases") results.staleReleases++;
           if (check.type === "low_engagement") results.lowEngagement++;
         }
-
-        if (!dryRun) {
-          try {
-            process.stdout.write(`  Refreshing artist "${artist.name}"... `);
-            const res = await fetch(`${baseUrl}/api/ingest`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                artist: {
-                  name: artist.name,
-                  instagramHandle: artist.instagramHandle,
-                  spotifyArtistId: artist.spotifyArtistId,
-                  officialSiteUrl: artist.officialSiteUrl,
-                },
-                skipInstagramFetch: false,
-                skipSpotifyFetch: false,
-              }),
-            });
-
-            if (res.ok) {
-              process.stdout.write("âœ“\n");
-              results.refreshed++;
-            } else {
-              const errText = await res.text();
-              process.stdout.write(`âœ— (${res.status}: ${errText.substring(0, 80)})\n`);
-              results.failed++;
-            }
-          } catch (apiError) {
-            process.stdout.write(`âœ— (${apiError.message})\n`);
-            results.failed++;
-          }
-        }
-      }
-
-      // â”€â”€ Touch Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      // This ensures the artist moves to the back of the queue (updatedAt asc)
-      // regardless of whether they were healthy or refreshed.
-      if (!dryRun) {
-        try {
-          await prisma.artist.update({
-            where: { id: artist.id },
-            data: { updatedAt: new Date() },
-          });
-        } catch (touchError) {
-          // If we already refreshed, we might skip the warning
-          if (enrichResult.status === "healthy") {
-             console.error(`  Warning: Could not touch updatedAt for "${artist.name}": ${touchError.message}`);
-          }
-        }
-        
-        // Wait 1.5s between refreshes to avoid rate limits
-        if (enrichResult.status !== "healthy") {
-           await new Promise((r) => setTimeout(r, 1500));
-        }
       }
     } catch (error) {
       console.error(`Error checking artist ${artist.id}:`, error.message);
@@ -367,14 +216,10 @@ async function main() {
     }
   }
 
-  console.log("ðŸ“ˆ Results:");
+  console.log("📈 Results:");
   console.log(`  Checked: ${results.total}`);
   console.log(`  Healthy: ${results.healthy}`);
   console.log(`  Needs Refresh: ${results.needsRefresh}`);
-  if (!dryRun) {
-    console.log(`    - Successfully Refreshed: ${results.refreshed}`);
-    if (results.failed > 0) console.log(`    - Failed to Refresh: ${results.failed}`);
-  }
   if (results.staleInstagram > 0) console.log(`    - Stale Instagram: ${results.staleInstagram}`);
   if (results.staleReleases > 0) console.log(`    - Stale Releases: ${results.staleReleases}`);
   if (results.lowEngagement > 0) console.log(`    - Low Engagement: ${results.lowEngagement}`);
@@ -382,16 +227,14 @@ async function main() {
 
   if (dryRun) {
     console.log();
-    console.log("âš ï¸  DRY RUN: No activities logged to database");
+    console.log("⚠️  DRY RUN: No activities logged to database");
   }
 
-  console.log(`\nâœ¨ Finished. Processed ${results.refreshed} stale leads.`);
-  return { processedCount: results.refreshed };
+  await prisma.$disconnect();
+  process.exit(results.errors > 0 ? 1 : 0);
 }
 
-withAgentRun("enrich-stale", { dryRun: hasFlag("--dry-run") }, main)
-  .catch(err => console.error("Fatal Error:", err))
-  .finally(async () => {
-    await prisma.$disconnect();
-    await pool.end();
-  });
+main().catch((error) => {
+  console.error("Fatal error:", error.message);
+  process.exit(1);
+});

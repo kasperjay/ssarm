@@ -1,0 +1,64 @@
+# Spectral Soundworks Next Steps Implementation Plan
+
+This document outlines the step-by-step implementation plan for executing the priority roadmap items specified in `AGENTS.md`. Per the requested order, we are dividing the work into two phases, starting with tasks 1 & 4.
+
+## Phase 1 (Starting Now)
+
+### 1. Add tests around score components
+The scoring logic was recently consolidated into `src/lib/scoring-core.js`. We will add a robust test suite to ensure weight changes or new rules don't break expected outcomes.
+
+#### [NEW] `src/lib/scoring-core.test.js`
+- Create a test file utilizing the native `node:test` and `node:assert` modules (since no external test framework like Jest is currently installed, keeping dependencies minimal).
+- Test cases to cover:
+  - Validating all individual scoring components (e.g. proximity logic, follower tiers, recency decay).
+  - Validating the 100-point capping logic.
+  - Ensuring the rationale text generates correctly and indicates when a cap was applied.
+  - Asserting the `isQualified` threshold works properly.
+- Update `package.json` to add a `"test"` script pointing to `node --test`.
+
+### 4. Complete Message Delivery
+Currently, `scripts/send-messages.js` has placeholder logic for emails. We need to implement proper SMTP sending so the outreach loop is fully closed.
+
+#### [MODIFY] `scripts/send-messages.js`
+- Integrate `nodemailer` to actually send emails over SMTP.
+- Define a daily send limit by channel (currently it pulls `DAILY_LIMIT` from `.env`, but we will enforce limit-checking more strictly by querying recently sent messages per channel).
+- Update the success recording to log the channel and any provider status in the `Activity` note.
+- Provide a default SMTP configuration pattern using standard environment variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`).
+
+#### [NEW/MODIFY] `src/lib/email-sender.ts`
+- Create a utility file to abstract `nodemailer` setup and provide a simple `sendEmail(to, subject, html)` function.
+
+## Phase 2 (Following Phase 1)
+
+### 2. Add AgentRun Logging
+We need a durable record of agent script executions (inputs, output counts, failures, duration, dry-run status) rather than just lead-level activity notes.
+
+#### [MODIFY] `prisma/schema.prisma`
+- Add an `AgentRun` model with fields: `id`, `agentName`, `mode`, `startedAt`, `finishedAt`, `status`, `totals` (JSON), and `errorSummary`.
+- Run `npx prisma db push` / `npx prisma migrate dev`.
+
+#### [NEW] `src/lib/agent-runner.js`
+- Create a small wrapper helper `withAgentRun(agentName, options, fn)` that handles logging the start/end of the script to the `AgentRun` table.
+
+#### [MODIFY] Script wrappers
+- Wrap `scripts/score-leads.js`, `scripts/enrich-stale.js`, `scripts/send-messages.js`, etc., with the new runner helper.
+
+### 3. Operations Queue UI
+Several agents create useful next actions, but the app should make those actions unavoidable.
+
+#### [NEW] `src/app/operations/page.tsx`
+- Build a new Next.js route for operations.
+- Create UI lists to surface:
+  - Leads with a `nextActionAt` in the past (Due Follow-ups).
+  - Uncontacted leads with a score `>= 60` (High-score uncontacted leads ready for messaging).
+  - Stale enrichment failures requiring manual review.
+
+---
+
+> [!IMPORTANT]
+> **User Review Required**
+> 
+> - **Testing Framework**: I will use native `node:test` to avoid adding Jest/Vitest overhead. Are you okay with this approach?
+> - **Email Sending**: I will use `nodemailer` for SMTP delivery. You will need to provide actual SMTP credentials in your `.env` (like Gmail app passwords, SendGrid, Resend SMTP, etc.) for it to work. I will add the keys it expects to the README. Is this acceptable?
+> 
+> Please approve this plan or provide feedback so we can begin Phase 1!

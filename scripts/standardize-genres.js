@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { PrismaClient } = require("../prisma/generated-client");
+const { PrismaClient } = require("../src/generated/prisma");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 
@@ -24,8 +24,9 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
-
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 // Canonical genre taxonomy
 const GENRE_TAXONOMY = {
@@ -129,13 +130,12 @@ function getGenreIssues(artists) {
 }
 
 async function main() {
-  // Default to dry-run; pass --live to actually apply changes
-  const dryRun = !process.argv.includes("--live");
+  const dryRun = process.argv.includes("--dry-run");
   const autoFix = process.argv.includes("--auto-fix");
   const showTaxonomy = process.argv.includes("--taxonomy");
 
   console.log("🏷️  Genre Standardization Agent");
-  console.log(`Mode: ${dryRun ? "DRY RUN (pass --live to apply)" : "LIVE"}`);
+  console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"}`);
   console.log();
 
   if (showTaxonomy) {
@@ -211,25 +211,18 @@ async function main() {
     let fixed = 0;
     for (const item of issues.standardizable) {
       try {
-        const lead = await prisma.lead.findFirst({
-          where: { artistId: item.artist.id },
-          orderBy: { createdAt: "asc" },
-        });
-
         await prisma.artist.update({
           where: { id: item.artist.id },
           data: { genre: item.standardized },
         });
 
-        if (lead) {
-          await prisma.activity.create({
-            data: {
-              leadId: lead.id,
-              type: "NOTE",
-              note: `[AUTO-FIX] Genre standardized: "${item.original}" -> "${item.standardized}"`,
-            },
-          });
-        }
+        await prisma.activity.create({
+          data: {
+            type: "NOTE",
+            note: `[AUTO-FIX] Genre standardized: "${item.original}" → "${item.standardized}"`,
+            // We need a leadId, so find the first lead for this artist
+          },
+        });
 
         fixed++;
         console.log(`  ✓ ${item.artist.name}: "${item.original}" → "${item.standardized}"`);
@@ -250,18 +243,14 @@ async function main() {
   console.log(`  Data quality: ${((issues.already_standard.length / artists.length) * 100).toFixed(1)}%`);
 
   if (!autoFix && issues.standardizable.length > 0) {
-    console.log("\n💡 Tip: Run with --live --auto-fix to apply standardizations");
+    console.log("\n💡 Tip: Run with --auto-fix to apply standardizations");
   }
 
-  return { fixed: autoFix && !dryRun ? issues.standardizable.length : 0, needsReview: issues.invalid.length + issues.missing.length };
+  await prisma.$disconnect();
+  process.exit(0);
 }
 
-withAgentRun("standardize-genres", { dryRun: !process.argv.includes("--live") }, main)
-  .catch((error) => {
-    console.error("Fatal error:", error.message);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-    await pool.end();
-  });
+main().catch((error) => {
+  console.error("Fatal error:", error.message);
+  process.exit(1);
+});

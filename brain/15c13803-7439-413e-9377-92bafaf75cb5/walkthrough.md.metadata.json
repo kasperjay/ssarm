@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of the fixes applied to the Empire crawler. Improved data quality by refining the bunk event filtering logic and artist name cleaning. Verified with a custom test suite covering real-world event cases from Empire ATX.",
+  "updatedAt": "2026-04-14T21:50:14.420100200Z"
+}

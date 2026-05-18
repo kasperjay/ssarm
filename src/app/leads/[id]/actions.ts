@@ -1,13 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { LeadStatus } from "local-prisma-client";
+import { LeadStatus } from "@/generated/prisma";
 import { generateReachoutDrafts } from "@/lib/reachout";
-import { scoreLead } from "@/lib/scoring";
-import { ensureBotRunning } from "@/lib/instagram-bot";
-import { appendContactRow, inferContactMethod } from "@/lib/google-sheets";
 
 type UpdateStatusState = {
   leadId: string;
@@ -23,6 +19,11 @@ type SendMessageState = {
   leadId: string;
   body: string;
   source?: string;
+};
+
+type UpdateInstagramHandleState = {
+  leadId: string;
+  handle: string;
 };
 
 const formatPrettyDate = (date?: Date | null) => {
@@ -55,13 +56,11 @@ const getFollowUpDate = () => {
 };
 
 export async function updateLeadStatus(state: UpdateStatusState) {
-  console.log(`[updateLeadStatus] Updating lead ${state.leadId} to ${state.status}`);
   const lead = await prisma.lead.findUnique({
     where: { id: state.leadId },
   });
 
   if (!lead || lead.status === state.status) {
-    console.log(`[updateLeadStatus] No update needed for lead ${state.leadId}`);
     return;
   }
 
@@ -77,30 +76,11 @@ export async function updateLeadStatus(state: UpdateStatusState) {
       note: `Status changed to ${state.status}`,
     },
   });
-
-  revalidatePath(`/leads/${state.leadId}`);
-  revalidatePath("/leads");
-  console.log(`[updateLeadStatus] Successfully updated lead ${state.leadId} and revalidated paths`);
-}
-
-export async function handleStatusUpdate(formData: FormData) {
-  console.log(`[handleStatusUpdate] Received form data`);
-  const leadId = formData.get("leadId");
-  const status = formData.get("status");
-  console.log(`[handleStatusUpdate] leadId: ${leadId}, status: ${status}`);
-
-  if (typeof leadId !== "string" || typeof status !== "string") {
-    console.log(`[handleStatusUpdate] Invalid formData`);
-    return;
-  }
-
-  await updateLeadStatus({ leadId, status: status as LeadStatus });
 }
 
 export async function markContacted(state: LeadActionState) {
   const lead = await prisma.lead.findUnique({
     where: { id: state.leadId },
-    include: { artist: true },
   });
 
   if (!lead) return;
@@ -121,37 +101,23 @@ export async function markContacted(state: LeadActionState) {
       note: "Marked contacted",
     },
   });
-
-  const contactMethod = inferContactMethod({ hasEmail: (lead.artist.emails?.length ?? 0) > 0 });
-  appendContactRow({
-    artistName: lead.artist.name,
-    contactMethod,
-    instagramHandle: lead.artist.instagramHandle,
-    email: lead.artist.emails?.[0],
-    dateContacted: new Date(),
-  });
 }
 
 export async function sendMessage(state: SendMessageState) {
   const trimmed = state.body.trim();
-  if (!trimmed) return { ok: false, error: "Message body is empty." };
+  if (!trimmed) return;
 
   const lead = await prisma.lead.findUnique({
     where: { id: state.leadId },
     include: { artist: true },
   });
 
-  if (!lead) return { ok: false, error: "Lead not found." };
+  if (!lead) return;
 
   const nextActionAt = getFollowUpDate();
   const webhookUrl = process.env.IG_DM_WEBHOOK_URL;
   let sendOk = !webhookUrl;
-  let errorMessage: string | undefined;
-
   if (webhookUrl) {
-    // Ensure the bot is running before attempting to send
-    await ensureBotRunning();
-
     try {
       const response = await fetch(webhookUrl, {
         method: "POST",
@@ -177,14 +143,11 @@ export async function sendMessage(state: SendMessageState) {
       });
       sendOk = response.ok;
       if (!response.ok) {
-        const text = await response.text().catch(() => "No response body");
-        console.error("IG DM webhook failed", response.status, text);
-        errorMessage = `Bot server error (${response.status}): ${text.slice(0, 100)}`;
+        console.error("IG DM webhook failed", response.status, await response.text());
       }
     } catch (error) {
       console.error("Failed to call IG DM webhook", error);
       sendOk = false;
-      errorMessage = error instanceof Error ? error.message : "Network error calling bot server";
     }
   }
 
@@ -194,7 +157,7 @@ export async function sendMessage(state: SendMessageState) {
         leadId: lead.id,
         body: trimmed,
         source: state.source ?? "failed",
-        selected: true, // Mark as selected so the background agent can retry it
+        selected: false,
       },
     });
 
@@ -202,11 +165,11 @@ export async function sendMessage(state: SendMessageState) {
       data: {
         leadId: lead.id,
         type: "NOTE",
-        note: `Send failed via IG webhook: ${errorMessage}`,
+        note: "Send failed via IG webhook.",
       },
     });
 
-    return { ok: false, error: errorMessage ?? "Failed to send via IG webhook." };
+    return;
   }
 
   await prisma.lead.update({
@@ -220,7 +183,7 @@ export async function sendMessage(state: SendMessageState) {
 
   await prisma.activity.create({
     data: {
-      leadId: lead.id,
+      leadId: state.leadId,
       type: "MESSAGE_SENT",
       note: trimmed,
     },
@@ -234,41 +197,21 @@ export async function sendMessage(state: SendMessageState) {
       selected: true,
     },
   });
-
-  await prisma.messageDraft.deleteMany({
-    where: {
-      leadId: lead.id,
-      source: "reachout",
-    },
-  });
-
-  const contactMethod = inferContactMethod({ hasEmail: (lead.artist.emails?.length ?? 0) > 0 });
-  appendContactRow({
-    artistName: lead.artist.name,
-    contactMethod,
-    instagramHandle: lead.artist.instagramHandle,
-    email: lead.artist.emails?.[0],
-    dateContacted: new Date(),
-  });
-
-  revalidatePath(`/leads/${lead.id}`);
-  revalidatePath("/leads");
-  redirect("/leads");
 }
 
 export async function generateDraftsForLead(
   leadId: string,
-  options?: { styleHint?: string | null; shouldRevalidate?: boolean }
+  styleHint?: string | null,
+  options?: { revalidate?: boolean }
 ) {
   if (!leadId) return;
-  const { styleHint, shouldRevalidate = true } = options ?? {};
 
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
     include: {
       artist: true,
       messages: true,
-      activities: { orderBy: { occurredAt: "desc" } },
+      activities: { orderBy: { occurredAt: "desc" }, take: 1 },
     },
   });
 
@@ -303,12 +246,6 @@ export async function generateDraftsForLead(
       ? lead.scoreRationale
       : null;
 
-  // Find show info in activities (notes that contain ' · ' or ' | ' from ingestion)
-  const showInfo = lead.activities
-    .filter(a => a.type === "NOTE" && a.note?.includes(" · "))
-    .map(a => a.note)
-  [0] || null;
-
   const output = await generateReachoutDrafts({
     artist: lead.artist.name,
     genreText: lead.artist.genre,
@@ -323,7 +260,6 @@ export async function generateDraftsForLead(
     isRecentRelease,
     personalHook,
     recentPosts,
-    showInfo,
     bio: lead.artist.bio,
     hasEmail: (lead.artist.emails?.length ?? 0) > 0,
     styleHint: styleHint ?? undefined,
@@ -363,7 +299,7 @@ export async function generateDraftsForLead(
     },
   });
 
-  if (shouldRevalidate) {
+  if (options?.revalidate !== false) {
     revalidatePath(`/leads/${lead.id}`);
   }
 }
@@ -371,9 +307,9 @@ export async function generateDraftsForLead(
 export async function generateDrafts(formData: FormData) {
   const leadId = formData.get("leadId");
   if (typeof leadId !== "string" || !leadId.trim()) return;
-  const styleHintRaw = formData.get("status") || formData.get("styleHint");
+  const styleHintRaw = formData.get("styleHint");
   const styleHint = typeof styleHintRaw === "string" ? styleHintRaw : undefined;
-  await generateDraftsForLead(leadId, { styleHint });
+  await generateDraftsForLead(leadId, styleHint);
 }
 
 type DraftKey = "IG_A" | "IG_B" | "EMAIL_A" | "EMAIL_B";
@@ -402,7 +338,7 @@ export async function regenerateDraft(formData: FormData) {
     include: {
       artist: true,
       messages: true,
-      activities: { orderBy: { occurredAt: "desc" } },
+      activities: { orderBy: { occurredAt: "desc" }, take: 1 },
     },
   });
 
@@ -439,12 +375,6 @@ export async function regenerateDraft(formData: FormData) {
 
   const styleHint = typeof styleHintRaw === "string" ? styleHintRaw : undefined;
 
-  // Find show info in activities
-  const showInfo = lead.activities
-    .filter(a => a.type === "NOTE" && a.note?.includes(" · "))
-    .map(a => a.note)
-  [0] || null;
-
   const output = await generateReachoutDrafts({
     artist: lead.artist.name,
     genreText: lead.artist.genre,
@@ -459,7 +389,6 @@ export async function regenerateDraft(formData: FormData) {
     isRecentRelease,
     personalHook,
     recentPosts,
-    showInfo,
     bio: lead.artist.bio,
     hasEmail: (lead.artist.emails?.length ?? 0) > 0,
     styleHint,
@@ -496,12 +425,9 @@ export async function refreshLeadData(formData: FormData) {
 
   if (!lead) return;
 
-  const ingestUrl = process.env.NEXT_PUBLIC_APP_URL
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/api/ingest`
-    : "http://localhost:3000/api/ingest";
+  const ingestUrl = process.env.INGEST_URL || "http://localhost:3000/api/ingest";
 
   const payload = {
-    lead: { id: leadId, status: lead.status },
     artist: {
       name: lead.artist.name,
       instagramHandle: lead.artist.instagramHandle ?? undefined,
@@ -547,15 +473,12 @@ export async function refreshLeadData(formData: FormData) {
       },
     });
   }
-
-  await scoreLead(leadId);
-  revalidatePath(`/leads/${leadId}`);
 }
 
-export async function updateArtistHandle(state: {
-  leadId: string;
-  instagramHandle: string;
-}) {
+export async function updateInstagramHandle(state: UpdateInstagramHandleState) {
+  const handle = state.handle.replace(/^@/, "").trim();
+  if (!handle) return;
+
   const lead = await prisma.lead.findUnique({
     where: { id: state.leadId },
     include: { artist: true },
@@ -563,87 +486,79 @@ export async function updateArtistHandle(state: {
 
   if (!lead) return;
 
-  const normalized = state.instagramHandle.trim().replace("@", "");
-  if (!normalized) return;
-
   await prisma.artist.update({
-    where: { id: lead.artist.id },
-    data: { instagramHandle: normalized },
+    where: { id: lead.artistId },
+    data: {
+      instagramHandle: handle,
+      instagramProfileUrl: `https://www.instagram.com/${handle}/`,
+      instagramProfileImageUrl: null,
+    },
   });
 
   await prisma.activity.create({
     data: {
       leadId: lead.id,
-      type: "STATUS_CHANGE",
-      note: `Instagram handle updated to @${normalized}`,
+      type: "NOTE",
+      note: `Updated Instagram handle to @${handle} and refreshed posts.`,
     },
   });
 
-  revalidatePath(`/leads/${lead.id}`);
-}
+  const ingestUrl = process.env.INGEST_URL || "http://localhost:3000/api/ingest";
+  const payload = {
+    skipSpotifyFetch: true,
+    artist: {
+      name: lead.artist.name,
+      instagramHandle: handle,
+      instagramProfileUrl: `https://www.instagram.com/${handle}/`,
+      spotifyArtistId: lead.artist.spotifyArtistId ?? undefined,
+      spotifyArtistUrl: lead.artist.spotifyArtistUrl ?? undefined,
+      officialSiteUrl: lead.artist.officialSiteUrl ?? undefined,
+    },
+  };
 
-export async function trashLeadAction(formData: FormData) {
-  const leadId = formData.get("leadId");
-  if (typeof leadId !== "string") return;
-
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
-    select: { artistId: true },
-  });
-
-  if (!lead) return;
-
-  // First delete the lead (and its messages/activities via cascade)
-  await prisma.lead.delete({
-    where: { id: leadId },
-  });
-
-  // Then attempt to delete the artist to completely scrub them.
   try {
-    await prisma.artist.delete({
-      where: { id: lead.artistId },
+    const response = await fetch(ingestUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
-  } catch (err) {
-    console.error(`[trashLeadAction] Failed to delete artist:`, err);
-  }
-
-  revalidatePath("/leads/desk");
-  redirect("/");
-}
-
-export async function updateArtistName(state: {
-  artistId: string;
-  name: string;
-}) {
-  const artist = await prisma.artist.findUnique({
-    where: { id: state.artistId },
-    include: { leads: true },
-  });
-
-  if (!artist || !state.name.trim()) return;
-
-  const newName = state.name.trim();
-
-  await prisma.artist.update({
-    where: { id: artist.id },
-    data: { name: newName },
-  });
-
-  // Log activity on all leads associated with this artist
-  if (artist.leads.length > 0) {
-    await prisma.activity.createMany({
-       data: artist.leads.map(lead => ({
+    if (!response.ok) {
+      const text = await response.text();
+      await prisma.activity.create({
+        data: {
           leadId: lead.id,
-          type: "STATUS_CHANGE",
-          note: `Artist name updated from '${artist.name}' to '${newName}'`,
-       }))
+          type: "NOTE",
+          note: `IG refresh failed (${response.status}). ${text.slice(0, 140)}`,
+        },
+      });
+      return;
+    }
+
+    const result = (await response.json()) as {
+      instagramPostsCount?: number;
+      instagramProfile?: { bio?: string | null; followersCount?: number | null };
+    };
+
+    await prisma.activity.create({
+      data: {
+        leadId: lead.id,
+        type: "NOTE",
+        note: `IG refresh complete: ${result.instagramPostsCount ?? 0} posts, ${result.instagramProfile?.followersCount ?? "unknown"} followers. Bio: ${result.instagramProfile?.bio ? "yes" : "no"}`,
+      },
+    });
+
+    await prisma.instagramPost.deleteMany({
+      where: { artistId: lead.artistId, imageUrl: null },
+    });
+  } catch (error) {
+    await prisma.activity.create({
+      data: {
+        leadId: lead.id,
+        type: "NOTE",
+        note: `IG refresh failed. ${error instanceof Error ? error.message : "Unknown error"}`,
+      },
     });
   }
 
-  // Revalidate paths
-  revalidatePath("/");
-  revalidatePath("/leads/desk");
-  for (const lead of artist.leads) {
-    revalidatePath(`/leads/${lead.id}`);
-  }
+  revalidatePath(`/leads/${lead.id}`);
 }
