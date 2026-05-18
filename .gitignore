@@ -1,0 +1,64 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Prisma generated client
+/src/generated/prisma
+/prisma/generated-client
+
+# Database dumps and logs
+*.sql
+*.log
+.next_log*
+.next_novu*
+
+# Chat exports and CSV data
+*.csv
+
+# Runtime caches and tool artifacts
+/.node/
+/npm_cache/
+/tmp/
+
+# IG DM bot runtime artifacts
+/integrations/ig-dm-bot/node_modules
+/integrations/ig-dm-bot/logs
+/integrations/ig-dm-bot/data/

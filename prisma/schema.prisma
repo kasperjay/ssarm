@@ -1,0 +1,253 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LeadStatus {
+  NEW
+  QUALIFIED
+  CONTACTED
+  REPLY_RECEIVED
+  FOLLOW_UP
+  WON
+  LOST
+}
+
+enum ActivityType {
+  MESSAGE_SENT
+  REPLY_RECEIVED
+  FOLLOW_UP_SET
+  STATUS_CHANGE
+  NOTE
+}
+
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum FileType {
+  WORKING
+  DELIVERABLE
+}
+
+model Artist {
+  id                  String          @id @default(cuid())
+  name                String
+  instagramHandle     String?         @unique
+  instagramProfileUrl String?
+  instagramProfileImageUrl String?
+  spotifyArtistId     String?         @unique
+  spotifyArtistUrl    String?
+  spotifyImageUrl     String?
+  spotifyAccent       String?
+  spotifyAccentStrong String?
+  spotifyHighlight    String?
+  officialSiteUrl     String?
+  location            String?
+  city                String?
+  state               String?
+  country             String?
+  genre               String?
+  tags                String[]        @default([])
+  bio                 String?
+  emails              String[]        @default([])
+  followerCount       Int?
+  lastPostAt          DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  leads            Lead[]
+  releases         Release[]
+  instagramPosts   InstagramPost[]
+  projects         Project[]
+  contactInfos     ContactInfo[]
+  primaryMerges    MergeProposal[] @relation("PrimaryMergeProposals")
+  duplicateMerges  MergeProposal[] @relation("DuplicateMergeProposals")
+}
+
+model Lead {
+  id              String      @id @default(cuid())
+  artistId        String
+  status          LeadStatus  @default(NEW)
+  score           Float?
+  scoreRationale  String?
+  lastContactedAt DateTime?
+  nextActionAt    DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  artist     Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  messages   MessageDraft[]
+  activities Activity[]
+}
+
+model Release {
+  id             String   @id @default(cuid())
+  artistId       String
+  spotifyTrackId String?  @unique
+  spotifyReleaseId String? @unique
+  title          String
+  releaseDate    DateTime?
+  imageUrl       String?
+  url            String?
+  releaseType    String?
+  createdAt      DateTime @default(now())
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
+model InstagramPost {
+  id              String   @id @default(cuid())
+  artistId        String
+  instagramPostId String?  @unique
+  caption         String?
+  imageUrl        String?
+  postedAt        DateTime?
+  url             String?
+  createdAt       DateTime @default(now())
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
+model MessageDraft {
+  id        String   @id @default(cuid())
+  leadId    String
+  tone      String?
+  body      String
+  source    String?
+  selected  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id         String       @id @default(cuid())
+  leadId     String
+  type       ActivityType
+  note       String?
+  occurredAt DateTime     @default(now())
+  createdAt  DateTime     @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  artistId    String
+  title       String? // Optional explicit title, otherwise defaults to something like "Project for [Artist Name]"
+  portalToken String        @unique @default(cuid()) // Unique random token for client to access without auth
+  status      ProjectStatus @default(ACTIVE)
+  rating      Int? // 1-5 star rating
+  review      String? // Post-project feedback
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  files     ProjectFile[]
+  feedbacks ProjectFeedback[]
+  invoice   ProjectInvoice?
+}
+
+model ProjectFile {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  url       String // Can be local path (/uploads/...) or S3 URL
+  key       String // Unique identifier/path for the file system or S3 bucket
+  size      Int // Size in bytes
+  mimeType  String // E.g., 'audio/wav', 'application/pdf'
+  type      FileType @default(WORKING)
+  isPublic  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  feedbacks ProjectFeedback[]
+}
+
+model ProjectFeedback {
+  id        String   @id @default(cuid())
+  projectId String
+  content   String   // Text content of the notes/feedback
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  fileId    String?
+  timestamp Float?    // Time in seconds
+  file      ProjectFile? @relation(fields: [fileId], references: [id], onDelete: Cascade)
+}
+
+model ProjectInvoice {
+  id               String   @id @default(cuid())
+  projectId        String   @unique
+  invoiceNumber    String
+  issuedAt         DateTime @default(now())
+  dueAt            DateTime?
+  currency         String   @default("USD")
+  lineItems        Json
+  subtotalCents    Int
+  taxCents         Int      @default(0)
+  totalCents       Int
+  notes            String?
+  stripePaymentUrl String?
+  paidAt           DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AgentRun {
+  id         String   @id @default(cuid())
+  agentName  String
+  mode       String?
+  startedAt  DateTime @default(now())
+  finishedAt DateTime?
+  status     String
+  totals     Json?
+  error      String?
+}
+
+model ContactInfo {
+  id           String   @id @default(cuid())
+  artistId     String
+  email        String
+  confidence   String   @default("uncertain") // verified, inferred, uncertain
+  score        Int      @default(0)
+  sourceUrl    String?
+  sourceType   String?
+  discoveredAt DateTime @default(now())
+
+  artist       Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId, email])
+}
+
+model MergeProposal {
+  id                String   @id @default(cuid())
+  primaryArtistId   String
+  duplicateArtistId String   @unique
+  primaryName       String
+  duplicateName     String
+  similarityScore   Float
+  confidence        String   // HIGH, MEDIUM, LOW
+  reason            String
+  status            String   @default("PENDING") // PENDING, APPLIED, REJECTED
+  createdAt         DateTime @default(now())
+
+  primaryArtist   Artist @relation("PrimaryMergeProposals", fields: [primaryArtistId], references: [id], onDelete: Cascade)
+  duplicateArtist Artist @relation("DuplicateMergeProposals", fields: [duplicateArtistId], references: [id], onDelete: Cascade)
+}
