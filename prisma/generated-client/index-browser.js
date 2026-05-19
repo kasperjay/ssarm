@@ -255,12 +255,52 @@ exports.Prisma.ProjectInvoiceScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AgentRunScalarFieldEnum = {
+  id: 'id',
+  agentName: 'agentName',
+  mode: 'mode',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  status: 'status',
+  totals: 'totals',
+  error: 'error'
+};
+
+exports.Prisma.ContactInfoScalarFieldEnum = {
+  id: 'id',
+  artistId: 'artistId',
+  email: 'email',
+  confidence: 'confidence',
+  score: 'score',
+  sourceUrl: 'sourceUrl',
+  sourceType: 'sourceType',
+  discoveredAt: 'discoveredAt'
+};
+
+exports.Prisma.MergeProposalScalarFieldEnum = {
+  id: 'id',
+  primaryArtistId: 'primaryArtistId',
+  duplicateArtistId: 'duplicateArtistId',
+  primaryName: 'primaryName',
+  duplicateName: 'duplicateName',
+  similarityScore: 'similarityScore',
+  confidence: 'confidence',
+  reason: 'reason',
+  status: 'status',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
 };
 
 exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull
 };
 
@@ -317,7 +357,10 @@ exports.Prisma.ModelName = {
   Project: 'Project',
   ProjectFile: 'ProjectFile',
   ProjectFeedback: 'ProjectFeedback',
-  ProjectInvoice: 'ProjectInvoice'
+  ProjectInvoice: 'ProjectInvoice',
+  AgentRun: 'AgentRun',
+  ContactInfo: 'ContactInfo',
+  MergeProposal: 'MergeProposal'
 };
 
 /**

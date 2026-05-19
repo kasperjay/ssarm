@@ -63,6 +63,21 @@ export type ProjectFeedback = $Result.DefaultSelection<Prisma.$ProjectFeedbackPa
  * 
  */
 export type ProjectInvoice = $Result.DefaultSelection<Prisma.$ProjectInvoicePayload>
+/**
+ * Model AgentRun
+ * 
+ */
+export type AgentRun = $Result.DefaultSelection<Prisma.$AgentRunPayload>
+/**
+ * Model ContactInfo
+ * 
+ */
+export type ContactInfo = $Result.DefaultSelection<Prisma.$ContactInfoPayload>
+/**
+ * Model MergeProposal
+ * 
+ */
+export type MergeProposal = $Result.DefaultSelection<Prisma.$MergeProposalPayload>
 
 /**
  * Enums
@@ -345,6 +360,36 @@ export class PrismaClient<
     * ```
     */
   get projectInvoice(): Prisma.ProjectInvoiceDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.agentRun`: Exposes CRUD operations for the **AgentRun** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AgentRuns
+    * const agentRuns = await prisma.agentRun.findMany()
+    * ```
+    */
+  get agentRun(): Prisma.AgentRunDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.contactInfo`: Exposes CRUD operations for the **ContactInfo** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ContactInfos
+    * const contactInfos = await prisma.contactInfo.findMany()
+    * ```
+    */
+  get contactInfo(): Prisma.ContactInfoDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mergeProposal`: Exposes CRUD operations for the **MergeProposal** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MergeProposals
+    * const mergeProposals = await prisma.mergeProposal.findMany()
+    * ```
+    */
+  get mergeProposal(): Prisma.MergeProposalDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -788,7 +833,10 @@ export namespace Prisma {
     Project: 'Project',
     ProjectFile: 'ProjectFile',
     ProjectFeedback: 'ProjectFeedback',
-    ProjectInvoice: 'ProjectInvoice'
+    ProjectInvoice: 'ProjectInvoice',
+    AgentRun: 'AgentRun',
+    ContactInfo: 'ContactInfo',
+    MergeProposal: 'MergeProposal'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -804,7 +852,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "artist" | "lead" | "release" | "instagramPost" | "messageDraft" | "activity" | "project" | "projectFile" | "projectFeedback" | "projectInvoice"
+      modelProps: "artist" | "lead" | "release" | "instagramPost" | "messageDraft" | "activity" | "project" | "projectFile" | "projectFeedback" | "projectInvoice" | "agentRun" | "contactInfo" | "mergeProposal"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1548,6 +1596,228 @@ export namespace Prisma {
           }
         }
       }
+      AgentRun: {
+        payload: Prisma.$AgentRunPayload<ExtArgs>
+        fields: Prisma.AgentRunFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AgentRunFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AgentRunFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>
+          }
+          findFirst: {
+            args: Prisma.AgentRunFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AgentRunFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>
+          }
+          findMany: {
+            args: Prisma.AgentRunFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>[]
+          }
+          create: {
+            args: Prisma.AgentRunCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>
+          }
+          createMany: {
+            args: Prisma.AgentRunCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AgentRunCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>[]
+          }
+          delete: {
+            args: Prisma.AgentRunDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>
+          }
+          update: {
+            args: Prisma.AgentRunUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>
+          }
+          deleteMany: {
+            args: Prisma.AgentRunDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AgentRunUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AgentRunUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>[]
+          }
+          upsert: {
+            args: Prisma.AgentRunUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentRunPayload>
+          }
+          aggregate: {
+            args: Prisma.AgentRunAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAgentRun>
+          }
+          groupBy: {
+            args: Prisma.AgentRunGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AgentRunGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AgentRunCountArgs<ExtArgs>
+            result: $Utils.Optional<AgentRunCountAggregateOutputType> | number
+          }
+        }
+      }
+      ContactInfo: {
+        payload: Prisma.$ContactInfoPayload<ExtArgs>
+        fields: Prisma.ContactInfoFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ContactInfoFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ContactInfoFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>
+          }
+          findFirst: {
+            args: Prisma.ContactInfoFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ContactInfoFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>
+          }
+          findMany: {
+            args: Prisma.ContactInfoFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>[]
+          }
+          create: {
+            args: Prisma.ContactInfoCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>
+          }
+          createMany: {
+            args: Prisma.ContactInfoCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ContactInfoCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>[]
+          }
+          delete: {
+            args: Prisma.ContactInfoDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>
+          }
+          update: {
+            args: Prisma.ContactInfoUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>
+          }
+          deleteMany: {
+            args: Prisma.ContactInfoDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ContactInfoUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ContactInfoUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>[]
+          }
+          upsert: {
+            args: Prisma.ContactInfoUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContactInfoPayload>
+          }
+          aggregate: {
+            args: Prisma.ContactInfoAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateContactInfo>
+          }
+          groupBy: {
+            args: Prisma.ContactInfoGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ContactInfoGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ContactInfoCountArgs<ExtArgs>
+            result: $Utils.Optional<ContactInfoCountAggregateOutputType> | number
+          }
+        }
+      }
+      MergeProposal: {
+        payload: Prisma.$MergeProposalPayload<ExtArgs>
+        fields: Prisma.MergeProposalFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MergeProposalFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MergeProposalFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>
+          }
+          findFirst: {
+            args: Prisma.MergeProposalFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MergeProposalFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>
+          }
+          findMany: {
+            args: Prisma.MergeProposalFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>[]
+          }
+          create: {
+            args: Prisma.MergeProposalCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>
+          }
+          createMany: {
+            args: Prisma.MergeProposalCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MergeProposalCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>[]
+          }
+          delete: {
+            args: Prisma.MergeProposalDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>
+          }
+          update: {
+            args: Prisma.MergeProposalUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>
+          }
+          deleteMany: {
+            args: Prisma.MergeProposalDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MergeProposalUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MergeProposalUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>[]
+          }
+          upsert: {
+            args: Prisma.MergeProposalUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MergeProposalPayload>
+          }
+          aggregate: {
+            args: Prisma.MergeProposalAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMergeProposal>
+          }
+          groupBy: {
+            args: Prisma.MergeProposalGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MergeProposalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MergeProposalCountArgs<ExtArgs>
+            result: $Utils.Optional<MergeProposalCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1666,6 +1936,9 @@ export namespace Prisma {
     projectFile?: ProjectFileOmit
     projectFeedback?: ProjectFeedbackOmit
     projectInvoice?: ProjectInvoiceOmit
+    agentRun?: AgentRunOmit
+    contactInfo?: ContactInfoOmit
+    mergeProposal?: MergeProposalOmit
   }
 
   /* Types for Logging */
@@ -1750,6 +2023,9 @@ export namespace Prisma {
     releases: number
     instagramPosts: number
     projects: number
+    contactInfos: number
+    primaryMerges: number
+    duplicateMerges: number
   }
 
   export type ArtistCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1757,6 +2033,9 @@ export namespace Prisma {
     releases?: boolean | ArtistCountOutputTypeCountReleasesArgs
     instagramPosts?: boolean | ArtistCountOutputTypeCountInstagramPostsArgs
     projects?: boolean | ArtistCountOutputTypeCountProjectsArgs
+    contactInfos?: boolean | ArtistCountOutputTypeCountContactInfosArgs
+    primaryMerges?: boolean | ArtistCountOutputTypeCountPrimaryMergesArgs
+    duplicateMerges?: boolean | ArtistCountOutputTypeCountDuplicateMergesArgs
   }
 
   // Custom InputTypes
@@ -1796,6 +2075,27 @@ export namespace Prisma {
    */
   export type ArtistCountOutputTypeCountProjectsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProjectWhereInput
+  }
+
+  /**
+   * ArtistCountOutputType without action
+   */
+  export type ArtistCountOutputTypeCountContactInfosArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContactInfoWhereInput
+  }
+
+  /**
+   * ArtistCountOutputType without action
+   */
+  export type ArtistCountOutputTypeCountPrimaryMergesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MergeProposalWhereInput
+  }
+
+  /**
+   * ArtistCountOutputType without action
+   */
+  export type ArtistCountOutputTypeCountDuplicateMergesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MergeProposalWhereInput
   }
 
 
@@ -2260,6 +2560,9 @@ export namespace Prisma {
     releases?: boolean | Artist$releasesArgs<ExtArgs>
     instagramPosts?: boolean | Artist$instagramPostsArgs<ExtArgs>
     projects?: boolean | Artist$projectsArgs<ExtArgs>
+    contactInfos?: boolean | Artist$contactInfosArgs<ExtArgs>
+    primaryMerges?: boolean | Artist$primaryMergesArgs<ExtArgs>
+    duplicateMerges?: boolean | Artist$duplicateMergesArgs<ExtArgs>
     _count?: boolean | ArtistCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["artist"]>
 
@@ -2350,6 +2653,9 @@ export namespace Prisma {
     releases?: boolean | Artist$releasesArgs<ExtArgs>
     instagramPosts?: boolean | Artist$instagramPostsArgs<ExtArgs>
     projects?: boolean | Artist$projectsArgs<ExtArgs>
+    contactInfos?: boolean | Artist$contactInfosArgs<ExtArgs>
+    primaryMerges?: boolean | Artist$primaryMergesArgs<ExtArgs>
+    duplicateMerges?: boolean | Artist$duplicateMergesArgs<ExtArgs>
     _count?: boolean | ArtistCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ArtistIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2362,6 +2668,9 @@ export namespace Prisma {
       releases: Prisma.$ReleasePayload<ExtArgs>[]
       instagramPosts: Prisma.$InstagramPostPayload<ExtArgs>[]
       projects: Prisma.$ProjectPayload<ExtArgs>[]
+      contactInfos: Prisma.$ContactInfoPayload<ExtArgs>[]
+      primaryMerges: Prisma.$MergeProposalPayload<ExtArgs>[]
+      duplicateMerges: Prisma.$MergeProposalPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2786,6 +3095,9 @@ export namespace Prisma {
     releases<T extends Artist$releasesArgs<ExtArgs> = {}>(args?: Subset<T, Artist$releasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReleasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     instagramPosts<T extends Artist$instagramPostsArgs<ExtArgs> = {}>(args?: Subset<T, Artist$instagramPostsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstagramPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     projects<T extends Artist$projectsArgs<ExtArgs> = {}>(args?: Subset<T, Artist$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    contactInfos<T extends Artist$contactInfosArgs<ExtArgs> = {}>(args?: Subset<T, Artist$contactInfosArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    primaryMerges<T extends Artist$primaryMergesArgs<ExtArgs> = {}>(args?: Subset<T, Artist$primaryMergesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    duplicateMerges<T extends Artist$duplicateMergesArgs<ExtArgs> = {}>(args?: Subset<T, Artist$duplicateMergesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3320,6 +3632,78 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ProjectScalarFieldEnum | ProjectScalarFieldEnum[]
+  }
+
+  /**
+   * Artist.contactInfos
+   */
+  export type Artist$contactInfosArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    where?: ContactInfoWhereInput
+    orderBy?: ContactInfoOrderByWithRelationInput | ContactInfoOrderByWithRelationInput[]
+    cursor?: ContactInfoWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ContactInfoScalarFieldEnum | ContactInfoScalarFieldEnum[]
+  }
+
+  /**
+   * Artist.primaryMerges
+   */
+  export type Artist$primaryMergesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    where?: MergeProposalWhereInput
+    orderBy?: MergeProposalOrderByWithRelationInput | MergeProposalOrderByWithRelationInput[]
+    cursor?: MergeProposalWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MergeProposalScalarFieldEnum | MergeProposalScalarFieldEnum[]
+  }
+
+  /**
+   * Artist.duplicateMerges
+   */
+  export type Artist$duplicateMergesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    where?: MergeProposalWhereInput
+    orderBy?: MergeProposalOrderByWithRelationInput | MergeProposalOrderByWithRelationInput[]
+    cursor?: MergeProposalWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MergeProposalScalarFieldEnum | MergeProposalScalarFieldEnum[]
   }
 
   /**
@@ -13702,6 +14086,3332 @@ export namespace Prisma {
 
 
   /**
+   * Model AgentRun
+   */
+
+  export type AggregateAgentRun = {
+    _count: AgentRunCountAggregateOutputType | null
+    _min: AgentRunMinAggregateOutputType | null
+    _max: AgentRunMaxAggregateOutputType | null
+  }
+
+  export type AgentRunMinAggregateOutputType = {
+    id: string | null
+    agentName: string | null
+    mode: string | null
+    startedAt: Date | null
+    finishedAt: Date | null
+    status: string | null
+    error: string | null
+  }
+
+  export type AgentRunMaxAggregateOutputType = {
+    id: string | null
+    agentName: string | null
+    mode: string | null
+    startedAt: Date | null
+    finishedAt: Date | null
+    status: string | null
+    error: string | null
+  }
+
+  export type AgentRunCountAggregateOutputType = {
+    id: number
+    agentName: number
+    mode: number
+    startedAt: number
+    finishedAt: number
+    status: number
+    totals: number
+    error: number
+    _all: number
+  }
+
+
+  export type AgentRunMinAggregateInputType = {
+    id?: true
+    agentName?: true
+    mode?: true
+    startedAt?: true
+    finishedAt?: true
+    status?: true
+    error?: true
+  }
+
+  export type AgentRunMaxAggregateInputType = {
+    id?: true
+    agentName?: true
+    mode?: true
+    startedAt?: true
+    finishedAt?: true
+    status?: true
+    error?: true
+  }
+
+  export type AgentRunCountAggregateInputType = {
+    id?: true
+    agentName?: true
+    mode?: true
+    startedAt?: true
+    finishedAt?: true
+    status?: true
+    totals?: true
+    error?: true
+    _all?: true
+  }
+
+  export type AgentRunAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AgentRun to aggregate.
+     */
+    where?: AgentRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AgentRuns to fetch.
+     */
+    orderBy?: AgentRunOrderByWithRelationInput | AgentRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AgentRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AgentRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AgentRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AgentRuns
+    **/
+    _count?: true | AgentRunCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AgentRunMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AgentRunMaxAggregateInputType
+  }
+
+  export type GetAgentRunAggregateType<T extends AgentRunAggregateArgs> = {
+        [P in keyof T & keyof AggregateAgentRun]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAgentRun[P]>
+      : GetScalarType<T[P], AggregateAgentRun[P]>
+  }
+
+
+
+
+  export type AgentRunGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AgentRunWhereInput
+    orderBy?: AgentRunOrderByWithAggregationInput | AgentRunOrderByWithAggregationInput[]
+    by: AgentRunScalarFieldEnum[] | AgentRunScalarFieldEnum
+    having?: AgentRunScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AgentRunCountAggregateInputType | true
+    _min?: AgentRunMinAggregateInputType
+    _max?: AgentRunMaxAggregateInputType
+  }
+
+  export type AgentRunGroupByOutputType = {
+    id: string
+    agentName: string
+    mode: string | null
+    startedAt: Date
+    finishedAt: Date | null
+    status: string
+    totals: JsonValue | null
+    error: string | null
+    _count: AgentRunCountAggregateOutputType | null
+    _min: AgentRunMinAggregateOutputType | null
+    _max: AgentRunMaxAggregateOutputType | null
+  }
+
+  type GetAgentRunGroupByPayload<T extends AgentRunGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AgentRunGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AgentRunGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AgentRunGroupByOutputType[P]>
+            : GetScalarType<T[P], AgentRunGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AgentRunSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    agentName?: boolean
+    mode?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    status?: boolean
+    totals?: boolean
+    error?: boolean
+  }, ExtArgs["result"]["agentRun"]>
+
+  export type AgentRunSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    agentName?: boolean
+    mode?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    status?: boolean
+    totals?: boolean
+    error?: boolean
+  }, ExtArgs["result"]["agentRun"]>
+
+  export type AgentRunSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    agentName?: boolean
+    mode?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    status?: boolean
+    totals?: boolean
+    error?: boolean
+  }, ExtArgs["result"]["agentRun"]>
+
+  export type AgentRunSelectScalar = {
+    id?: boolean
+    agentName?: boolean
+    mode?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    status?: boolean
+    totals?: boolean
+    error?: boolean
+  }
+
+  export type AgentRunOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "agentName" | "mode" | "startedAt" | "finishedAt" | "status" | "totals" | "error", ExtArgs["result"]["agentRun"]>
+
+  export type $AgentRunPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AgentRun"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      agentName: string
+      mode: string | null
+      startedAt: Date
+      finishedAt: Date | null
+      status: string
+      totals: Prisma.JsonValue | null
+      error: string | null
+    }, ExtArgs["result"]["agentRun"]>
+    composites: {}
+  }
+
+  type AgentRunGetPayload<S extends boolean | null | undefined | AgentRunDefaultArgs> = $Result.GetResult<Prisma.$AgentRunPayload, S>
+
+  type AgentRunCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AgentRunFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AgentRunCountAggregateInputType | true
+    }
+
+  export interface AgentRunDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AgentRun'], meta: { name: 'AgentRun' } }
+    /**
+     * Find zero or one AgentRun that matches the filter.
+     * @param {AgentRunFindUniqueArgs} args - Arguments to find a AgentRun
+     * @example
+     * // Get one AgentRun
+     * const agentRun = await prisma.agentRun.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AgentRunFindUniqueArgs>(args: SelectSubset<T, AgentRunFindUniqueArgs<ExtArgs>>): Prisma__AgentRunClient<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AgentRun that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AgentRunFindUniqueOrThrowArgs} args - Arguments to find a AgentRun
+     * @example
+     * // Get one AgentRun
+     * const agentRun = await prisma.agentRun.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AgentRunFindUniqueOrThrowArgs>(args: SelectSubset<T, AgentRunFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AgentRunClient<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AgentRun that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentRunFindFirstArgs} args - Arguments to find a AgentRun
+     * @example
+     * // Get one AgentRun
+     * const agentRun = await prisma.agentRun.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AgentRunFindFirstArgs>(args?: SelectSubset<T, AgentRunFindFirstArgs<ExtArgs>>): Prisma__AgentRunClient<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AgentRun that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentRunFindFirstOrThrowArgs} args - Arguments to find a AgentRun
+     * @example
+     * // Get one AgentRun
+     * const agentRun = await prisma.agentRun.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AgentRunFindFirstOrThrowArgs>(args?: SelectSubset<T, AgentRunFindFirstOrThrowArgs<ExtArgs>>): Prisma__AgentRunClient<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AgentRuns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentRunFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AgentRuns
+     * const agentRuns = await prisma.agentRun.findMany()
+     * 
+     * // Get first 10 AgentRuns
+     * const agentRuns = await prisma.agentRun.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const agentRunWithIdOnly = await prisma.agentRun.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AgentRunFindManyArgs>(args?: SelectSubset<T, AgentRunFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AgentRun.
+     * @param {AgentRunCreateArgs} args - Arguments to create a AgentRun.
+     * @example
+     * // Create one AgentRun
+     * const AgentRun = await prisma.agentRun.create({
+     *   data: {
+     *     // ... data to create a AgentRun
+     *   }
+     * })
+     * 
+     */
+    create<T extends AgentRunCreateArgs>(args: SelectSubset<T, AgentRunCreateArgs<ExtArgs>>): Prisma__AgentRunClient<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AgentRuns.
+     * @param {AgentRunCreateManyArgs} args - Arguments to create many AgentRuns.
+     * @example
+     * // Create many AgentRuns
+     * const agentRun = await prisma.agentRun.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AgentRunCreateManyArgs>(args?: SelectSubset<T, AgentRunCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AgentRuns and returns the data saved in the database.
+     * @param {AgentRunCreateManyAndReturnArgs} args - Arguments to create many AgentRuns.
+     * @example
+     * // Create many AgentRuns
+     * const agentRun = await prisma.agentRun.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AgentRuns and only return the `id`
+     * const agentRunWithIdOnly = await prisma.agentRun.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AgentRunCreateManyAndReturnArgs>(args?: SelectSubset<T, AgentRunCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AgentRun.
+     * @param {AgentRunDeleteArgs} args - Arguments to delete one AgentRun.
+     * @example
+     * // Delete one AgentRun
+     * const AgentRun = await prisma.agentRun.delete({
+     *   where: {
+     *     // ... filter to delete one AgentRun
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AgentRunDeleteArgs>(args: SelectSubset<T, AgentRunDeleteArgs<ExtArgs>>): Prisma__AgentRunClient<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AgentRun.
+     * @param {AgentRunUpdateArgs} args - Arguments to update one AgentRun.
+     * @example
+     * // Update one AgentRun
+     * const agentRun = await prisma.agentRun.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AgentRunUpdateArgs>(args: SelectSubset<T, AgentRunUpdateArgs<ExtArgs>>): Prisma__AgentRunClient<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AgentRuns.
+     * @param {AgentRunDeleteManyArgs} args - Arguments to filter AgentRuns to delete.
+     * @example
+     * // Delete a few AgentRuns
+     * const { count } = await prisma.agentRun.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AgentRunDeleteManyArgs>(args?: SelectSubset<T, AgentRunDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AgentRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentRunUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AgentRuns
+     * const agentRun = await prisma.agentRun.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AgentRunUpdateManyArgs>(args: SelectSubset<T, AgentRunUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AgentRuns and returns the data updated in the database.
+     * @param {AgentRunUpdateManyAndReturnArgs} args - Arguments to update many AgentRuns.
+     * @example
+     * // Update many AgentRuns
+     * const agentRun = await prisma.agentRun.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AgentRuns and only return the `id`
+     * const agentRunWithIdOnly = await prisma.agentRun.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AgentRunUpdateManyAndReturnArgs>(args: SelectSubset<T, AgentRunUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AgentRun.
+     * @param {AgentRunUpsertArgs} args - Arguments to update or create a AgentRun.
+     * @example
+     * // Update or create a AgentRun
+     * const agentRun = await prisma.agentRun.upsert({
+     *   create: {
+     *     // ... data to create a AgentRun
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AgentRun we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AgentRunUpsertArgs>(args: SelectSubset<T, AgentRunUpsertArgs<ExtArgs>>): Prisma__AgentRunClient<$Result.GetResult<Prisma.$AgentRunPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AgentRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentRunCountArgs} args - Arguments to filter AgentRuns to count.
+     * @example
+     * // Count the number of AgentRuns
+     * const count = await prisma.agentRun.count({
+     *   where: {
+     *     // ... the filter for the AgentRuns we want to count
+     *   }
+     * })
+    **/
+    count<T extends AgentRunCountArgs>(
+      args?: Subset<T, AgentRunCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AgentRunCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AgentRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentRunAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AgentRunAggregateArgs>(args: Subset<T, AgentRunAggregateArgs>): Prisma.PrismaPromise<GetAgentRunAggregateType<T>>
+
+    /**
+     * Group by AgentRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentRunGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AgentRunGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AgentRunGroupByArgs['orderBy'] }
+        : { orderBy?: AgentRunGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AgentRunGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAgentRunGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AgentRun model
+   */
+  readonly fields: AgentRunFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AgentRun.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AgentRunClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AgentRun model
+   */
+  interface AgentRunFieldRefs {
+    readonly id: FieldRef<"AgentRun", 'String'>
+    readonly agentName: FieldRef<"AgentRun", 'String'>
+    readonly mode: FieldRef<"AgentRun", 'String'>
+    readonly startedAt: FieldRef<"AgentRun", 'DateTime'>
+    readonly finishedAt: FieldRef<"AgentRun", 'DateTime'>
+    readonly status: FieldRef<"AgentRun", 'String'>
+    readonly totals: FieldRef<"AgentRun", 'Json'>
+    readonly error: FieldRef<"AgentRun", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AgentRun findUnique
+   */
+  export type AgentRunFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * Filter, which AgentRun to fetch.
+     */
+    where: AgentRunWhereUniqueInput
+  }
+
+  /**
+   * AgentRun findUniqueOrThrow
+   */
+  export type AgentRunFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * Filter, which AgentRun to fetch.
+     */
+    where: AgentRunWhereUniqueInput
+  }
+
+  /**
+   * AgentRun findFirst
+   */
+  export type AgentRunFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * Filter, which AgentRun to fetch.
+     */
+    where?: AgentRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AgentRuns to fetch.
+     */
+    orderBy?: AgentRunOrderByWithRelationInput | AgentRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AgentRuns.
+     */
+    cursor?: AgentRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AgentRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AgentRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AgentRuns.
+     */
+    distinct?: AgentRunScalarFieldEnum | AgentRunScalarFieldEnum[]
+  }
+
+  /**
+   * AgentRun findFirstOrThrow
+   */
+  export type AgentRunFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * Filter, which AgentRun to fetch.
+     */
+    where?: AgentRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AgentRuns to fetch.
+     */
+    orderBy?: AgentRunOrderByWithRelationInput | AgentRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AgentRuns.
+     */
+    cursor?: AgentRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AgentRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AgentRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AgentRuns.
+     */
+    distinct?: AgentRunScalarFieldEnum | AgentRunScalarFieldEnum[]
+  }
+
+  /**
+   * AgentRun findMany
+   */
+  export type AgentRunFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * Filter, which AgentRuns to fetch.
+     */
+    where?: AgentRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AgentRuns to fetch.
+     */
+    orderBy?: AgentRunOrderByWithRelationInput | AgentRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AgentRuns.
+     */
+    cursor?: AgentRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AgentRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AgentRuns.
+     */
+    skip?: number
+    distinct?: AgentRunScalarFieldEnum | AgentRunScalarFieldEnum[]
+  }
+
+  /**
+   * AgentRun create
+   */
+  export type AgentRunCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * The data needed to create a AgentRun.
+     */
+    data: XOR<AgentRunCreateInput, AgentRunUncheckedCreateInput>
+  }
+
+  /**
+   * AgentRun createMany
+   */
+  export type AgentRunCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AgentRuns.
+     */
+    data: AgentRunCreateManyInput | AgentRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AgentRun createManyAndReturn
+   */
+  export type AgentRunCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * The data used to create many AgentRuns.
+     */
+    data: AgentRunCreateManyInput | AgentRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AgentRun update
+   */
+  export type AgentRunUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * The data needed to update a AgentRun.
+     */
+    data: XOR<AgentRunUpdateInput, AgentRunUncheckedUpdateInput>
+    /**
+     * Choose, which AgentRun to update.
+     */
+    where: AgentRunWhereUniqueInput
+  }
+
+  /**
+   * AgentRun updateMany
+   */
+  export type AgentRunUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AgentRuns.
+     */
+    data: XOR<AgentRunUpdateManyMutationInput, AgentRunUncheckedUpdateManyInput>
+    /**
+     * Filter which AgentRuns to update
+     */
+    where?: AgentRunWhereInput
+    /**
+     * Limit how many AgentRuns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AgentRun updateManyAndReturn
+   */
+  export type AgentRunUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * The data used to update AgentRuns.
+     */
+    data: XOR<AgentRunUpdateManyMutationInput, AgentRunUncheckedUpdateManyInput>
+    /**
+     * Filter which AgentRuns to update
+     */
+    where?: AgentRunWhereInput
+    /**
+     * Limit how many AgentRuns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AgentRun upsert
+   */
+  export type AgentRunUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * The filter to search for the AgentRun to update in case it exists.
+     */
+    where: AgentRunWhereUniqueInput
+    /**
+     * In case the AgentRun found by the `where` argument doesn't exist, create a new AgentRun with this data.
+     */
+    create: XOR<AgentRunCreateInput, AgentRunUncheckedCreateInput>
+    /**
+     * In case the AgentRun was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AgentRunUpdateInput, AgentRunUncheckedUpdateInput>
+  }
+
+  /**
+   * AgentRun delete
+   */
+  export type AgentRunDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+    /**
+     * Filter which AgentRun to delete.
+     */
+    where: AgentRunWhereUniqueInput
+  }
+
+  /**
+   * AgentRun deleteMany
+   */
+  export type AgentRunDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AgentRuns to delete
+     */
+    where?: AgentRunWhereInput
+    /**
+     * Limit how many AgentRuns to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AgentRun without action
+   */
+  export type AgentRunDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentRun
+     */
+    select?: AgentRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AgentRun
+     */
+    omit?: AgentRunOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ContactInfo
+   */
+
+  export type AggregateContactInfo = {
+    _count: ContactInfoCountAggregateOutputType | null
+    _avg: ContactInfoAvgAggregateOutputType | null
+    _sum: ContactInfoSumAggregateOutputType | null
+    _min: ContactInfoMinAggregateOutputType | null
+    _max: ContactInfoMaxAggregateOutputType | null
+  }
+
+  export type ContactInfoAvgAggregateOutputType = {
+    score: number | null
+  }
+
+  export type ContactInfoSumAggregateOutputType = {
+    score: number | null
+  }
+
+  export type ContactInfoMinAggregateOutputType = {
+    id: string | null
+    artistId: string | null
+    email: string | null
+    confidence: string | null
+    score: number | null
+    sourceUrl: string | null
+    sourceType: string | null
+    discoveredAt: Date | null
+  }
+
+  export type ContactInfoMaxAggregateOutputType = {
+    id: string | null
+    artistId: string | null
+    email: string | null
+    confidence: string | null
+    score: number | null
+    sourceUrl: string | null
+    sourceType: string | null
+    discoveredAt: Date | null
+  }
+
+  export type ContactInfoCountAggregateOutputType = {
+    id: number
+    artistId: number
+    email: number
+    confidence: number
+    score: number
+    sourceUrl: number
+    sourceType: number
+    discoveredAt: number
+    _all: number
+  }
+
+
+  export type ContactInfoAvgAggregateInputType = {
+    score?: true
+  }
+
+  export type ContactInfoSumAggregateInputType = {
+    score?: true
+  }
+
+  export type ContactInfoMinAggregateInputType = {
+    id?: true
+    artistId?: true
+    email?: true
+    confidence?: true
+    score?: true
+    sourceUrl?: true
+    sourceType?: true
+    discoveredAt?: true
+  }
+
+  export type ContactInfoMaxAggregateInputType = {
+    id?: true
+    artistId?: true
+    email?: true
+    confidence?: true
+    score?: true
+    sourceUrl?: true
+    sourceType?: true
+    discoveredAt?: true
+  }
+
+  export type ContactInfoCountAggregateInputType = {
+    id?: true
+    artistId?: true
+    email?: true
+    confidence?: true
+    score?: true
+    sourceUrl?: true
+    sourceType?: true
+    discoveredAt?: true
+    _all?: true
+  }
+
+  export type ContactInfoAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ContactInfo to aggregate.
+     */
+    where?: ContactInfoWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContactInfos to fetch.
+     */
+    orderBy?: ContactInfoOrderByWithRelationInput | ContactInfoOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ContactInfoWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContactInfos from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContactInfos.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ContactInfos
+    **/
+    _count?: true | ContactInfoCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ContactInfoAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ContactInfoSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ContactInfoMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ContactInfoMaxAggregateInputType
+  }
+
+  export type GetContactInfoAggregateType<T extends ContactInfoAggregateArgs> = {
+        [P in keyof T & keyof AggregateContactInfo]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateContactInfo[P]>
+      : GetScalarType<T[P], AggregateContactInfo[P]>
+  }
+
+
+
+
+  export type ContactInfoGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContactInfoWhereInput
+    orderBy?: ContactInfoOrderByWithAggregationInput | ContactInfoOrderByWithAggregationInput[]
+    by: ContactInfoScalarFieldEnum[] | ContactInfoScalarFieldEnum
+    having?: ContactInfoScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ContactInfoCountAggregateInputType | true
+    _avg?: ContactInfoAvgAggregateInputType
+    _sum?: ContactInfoSumAggregateInputType
+    _min?: ContactInfoMinAggregateInputType
+    _max?: ContactInfoMaxAggregateInputType
+  }
+
+  export type ContactInfoGroupByOutputType = {
+    id: string
+    artistId: string
+    email: string
+    confidence: string
+    score: number
+    sourceUrl: string | null
+    sourceType: string | null
+    discoveredAt: Date
+    _count: ContactInfoCountAggregateOutputType | null
+    _avg: ContactInfoAvgAggregateOutputType | null
+    _sum: ContactInfoSumAggregateOutputType | null
+    _min: ContactInfoMinAggregateOutputType | null
+    _max: ContactInfoMaxAggregateOutputType | null
+  }
+
+  type GetContactInfoGroupByPayload<T extends ContactInfoGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ContactInfoGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ContactInfoGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ContactInfoGroupByOutputType[P]>
+            : GetScalarType<T[P], ContactInfoGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ContactInfoSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    artistId?: boolean
+    email?: boolean
+    confidence?: boolean
+    score?: boolean
+    sourceUrl?: boolean
+    sourceType?: boolean
+    discoveredAt?: boolean
+    artist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["contactInfo"]>
+
+  export type ContactInfoSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    artistId?: boolean
+    email?: boolean
+    confidence?: boolean
+    score?: boolean
+    sourceUrl?: boolean
+    sourceType?: boolean
+    discoveredAt?: boolean
+    artist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["contactInfo"]>
+
+  export type ContactInfoSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    artistId?: boolean
+    email?: boolean
+    confidence?: boolean
+    score?: boolean
+    sourceUrl?: boolean
+    sourceType?: boolean
+    discoveredAt?: boolean
+    artist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["contactInfo"]>
+
+  export type ContactInfoSelectScalar = {
+    id?: boolean
+    artistId?: boolean
+    email?: boolean
+    confidence?: boolean
+    score?: boolean
+    sourceUrl?: boolean
+    sourceType?: boolean
+    discoveredAt?: boolean
+  }
+
+  export type ContactInfoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "artistId" | "email" | "confidence" | "score" | "sourceUrl" | "sourceType" | "discoveredAt", ExtArgs["result"]["contactInfo"]>
+  export type ContactInfoInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    artist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }
+  export type ContactInfoIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    artist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }
+  export type ContactInfoIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    artist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }
+
+  export type $ContactInfoPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ContactInfo"
+    objects: {
+      artist: Prisma.$ArtistPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      artistId: string
+      email: string
+      confidence: string
+      score: number
+      sourceUrl: string | null
+      sourceType: string | null
+      discoveredAt: Date
+    }, ExtArgs["result"]["contactInfo"]>
+    composites: {}
+  }
+
+  type ContactInfoGetPayload<S extends boolean | null | undefined | ContactInfoDefaultArgs> = $Result.GetResult<Prisma.$ContactInfoPayload, S>
+
+  type ContactInfoCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ContactInfoFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ContactInfoCountAggregateInputType | true
+    }
+
+  export interface ContactInfoDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ContactInfo'], meta: { name: 'ContactInfo' } }
+    /**
+     * Find zero or one ContactInfo that matches the filter.
+     * @param {ContactInfoFindUniqueArgs} args - Arguments to find a ContactInfo
+     * @example
+     * // Get one ContactInfo
+     * const contactInfo = await prisma.contactInfo.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ContactInfoFindUniqueArgs>(args: SelectSubset<T, ContactInfoFindUniqueArgs<ExtArgs>>): Prisma__ContactInfoClient<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ContactInfo that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ContactInfoFindUniqueOrThrowArgs} args - Arguments to find a ContactInfo
+     * @example
+     * // Get one ContactInfo
+     * const contactInfo = await prisma.contactInfo.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ContactInfoFindUniqueOrThrowArgs>(args: SelectSubset<T, ContactInfoFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ContactInfoClient<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ContactInfo that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContactInfoFindFirstArgs} args - Arguments to find a ContactInfo
+     * @example
+     * // Get one ContactInfo
+     * const contactInfo = await prisma.contactInfo.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ContactInfoFindFirstArgs>(args?: SelectSubset<T, ContactInfoFindFirstArgs<ExtArgs>>): Prisma__ContactInfoClient<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ContactInfo that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContactInfoFindFirstOrThrowArgs} args - Arguments to find a ContactInfo
+     * @example
+     * // Get one ContactInfo
+     * const contactInfo = await prisma.contactInfo.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ContactInfoFindFirstOrThrowArgs>(args?: SelectSubset<T, ContactInfoFindFirstOrThrowArgs<ExtArgs>>): Prisma__ContactInfoClient<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ContactInfos that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContactInfoFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ContactInfos
+     * const contactInfos = await prisma.contactInfo.findMany()
+     * 
+     * // Get first 10 ContactInfos
+     * const contactInfos = await prisma.contactInfo.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const contactInfoWithIdOnly = await prisma.contactInfo.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ContactInfoFindManyArgs>(args?: SelectSubset<T, ContactInfoFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ContactInfo.
+     * @param {ContactInfoCreateArgs} args - Arguments to create a ContactInfo.
+     * @example
+     * // Create one ContactInfo
+     * const ContactInfo = await prisma.contactInfo.create({
+     *   data: {
+     *     // ... data to create a ContactInfo
+     *   }
+     * })
+     * 
+     */
+    create<T extends ContactInfoCreateArgs>(args: SelectSubset<T, ContactInfoCreateArgs<ExtArgs>>): Prisma__ContactInfoClient<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ContactInfos.
+     * @param {ContactInfoCreateManyArgs} args - Arguments to create many ContactInfos.
+     * @example
+     * // Create many ContactInfos
+     * const contactInfo = await prisma.contactInfo.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ContactInfoCreateManyArgs>(args?: SelectSubset<T, ContactInfoCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ContactInfos and returns the data saved in the database.
+     * @param {ContactInfoCreateManyAndReturnArgs} args - Arguments to create many ContactInfos.
+     * @example
+     * // Create many ContactInfos
+     * const contactInfo = await prisma.contactInfo.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ContactInfos and only return the `id`
+     * const contactInfoWithIdOnly = await prisma.contactInfo.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ContactInfoCreateManyAndReturnArgs>(args?: SelectSubset<T, ContactInfoCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ContactInfo.
+     * @param {ContactInfoDeleteArgs} args - Arguments to delete one ContactInfo.
+     * @example
+     * // Delete one ContactInfo
+     * const ContactInfo = await prisma.contactInfo.delete({
+     *   where: {
+     *     // ... filter to delete one ContactInfo
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ContactInfoDeleteArgs>(args: SelectSubset<T, ContactInfoDeleteArgs<ExtArgs>>): Prisma__ContactInfoClient<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ContactInfo.
+     * @param {ContactInfoUpdateArgs} args - Arguments to update one ContactInfo.
+     * @example
+     * // Update one ContactInfo
+     * const contactInfo = await prisma.contactInfo.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ContactInfoUpdateArgs>(args: SelectSubset<T, ContactInfoUpdateArgs<ExtArgs>>): Prisma__ContactInfoClient<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ContactInfos.
+     * @param {ContactInfoDeleteManyArgs} args - Arguments to filter ContactInfos to delete.
+     * @example
+     * // Delete a few ContactInfos
+     * const { count } = await prisma.contactInfo.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ContactInfoDeleteManyArgs>(args?: SelectSubset<T, ContactInfoDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ContactInfos.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContactInfoUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ContactInfos
+     * const contactInfo = await prisma.contactInfo.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ContactInfoUpdateManyArgs>(args: SelectSubset<T, ContactInfoUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ContactInfos and returns the data updated in the database.
+     * @param {ContactInfoUpdateManyAndReturnArgs} args - Arguments to update many ContactInfos.
+     * @example
+     * // Update many ContactInfos
+     * const contactInfo = await prisma.contactInfo.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ContactInfos and only return the `id`
+     * const contactInfoWithIdOnly = await prisma.contactInfo.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ContactInfoUpdateManyAndReturnArgs>(args: SelectSubset<T, ContactInfoUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ContactInfo.
+     * @param {ContactInfoUpsertArgs} args - Arguments to update or create a ContactInfo.
+     * @example
+     * // Update or create a ContactInfo
+     * const contactInfo = await prisma.contactInfo.upsert({
+     *   create: {
+     *     // ... data to create a ContactInfo
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ContactInfo we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ContactInfoUpsertArgs>(args: SelectSubset<T, ContactInfoUpsertArgs<ExtArgs>>): Prisma__ContactInfoClient<$Result.GetResult<Prisma.$ContactInfoPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ContactInfos.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContactInfoCountArgs} args - Arguments to filter ContactInfos to count.
+     * @example
+     * // Count the number of ContactInfos
+     * const count = await prisma.contactInfo.count({
+     *   where: {
+     *     // ... the filter for the ContactInfos we want to count
+     *   }
+     * })
+    **/
+    count<T extends ContactInfoCountArgs>(
+      args?: Subset<T, ContactInfoCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ContactInfoCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ContactInfo.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContactInfoAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ContactInfoAggregateArgs>(args: Subset<T, ContactInfoAggregateArgs>): Prisma.PrismaPromise<GetContactInfoAggregateType<T>>
+
+    /**
+     * Group by ContactInfo.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContactInfoGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ContactInfoGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ContactInfoGroupByArgs['orderBy'] }
+        : { orderBy?: ContactInfoGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ContactInfoGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetContactInfoGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ContactInfo model
+   */
+  readonly fields: ContactInfoFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ContactInfo.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ContactInfoClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    artist<T extends ArtistDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ArtistDefaultArgs<ExtArgs>>): Prisma__ArtistClient<$Result.GetResult<Prisma.$ArtistPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ContactInfo model
+   */
+  interface ContactInfoFieldRefs {
+    readonly id: FieldRef<"ContactInfo", 'String'>
+    readonly artistId: FieldRef<"ContactInfo", 'String'>
+    readonly email: FieldRef<"ContactInfo", 'String'>
+    readonly confidence: FieldRef<"ContactInfo", 'String'>
+    readonly score: FieldRef<"ContactInfo", 'Int'>
+    readonly sourceUrl: FieldRef<"ContactInfo", 'String'>
+    readonly sourceType: FieldRef<"ContactInfo", 'String'>
+    readonly discoveredAt: FieldRef<"ContactInfo", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ContactInfo findUnique
+   */
+  export type ContactInfoFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * Filter, which ContactInfo to fetch.
+     */
+    where: ContactInfoWhereUniqueInput
+  }
+
+  /**
+   * ContactInfo findUniqueOrThrow
+   */
+  export type ContactInfoFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * Filter, which ContactInfo to fetch.
+     */
+    where: ContactInfoWhereUniqueInput
+  }
+
+  /**
+   * ContactInfo findFirst
+   */
+  export type ContactInfoFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * Filter, which ContactInfo to fetch.
+     */
+    where?: ContactInfoWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContactInfos to fetch.
+     */
+    orderBy?: ContactInfoOrderByWithRelationInput | ContactInfoOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ContactInfos.
+     */
+    cursor?: ContactInfoWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContactInfos from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContactInfos.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ContactInfos.
+     */
+    distinct?: ContactInfoScalarFieldEnum | ContactInfoScalarFieldEnum[]
+  }
+
+  /**
+   * ContactInfo findFirstOrThrow
+   */
+  export type ContactInfoFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * Filter, which ContactInfo to fetch.
+     */
+    where?: ContactInfoWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContactInfos to fetch.
+     */
+    orderBy?: ContactInfoOrderByWithRelationInput | ContactInfoOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ContactInfos.
+     */
+    cursor?: ContactInfoWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContactInfos from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContactInfos.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ContactInfos.
+     */
+    distinct?: ContactInfoScalarFieldEnum | ContactInfoScalarFieldEnum[]
+  }
+
+  /**
+   * ContactInfo findMany
+   */
+  export type ContactInfoFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * Filter, which ContactInfos to fetch.
+     */
+    where?: ContactInfoWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContactInfos to fetch.
+     */
+    orderBy?: ContactInfoOrderByWithRelationInput | ContactInfoOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ContactInfos.
+     */
+    cursor?: ContactInfoWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContactInfos from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContactInfos.
+     */
+    skip?: number
+    distinct?: ContactInfoScalarFieldEnum | ContactInfoScalarFieldEnum[]
+  }
+
+  /**
+   * ContactInfo create
+   */
+  export type ContactInfoCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ContactInfo.
+     */
+    data: XOR<ContactInfoCreateInput, ContactInfoUncheckedCreateInput>
+  }
+
+  /**
+   * ContactInfo createMany
+   */
+  export type ContactInfoCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ContactInfos.
+     */
+    data: ContactInfoCreateManyInput | ContactInfoCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ContactInfo createManyAndReturn
+   */
+  export type ContactInfoCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * The data used to create many ContactInfos.
+     */
+    data: ContactInfoCreateManyInput | ContactInfoCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ContactInfo update
+   */
+  export type ContactInfoUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ContactInfo.
+     */
+    data: XOR<ContactInfoUpdateInput, ContactInfoUncheckedUpdateInput>
+    /**
+     * Choose, which ContactInfo to update.
+     */
+    where: ContactInfoWhereUniqueInput
+  }
+
+  /**
+   * ContactInfo updateMany
+   */
+  export type ContactInfoUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ContactInfos.
+     */
+    data: XOR<ContactInfoUpdateManyMutationInput, ContactInfoUncheckedUpdateManyInput>
+    /**
+     * Filter which ContactInfos to update
+     */
+    where?: ContactInfoWhereInput
+    /**
+     * Limit how many ContactInfos to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ContactInfo updateManyAndReturn
+   */
+  export type ContactInfoUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * The data used to update ContactInfos.
+     */
+    data: XOR<ContactInfoUpdateManyMutationInput, ContactInfoUncheckedUpdateManyInput>
+    /**
+     * Filter which ContactInfos to update
+     */
+    where?: ContactInfoWhereInput
+    /**
+     * Limit how many ContactInfos to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ContactInfo upsert
+   */
+  export type ContactInfoUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ContactInfo to update in case it exists.
+     */
+    where: ContactInfoWhereUniqueInput
+    /**
+     * In case the ContactInfo found by the `where` argument doesn't exist, create a new ContactInfo with this data.
+     */
+    create: XOR<ContactInfoCreateInput, ContactInfoUncheckedCreateInput>
+    /**
+     * In case the ContactInfo was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ContactInfoUpdateInput, ContactInfoUncheckedUpdateInput>
+  }
+
+  /**
+   * ContactInfo delete
+   */
+  export type ContactInfoDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+    /**
+     * Filter which ContactInfo to delete.
+     */
+    where: ContactInfoWhereUniqueInput
+  }
+
+  /**
+   * ContactInfo deleteMany
+   */
+  export type ContactInfoDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ContactInfos to delete
+     */
+    where?: ContactInfoWhereInput
+    /**
+     * Limit how many ContactInfos to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ContactInfo without action
+   */
+  export type ContactInfoDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContactInfo
+     */
+    select?: ContactInfoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ContactInfo
+     */
+    omit?: ContactInfoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContactInfoInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MergeProposal
+   */
+
+  export type AggregateMergeProposal = {
+    _count: MergeProposalCountAggregateOutputType | null
+    _avg: MergeProposalAvgAggregateOutputType | null
+    _sum: MergeProposalSumAggregateOutputType | null
+    _min: MergeProposalMinAggregateOutputType | null
+    _max: MergeProposalMaxAggregateOutputType | null
+  }
+
+  export type MergeProposalAvgAggregateOutputType = {
+    similarityScore: number | null
+  }
+
+  export type MergeProposalSumAggregateOutputType = {
+    similarityScore: number | null
+  }
+
+  export type MergeProposalMinAggregateOutputType = {
+    id: string | null
+    primaryArtistId: string | null
+    duplicateArtistId: string | null
+    primaryName: string | null
+    duplicateName: string | null
+    similarityScore: number | null
+    confidence: string | null
+    reason: string | null
+    status: string | null
+    createdAt: Date | null
+  }
+
+  export type MergeProposalMaxAggregateOutputType = {
+    id: string | null
+    primaryArtistId: string | null
+    duplicateArtistId: string | null
+    primaryName: string | null
+    duplicateName: string | null
+    similarityScore: number | null
+    confidence: string | null
+    reason: string | null
+    status: string | null
+    createdAt: Date | null
+  }
+
+  export type MergeProposalCountAggregateOutputType = {
+    id: number
+    primaryArtistId: number
+    duplicateArtistId: number
+    primaryName: number
+    duplicateName: number
+    similarityScore: number
+    confidence: number
+    reason: number
+    status: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MergeProposalAvgAggregateInputType = {
+    similarityScore?: true
+  }
+
+  export type MergeProposalSumAggregateInputType = {
+    similarityScore?: true
+  }
+
+  export type MergeProposalMinAggregateInputType = {
+    id?: true
+    primaryArtistId?: true
+    duplicateArtistId?: true
+    primaryName?: true
+    duplicateName?: true
+    similarityScore?: true
+    confidence?: true
+    reason?: true
+    status?: true
+    createdAt?: true
+  }
+
+  export type MergeProposalMaxAggregateInputType = {
+    id?: true
+    primaryArtistId?: true
+    duplicateArtistId?: true
+    primaryName?: true
+    duplicateName?: true
+    similarityScore?: true
+    confidence?: true
+    reason?: true
+    status?: true
+    createdAt?: true
+  }
+
+  export type MergeProposalCountAggregateInputType = {
+    id?: true
+    primaryArtistId?: true
+    duplicateArtistId?: true
+    primaryName?: true
+    duplicateName?: true
+    similarityScore?: true
+    confidence?: true
+    reason?: true
+    status?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MergeProposalAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MergeProposal to aggregate.
+     */
+    where?: MergeProposalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MergeProposals to fetch.
+     */
+    orderBy?: MergeProposalOrderByWithRelationInput | MergeProposalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MergeProposalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MergeProposals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MergeProposals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MergeProposals
+    **/
+    _count?: true | MergeProposalCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MergeProposalAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MergeProposalSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MergeProposalMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MergeProposalMaxAggregateInputType
+  }
+
+  export type GetMergeProposalAggregateType<T extends MergeProposalAggregateArgs> = {
+        [P in keyof T & keyof AggregateMergeProposal]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMergeProposal[P]>
+      : GetScalarType<T[P], AggregateMergeProposal[P]>
+  }
+
+
+
+
+  export type MergeProposalGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MergeProposalWhereInput
+    orderBy?: MergeProposalOrderByWithAggregationInput | MergeProposalOrderByWithAggregationInput[]
+    by: MergeProposalScalarFieldEnum[] | MergeProposalScalarFieldEnum
+    having?: MergeProposalScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MergeProposalCountAggregateInputType | true
+    _avg?: MergeProposalAvgAggregateInputType
+    _sum?: MergeProposalSumAggregateInputType
+    _min?: MergeProposalMinAggregateInputType
+    _max?: MergeProposalMaxAggregateInputType
+  }
+
+  export type MergeProposalGroupByOutputType = {
+    id: string
+    primaryArtistId: string
+    duplicateArtistId: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status: string
+    createdAt: Date
+    _count: MergeProposalCountAggregateOutputType | null
+    _avg: MergeProposalAvgAggregateOutputType | null
+    _sum: MergeProposalSumAggregateOutputType | null
+    _min: MergeProposalMinAggregateOutputType | null
+    _max: MergeProposalMaxAggregateOutputType | null
+  }
+
+  type GetMergeProposalGroupByPayload<T extends MergeProposalGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MergeProposalGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MergeProposalGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MergeProposalGroupByOutputType[P]>
+            : GetScalarType<T[P], MergeProposalGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MergeProposalSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    primaryArtistId?: boolean
+    duplicateArtistId?: boolean
+    primaryName?: boolean
+    duplicateName?: boolean
+    similarityScore?: boolean
+    confidence?: boolean
+    reason?: boolean
+    status?: boolean
+    createdAt?: boolean
+    primaryArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+    duplicateArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mergeProposal"]>
+
+  export type MergeProposalSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    primaryArtistId?: boolean
+    duplicateArtistId?: boolean
+    primaryName?: boolean
+    duplicateName?: boolean
+    similarityScore?: boolean
+    confidence?: boolean
+    reason?: boolean
+    status?: boolean
+    createdAt?: boolean
+    primaryArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+    duplicateArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mergeProposal"]>
+
+  export type MergeProposalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    primaryArtistId?: boolean
+    duplicateArtistId?: boolean
+    primaryName?: boolean
+    duplicateName?: boolean
+    similarityScore?: boolean
+    confidence?: boolean
+    reason?: boolean
+    status?: boolean
+    createdAt?: boolean
+    primaryArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+    duplicateArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mergeProposal"]>
+
+  export type MergeProposalSelectScalar = {
+    id?: boolean
+    primaryArtistId?: boolean
+    duplicateArtistId?: boolean
+    primaryName?: boolean
+    duplicateName?: boolean
+    similarityScore?: boolean
+    confidence?: boolean
+    reason?: boolean
+    status?: boolean
+    createdAt?: boolean
+  }
+
+  export type MergeProposalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "primaryArtistId" | "duplicateArtistId" | "primaryName" | "duplicateName" | "similarityScore" | "confidence" | "reason" | "status" | "createdAt", ExtArgs["result"]["mergeProposal"]>
+  export type MergeProposalInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    primaryArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+    duplicateArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }
+  export type MergeProposalIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    primaryArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+    duplicateArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }
+  export type MergeProposalIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    primaryArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+    duplicateArtist?: boolean | ArtistDefaultArgs<ExtArgs>
+  }
+
+  export type $MergeProposalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MergeProposal"
+    objects: {
+      primaryArtist: Prisma.$ArtistPayload<ExtArgs>
+      duplicateArtist: Prisma.$ArtistPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      primaryArtistId: string
+      duplicateArtistId: string
+      primaryName: string
+      duplicateName: string
+      similarityScore: number
+      confidence: string
+      reason: string
+      status: string
+      createdAt: Date
+    }, ExtArgs["result"]["mergeProposal"]>
+    composites: {}
+  }
+
+  type MergeProposalGetPayload<S extends boolean | null | undefined | MergeProposalDefaultArgs> = $Result.GetResult<Prisma.$MergeProposalPayload, S>
+
+  type MergeProposalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MergeProposalFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MergeProposalCountAggregateInputType | true
+    }
+
+  export interface MergeProposalDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MergeProposal'], meta: { name: 'MergeProposal' } }
+    /**
+     * Find zero or one MergeProposal that matches the filter.
+     * @param {MergeProposalFindUniqueArgs} args - Arguments to find a MergeProposal
+     * @example
+     * // Get one MergeProposal
+     * const mergeProposal = await prisma.mergeProposal.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MergeProposalFindUniqueArgs>(args: SelectSubset<T, MergeProposalFindUniqueArgs<ExtArgs>>): Prisma__MergeProposalClient<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MergeProposal that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MergeProposalFindUniqueOrThrowArgs} args - Arguments to find a MergeProposal
+     * @example
+     * // Get one MergeProposal
+     * const mergeProposal = await prisma.mergeProposal.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MergeProposalFindUniqueOrThrowArgs>(args: SelectSubset<T, MergeProposalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MergeProposalClient<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MergeProposal that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MergeProposalFindFirstArgs} args - Arguments to find a MergeProposal
+     * @example
+     * // Get one MergeProposal
+     * const mergeProposal = await prisma.mergeProposal.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MergeProposalFindFirstArgs>(args?: SelectSubset<T, MergeProposalFindFirstArgs<ExtArgs>>): Prisma__MergeProposalClient<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MergeProposal that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MergeProposalFindFirstOrThrowArgs} args - Arguments to find a MergeProposal
+     * @example
+     * // Get one MergeProposal
+     * const mergeProposal = await prisma.mergeProposal.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MergeProposalFindFirstOrThrowArgs>(args?: SelectSubset<T, MergeProposalFindFirstOrThrowArgs<ExtArgs>>): Prisma__MergeProposalClient<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MergeProposals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MergeProposalFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MergeProposals
+     * const mergeProposals = await prisma.mergeProposal.findMany()
+     * 
+     * // Get first 10 MergeProposals
+     * const mergeProposals = await prisma.mergeProposal.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mergeProposalWithIdOnly = await prisma.mergeProposal.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MergeProposalFindManyArgs>(args?: SelectSubset<T, MergeProposalFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MergeProposal.
+     * @param {MergeProposalCreateArgs} args - Arguments to create a MergeProposal.
+     * @example
+     * // Create one MergeProposal
+     * const MergeProposal = await prisma.mergeProposal.create({
+     *   data: {
+     *     // ... data to create a MergeProposal
+     *   }
+     * })
+     * 
+     */
+    create<T extends MergeProposalCreateArgs>(args: SelectSubset<T, MergeProposalCreateArgs<ExtArgs>>): Prisma__MergeProposalClient<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MergeProposals.
+     * @param {MergeProposalCreateManyArgs} args - Arguments to create many MergeProposals.
+     * @example
+     * // Create many MergeProposals
+     * const mergeProposal = await prisma.mergeProposal.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MergeProposalCreateManyArgs>(args?: SelectSubset<T, MergeProposalCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MergeProposals and returns the data saved in the database.
+     * @param {MergeProposalCreateManyAndReturnArgs} args - Arguments to create many MergeProposals.
+     * @example
+     * // Create many MergeProposals
+     * const mergeProposal = await prisma.mergeProposal.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MergeProposals and only return the `id`
+     * const mergeProposalWithIdOnly = await prisma.mergeProposal.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MergeProposalCreateManyAndReturnArgs>(args?: SelectSubset<T, MergeProposalCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MergeProposal.
+     * @param {MergeProposalDeleteArgs} args - Arguments to delete one MergeProposal.
+     * @example
+     * // Delete one MergeProposal
+     * const MergeProposal = await prisma.mergeProposal.delete({
+     *   where: {
+     *     // ... filter to delete one MergeProposal
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MergeProposalDeleteArgs>(args: SelectSubset<T, MergeProposalDeleteArgs<ExtArgs>>): Prisma__MergeProposalClient<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MergeProposal.
+     * @param {MergeProposalUpdateArgs} args - Arguments to update one MergeProposal.
+     * @example
+     * // Update one MergeProposal
+     * const mergeProposal = await prisma.mergeProposal.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MergeProposalUpdateArgs>(args: SelectSubset<T, MergeProposalUpdateArgs<ExtArgs>>): Prisma__MergeProposalClient<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MergeProposals.
+     * @param {MergeProposalDeleteManyArgs} args - Arguments to filter MergeProposals to delete.
+     * @example
+     * // Delete a few MergeProposals
+     * const { count } = await prisma.mergeProposal.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MergeProposalDeleteManyArgs>(args?: SelectSubset<T, MergeProposalDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MergeProposals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MergeProposalUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MergeProposals
+     * const mergeProposal = await prisma.mergeProposal.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MergeProposalUpdateManyArgs>(args: SelectSubset<T, MergeProposalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MergeProposals and returns the data updated in the database.
+     * @param {MergeProposalUpdateManyAndReturnArgs} args - Arguments to update many MergeProposals.
+     * @example
+     * // Update many MergeProposals
+     * const mergeProposal = await prisma.mergeProposal.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MergeProposals and only return the `id`
+     * const mergeProposalWithIdOnly = await prisma.mergeProposal.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MergeProposalUpdateManyAndReturnArgs>(args: SelectSubset<T, MergeProposalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MergeProposal.
+     * @param {MergeProposalUpsertArgs} args - Arguments to update or create a MergeProposal.
+     * @example
+     * // Update or create a MergeProposal
+     * const mergeProposal = await prisma.mergeProposal.upsert({
+     *   create: {
+     *     // ... data to create a MergeProposal
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MergeProposal we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MergeProposalUpsertArgs>(args: SelectSubset<T, MergeProposalUpsertArgs<ExtArgs>>): Prisma__MergeProposalClient<$Result.GetResult<Prisma.$MergeProposalPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MergeProposals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MergeProposalCountArgs} args - Arguments to filter MergeProposals to count.
+     * @example
+     * // Count the number of MergeProposals
+     * const count = await prisma.mergeProposal.count({
+     *   where: {
+     *     // ... the filter for the MergeProposals we want to count
+     *   }
+     * })
+    **/
+    count<T extends MergeProposalCountArgs>(
+      args?: Subset<T, MergeProposalCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MergeProposalCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MergeProposal.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MergeProposalAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MergeProposalAggregateArgs>(args: Subset<T, MergeProposalAggregateArgs>): Prisma.PrismaPromise<GetMergeProposalAggregateType<T>>
+
+    /**
+     * Group by MergeProposal.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MergeProposalGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MergeProposalGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MergeProposalGroupByArgs['orderBy'] }
+        : { orderBy?: MergeProposalGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MergeProposalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMergeProposalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MergeProposal model
+   */
+  readonly fields: MergeProposalFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MergeProposal.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MergeProposalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    primaryArtist<T extends ArtistDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ArtistDefaultArgs<ExtArgs>>): Prisma__ArtistClient<$Result.GetResult<Prisma.$ArtistPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    duplicateArtist<T extends ArtistDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ArtistDefaultArgs<ExtArgs>>): Prisma__ArtistClient<$Result.GetResult<Prisma.$ArtistPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MergeProposal model
+   */
+  interface MergeProposalFieldRefs {
+    readonly id: FieldRef<"MergeProposal", 'String'>
+    readonly primaryArtistId: FieldRef<"MergeProposal", 'String'>
+    readonly duplicateArtistId: FieldRef<"MergeProposal", 'String'>
+    readonly primaryName: FieldRef<"MergeProposal", 'String'>
+    readonly duplicateName: FieldRef<"MergeProposal", 'String'>
+    readonly similarityScore: FieldRef<"MergeProposal", 'Float'>
+    readonly confidence: FieldRef<"MergeProposal", 'String'>
+    readonly reason: FieldRef<"MergeProposal", 'String'>
+    readonly status: FieldRef<"MergeProposal", 'String'>
+    readonly createdAt: FieldRef<"MergeProposal", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MergeProposal findUnique
+   */
+  export type MergeProposalFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * Filter, which MergeProposal to fetch.
+     */
+    where: MergeProposalWhereUniqueInput
+  }
+
+  /**
+   * MergeProposal findUniqueOrThrow
+   */
+  export type MergeProposalFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * Filter, which MergeProposal to fetch.
+     */
+    where: MergeProposalWhereUniqueInput
+  }
+
+  /**
+   * MergeProposal findFirst
+   */
+  export type MergeProposalFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * Filter, which MergeProposal to fetch.
+     */
+    where?: MergeProposalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MergeProposals to fetch.
+     */
+    orderBy?: MergeProposalOrderByWithRelationInput | MergeProposalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MergeProposals.
+     */
+    cursor?: MergeProposalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MergeProposals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MergeProposals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MergeProposals.
+     */
+    distinct?: MergeProposalScalarFieldEnum | MergeProposalScalarFieldEnum[]
+  }
+
+  /**
+   * MergeProposal findFirstOrThrow
+   */
+  export type MergeProposalFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * Filter, which MergeProposal to fetch.
+     */
+    where?: MergeProposalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MergeProposals to fetch.
+     */
+    orderBy?: MergeProposalOrderByWithRelationInput | MergeProposalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MergeProposals.
+     */
+    cursor?: MergeProposalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MergeProposals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MergeProposals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MergeProposals.
+     */
+    distinct?: MergeProposalScalarFieldEnum | MergeProposalScalarFieldEnum[]
+  }
+
+  /**
+   * MergeProposal findMany
+   */
+  export type MergeProposalFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * Filter, which MergeProposals to fetch.
+     */
+    where?: MergeProposalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MergeProposals to fetch.
+     */
+    orderBy?: MergeProposalOrderByWithRelationInput | MergeProposalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MergeProposals.
+     */
+    cursor?: MergeProposalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MergeProposals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MergeProposals.
+     */
+    skip?: number
+    distinct?: MergeProposalScalarFieldEnum | MergeProposalScalarFieldEnum[]
+  }
+
+  /**
+   * MergeProposal create
+   */
+  export type MergeProposalCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MergeProposal.
+     */
+    data: XOR<MergeProposalCreateInput, MergeProposalUncheckedCreateInput>
+  }
+
+  /**
+   * MergeProposal createMany
+   */
+  export type MergeProposalCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MergeProposals.
+     */
+    data: MergeProposalCreateManyInput | MergeProposalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MergeProposal createManyAndReturn
+   */
+  export type MergeProposalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * The data used to create many MergeProposals.
+     */
+    data: MergeProposalCreateManyInput | MergeProposalCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MergeProposal update
+   */
+  export type MergeProposalUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MergeProposal.
+     */
+    data: XOR<MergeProposalUpdateInput, MergeProposalUncheckedUpdateInput>
+    /**
+     * Choose, which MergeProposal to update.
+     */
+    where: MergeProposalWhereUniqueInput
+  }
+
+  /**
+   * MergeProposal updateMany
+   */
+  export type MergeProposalUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MergeProposals.
+     */
+    data: XOR<MergeProposalUpdateManyMutationInput, MergeProposalUncheckedUpdateManyInput>
+    /**
+     * Filter which MergeProposals to update
+     */
+    where?: MergeProposalWhereInput
+    /**
+     * Limit how many MergeProposals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MergeProposal updateManyAndReturn
+   */
+  export type MergeProposalUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * The data used to update MergeProposals.
+     */
+    data: XOR<MergeProposalUpdateManyMutationInput, MergeProposalUncheckedUpdateManyInput>
+    /**
+     * Filter which MergeProposals to update
+     */
+    where?: MergeProposalWhereInput
+    /**
+     * Limit how many MergeProposals to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MergeProposal upsert
+   */
+  export type MergeProposalUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MergeProposal to update in case it exists.
+     */
+    where: MergeProposalWhereUniqueInput
+    /**
+     * In case the MergeProposal found by the `where` argument doesn't exist, create a new MergeProposal with this data.
+     */
+    create: XOR<MergeProposalCreateInput, MergeProposalUncheckedCreateInput>
+    /**
+     * In case the MergeProposal was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MergeProposalUpdateInput, MergeProposalUncheckedUpdateInput>
+  }
+
+  /**
+   * MergeProposal delete
+   */
+  export type MergeProposalDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+    /**
+     * Filter which MergeProposal to delete.
+     */
+    where: MergeProposalWhereUniqueInput
+  }
+
+  /**
+   * MergeProposal deleteMany
+   */
+  export type MergeProposalDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MergeProposals to delete
+     */
+    where?: MergeProposalWhereInput
+    /**
+     * Limit how many MergeProposals to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MergeProposal without action
+   */
+  export type MergeProposalDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MergeProposal
+     */
+    select?: MergeProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MergeProposal
+     */
+    omit?: MergeProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MergeProposalInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -13880,6 +17590,50 @@ export namespace Prisma {
   export type ProjectInvoiceScalarFieldEnum = (typeof ProjectInvoiceScalarFieldEnum)[keyof typeof ProjectInvoiceScalarFieldEnum]
 
 
+  export const AgentRunScalarFieldEnum: {
+    id: 'id',
+    agentName: 'agentName',
+    mode: 'mode',
+    startedAt: 'startedAt',
+    finishedAt: 'finishedAt',
+    status: 'status',
+    totals: 'totals',
+    error: 'error'
+  };
+
+  export type AgentRunScalarFieldEnum = (typeof AgentRunScalarFieldEnum)[keyof typeof AgentRunScalarFieldEnum]
+
+
+  export const ContactInfoScalarFieldEnum: {
+    id: 'id',
+    artistId: 'artistId',
+    email: 'email',
+    confidence: 'confidence',
+    score: 'score',
+    sourceUrl: 'sourceUrl',
+    sourceType: 'sourceType',
+    discoveredAt: 'discoveredAt'
+  };
+
+  export type ContactInfoScalarFieldEnum = (typeof ContactInfoScalarFieldEnum)[keyof typeof ContactInfoScalarFieldEnum]
+
+
+  export const MergeProposalScalarFieldEnum: {
+    id: 'id',
+    primaryArtistId: 'primaryArtistId',
+    duplicateArtistId: 'duplicateArtistId',
+    primaryName: 'primaryName',
+    duplicateName: 'duplicateName',
+    similarityScore: 'similarityScore',
+    confidence: 'confidence',
+    reason: 'reason',
+    status: 'status',
+    createdAt: 'createdAt'
+  };
+
+  export type MergeProposalScalarFieldEnum = (typeof MergeProposalScalarFieldEnum)[keyof typeof MergeProposalScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -13893,6 +17647,14 @@ export namespace Prisma {
   };
 
   export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -14093,6 +17855,9 @@ export namespace Prisma {
     releases?: ReleaseListRelationFilter
     instagramPosts?: InstagramPostListRelationFilter
     projects?: ProjectListRelationFilter
+    contactInfos?: ContactInfoListRelationFilter
+    primaryMerges?: MergeProposalListRelationFilter
+    duplicateMerges?: MergeProposalListRelationFilter
   }
 
   export type ArtistOrderByWithRelationInput = {
@@ -14124,6 +17889,9 @@ export namespace Prisma {
     releases?: ReleaseOrderByRelationAggregateInput
     instagramPosts?: InstagramPostOrderByRelationAggregateInput
     projects?: ProjectOrderByRelationAggregateInput
+    contactInfos?: ContactInfoOrderByRelationAggregateInput
+    primaryMerges?: MergeProposalOrderByRelationAggregateInput
+    duplicateMerges?: MergeProposalOrderByRelationAggregateInput
   }
 
   export type ArtistWhereUniqueInput = Prisma.AtLeast<{
@@ -14158,6 +17926,9 @@ export namespace Prisma {
     releases?: ReleaseListRelationFilter
     instagramPosts?: InstagramPostListRelationFilter
     projects?: ProjectListRelationFilter
+    contactInfos?: ContactInfoListRelationFilter
+    primaryMerges?: MergeProposalListRelationFilter
+    duplicateMerges?: MergeProposalListRelationFilter
   }, "id" | "instagramHandle" | "spotifyArtistId">
 
   export type ArtistOrderByWithAggregationInput = {
@@ -14928,6 +18699,231 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"ProjectInvoice"> | Date | string
   }
 
+  export type AgentRunWhereInput = {
+    AND?: AgentRunWhereInput | AgentRunWhereInput[]
+    OR?: AgentRunWhereInput[]
+    NOT?: AgentRunWhereInput | AgentRunWhereInput[]
+    id?: StringFilter<"AgentRun"> | string
+    agentName?: StringFilter<"AgentRun"> | string
+    mode?: StringNullableFilter<"AgentRun"> | string | null
+    startedAt?: DateTimeFilter<"AgentRun"> | Date | string
+    finishedAt?: DateTimeNullableFilter<"AgentRun"> | Date | string | null
+    status?: StringFilter<"AgentRun"> | string
+    totals?: JsonNullableFilter<"AgentRun">
+    error?: StringNullableFilter<"AgentRun"> | string | null
+  }
+
+  export type AgentRunOrderByWithRelationInput = {
+    id?: SortOrder
+    agentName?: SortOrder
+    mode?: SortOrderInput | SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrderInput | SortOrder
+    status?: SortOrder
+    totals?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+  }
+
+  export type AgentRunWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AgentRunWhereInput | AgentRunWhereInput[]
+    OR?: AgentRunWhereInput[]
+    NOT?: AgentRunWhereInput | AgentRunWhereInput[]
+    agentName?: StringFilter<"AgentRun"> | string
+    mode?: StringNullableFilter<"AgentRun"> | string | null
+    startedAt?: DateTimeFilter<"AgentRun"> | Date | string
+    finishedAt?: DateTimeNullableFilter<"AgentRun"> | Date | string | null
+    status?: StringFilter<"AgentRun"> | string
+    totals?: JsonNullableFilter<"AgentRun">
+    error?: StringNullableFilter<"AgentRun"> | string | null
+  }, "id">
+
+  export type AgentRunOrderByWithAggregationInput = {
+    id?: SortOrder
+    agentName?: SortOrder
+    mode?: SortOrderInput | SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrderInput | SortOrder
+    status?: SortOrder
+    totals?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    _count?: AgentRunCountOrderByAggregateInput
+    _max?: AgentRunMaxOrderByAggregateInput
+    _min?: AgentRunMinOrderByAggregateInput
+  }
+
+  export type AgentRunScalarWhereWithAggregatesInput = {
+    AND?: AgentRunScalarWhereWithAggregatesInput | AgentRunScalarWhereWithAggregatesInput[]
+    OR?: AgentRunScalarWhereWithAggregatesInput[]
+    NOT?: AgentRunScalarWhereWithAggregatesInput | AgentRunScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AgentRun"> | string
+    agentName?: StringWithAggregatesFilter<"AgentRun"> | string
+    mode?: StringNullableWithAggregatesFilter<"AgentRun"> | string | null
+    startedAt?: DateTimeWithAggregatesFilter<"AgentRun"> | Date | string
+    finishedAt?: DateTimeNullableWithAggregatesFilter<"AgentRun"> | Date | string | null
+    status?: StringWithAggregatesFilter<"AgentRun"> | string
+    totals?: JsonNullableWithAggregatesFilter<"AgentRun">
+    error?: StringNullableWithAggregatesFilter<"AgentRun"> | string | null
+  }
+
+  export type ContactInfoWhereInput = {
+    AND?: ContactInfoWhereInput | ContactInfoWhereInput[]
+    OR?: ContactInfoWhereInput[]
+    NOT?: ContactInfoWhereInput | ContactInfoWhereInput[]
+    id?: StringFilter<"ContactInfo"> | string
+    artistId?: StringFilter<"ContactInfo"> | string
+    email?: StringFilter<"ContactInfo"> | string
+    confidence?: StringFilter<"ContactInfo"> | string
+    score?: IntFilter<"ContactInfo"> | number
+    sourceUrl?: StringNullableFilter<"ContactInfo"> | string | null
+    sourceType?: StringNullableFilter<"ContactInfo"> | string | null
+    discoveredAt?: DateTimeFilter<"ContactInfo"> | Date | string
+    artist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
+  }
+
+  export type ContactInfoOrderByWithRelationInput = {
+    id?: SortOrder
+    artistId?: SortOrder
+    email?: SortOrder
+    confidence?: SortOrder
+    score?: SortOrder
+    sourceUrl?: SortOrderInput | SortOrder
+    sourceType?: SortOrderInput | SortOrder
+    discoveredAt?: SortOrder
+    artist?: ArtistOrderByWithRelationInput
+  }
+
+  export type ContactInfoWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    artistId_email?: ContactInfoArtistIdEmailCompoundUniqueInput
+    AND?: ContactInfoWhereInput | ContactInfoWhereInput[]
+    OR?: ContactInfoWhereInput[]
+    NOT?: ContactInfoWhereInput | ContactInfoWhereInput[]
+    artistId?: StringFilter<"ContactInfo"> | string
+    email?: StringFilter<"ContactInfo"> | string
+    confidence?: StringFilter<"ContactInfo"> | string
+    score?: IntFilter<"ContactInfo"> | number
+    sourceUrl?: StringNullableFilter<"ContactInfo"> | string | null
+    sourceType?: StringNullableFilter<"ContactInfo"> | string | null
+    discoveredAt?: DateTimeFilter<"ContactInfo"> | Date | string
+    artist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
+  }, "id" | "artistId_email">
+
+  export type ContactInfoOrderByWithAggregationInput = {
+    id?: SortOrder
+    artistId?: SortOrder
+    email?: SortOrder
+    confidence?: SortOrder
+    score?: SortOrder
+    sourceUrl?: SortOrderInput | SortOrder
+    sourceType?: SortOrderInput | SortOrder
+    discoveredAt?: SortOrder
+    _count?: ContactInfoCountOrderByAggregateInput
+    _avg?: ContactInfoAvgOrderByAggregateInput
+    _max?: ContactInfoMaxOrderByAggregateInput
+    _min?: ContactInfoMinOrderByAggregateInput
+    _sum?: ContactInfoSumOrderByAggregateInput
+  }
+
+  export type ContactInfoScalarWhereWithAggregatesInput = {
+    AND?: ContactInfoScalarWhereWithAggregatesInput | ContactInfoScalarWhereWithAggregatesInput[]
+    OR?: ContactInfoScalarWhereWithAggregatesInput[]
+    NOT?: ContactInfoScalarWhereWithAggregatesInput | ContactInfoScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ContactInfo"> | string
+    artistId?: StringWithAggregatesFilter<"ContactInfo"> | string
+    email?: StringWithAggregatesFilter<"ContactInfo"> | string
+    confidence?: StringWithAggregatesFilter<"ContactInfo"> | string
+    score?: IntWithAggregatesFilter<"ContactInfo"> | number
+    sourceUrl?: StringNullableWithAggregatesFilter<"ContactInfo"> | string | null
+    sourceType?: StringNullableWithAggregatesFilter<"ContactInfo"> | string | null
+    discoveredAt?: DateTimeWithAggregatesFilter<"ContactInfo"> | Date | string
+  }
+
+  export type MergeProposalWhereInput = {
+    AND?: MergeProposalWhereInput | MergeProposalWhereInput[]
+    OR?: MergeProposalWhereInput[]
+    NOT?: MergeProposalWhereInput | MergeProposalWhereInput[]
+    id?: StringFilter<"MergeProposal"> | string
+    primaryArtistId?: StringFilter<"MergeProposal"> | string
+    duplicateArtistId?: StringFilter<"MergeProposal"> | string
+    primaryName?: StringFilter<"MergeProposal"> | string
+    duplicateName?: StringFilter<"MergeProposal"> | string
+    similarityScore?: FloatFilter<"MergeProposal"> | number
+    confidence?: StringFilter<"MergeProposal"> | string
+    reason?: StringFilter<"MergeProposal"> | string
+    status?: StringFilter<"MergeProposal"> | string
+    createdAt?: DateTimeFilter<"MergeProposal"> | Date | string
+    primaryArtist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
+    duplicateArtist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
+  }
+
+  export type MergeProposalOrderByWithRelationInput = {
+    id?: SortOrder
+    primaryArtistId?: SortOrder
+    duplicateArtistId?: SortOrder
+    primaryName?: SortOrder
+    duplicateName?: SortOrder
+    similarityScore?: SortOrder
+    confidence?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    primaryArtist?: ArtistOrderByWithRelationInput
+    duplicateArtist?: ArtistOrderByWithRelationInput
+  }
+
+  export type MergeProposalWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    duplicateArtistId?: string
+    AND?: MergeProposalWhereInput | MergeProposalWhereInput[]
+    OR?: MergeProposalWhereInput[]
+    NOT?: MergeProposalWhereInput | MergeProposalWhereInput[]
+    primaryArtistId?: StringFilter<"MergeProposal"> | string
+    primaryName?: StringFilter<"MergeProposal"> | string
+    duplicateName?: StringFilter<"MergeProposal"> | string
+    similarityScore?: FloatFilter<"MergeProposal"> | number
+    confidence?: StringFilter<"MergeProposal"> | string
+    reason?: StringFilter<"MergeProposal"> | string
+    status?: StringFilter<"MergeProposal"> | string
+    createdAt?: DateTimeFilter<"MergeProposal"> | Date | string
+    primaryArtist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
+    duplicateArtist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
+  }, "id" | "duplicateArtistId">
+
+  export type MergeProposalOrderByWithAggregationInput = {
+    id?: SortOrder
+    primaryArtistId?: SortOrder
+    duplicateArtistId?: SortOrder
+    primaryName?: SortOrder
+    duplicateName?: SortOrder
+    similarityScore?: SortOrder
+    confidence?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    _count?: MergeProposalCountOrderByAggregateInput
+    _avg?: MergeProposalAvgOrderByAggregateInput
+    _max?: MergeProposalMaxOrderByAggregateInput
+    _min?: MergeProposalMinOrderByAggregateInput
+    _sum?: MergeProposalSumOrderByAggregateInput
+  }
+
+  export type MergeProposalScalarWhereWithAggregatesInput = {
+    AND?: MergeProposalScalarWhereWithAggregatesInput | MergeProposalScalarWhereWithAggregatesInput[]
+    OR?: MergeProposalScalarWhereWithAggregatesInput[]
+    NOT?: MergeProposalScalarWhereWithAggregatesInput | MergeProposalScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MergeProposal"> | string
+    primaryArtistId?: StringWithAggregatesFilter<"MergeProposal"> | string
+    duplicateArtistId?: StringWithAggregatesFilter<"MergeProposal"> | string
+    primaryName?: StringWithAggregatesFilter<"MergeProposal"> | string
+    duplicateName?: StringWithAggregatesFilter<"MergeProposal"> | string
+    similarityScore?: FloatWithAggregatesFilter<"MergeProposal"> | number
+    confidence?: StringWithAggregatesFilter<"MergeProposal"> | string
+    reason?: StringWithAggregatesFilter<"MergeProposal"> | string
+    status?: StringWithAggregatesFilter<"MergeProposal"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MergeProposal"> | Date | string
+  }
+
   export type ArtistCreateInput = {
     id?: string
     name: string
@@ -14957,6 +18953,9 @@ export namespace Prisma {
     releases?: ReleaseCreateNestedManyWithoutArtistInput
     instagramPosts?: InstagramPostCreateNestedManyWithoutArtistInput
     projects?: ProjectCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistUncheckedCreateInput = {
@@ -14988,6 +18987,9 @@ export namespace Prisma {
     releases?: ReleaseUncheckedCreateNestedManyWithoutArtistInput
     instagramPosts?: InstagramPostUncheckedCreateNestedManyWithoutArtistInput
     projects?: ProjectUncheckedCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoUncheckedCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalUncheckedCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalUncheckedCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistUpdateInput = {
@@ -15019,6 +19021,9 @@ export namespace Prisma {
     releases?: ReleaseUpdateManyWithoutArtistNestedInput
     instagramPosts?: InstagramPostUpdateManyWithoutArtistNestedInput
     projects?: ProjectUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type ArtistUncheckedUpdateInput = {
@@ -15050,6 +19055,9 @@ export namespace Prisma {
     releases?: ReleaseUncheckedUpdateManyWithoutArtistNestedInput
     instagramPosts?: InstagramPostUncheckedUpdateManyWithoutArtistNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUncheckedUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUncheckedUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type ArtistCreateManyInput = {
@@ -15903,6 +19911,248 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AgentRunCreateInput = {
+    id?: string
+    agentName: string
+    mode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    status: string
+    totals?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+  }
+
+  export type AgentRunUncheckedCreateInput = {
+    id?: string
+    agentName: string
+    mode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    status: string
+    totals?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+  }
+
+  export type AgentRunUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    agentName?: StringFieldUpdateOperationsInput | string
+    mode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    totals?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AgentRunUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    agentName?: StringFieldUpdateOperationsInput | string
+    mode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    totals?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AgentRunCreateManyInput = {
+    id?: string
+    agentName: string
+    mode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    status: string
+    totals?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+  }
+
+  export type AgentRunUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    agentName?: StringFieldUpdateOperationsInput | string
+    mode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    totals?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AgentRunUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    agentName?: StringFieldUpdateOperationsInput | string
+    mode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    totals?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ContactInfoCreateInput = {
+    id?: string
+    email: string
+    confidence?: string
+    score?: number
+    sourceUrl?: string | null
+    sourceType?: string | null
+    discoveredAt?: Date | string
+    artist: ArtistCreateNestedOneWithoutContactInfosInput
+  }
+
+  export type ContactInfoUncheckedCreateInput = {
+    id?: string
+    artistId: string
+    email: string
+    confidence?: string
+    score?: number
+    sourceUrl?: string | null
+    sourceType?: string | null
+    discoveredAt?: Date | string
+  }
+
+  export type ContactInfoUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    confidence?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceType?: NullableStringFieldUpdateOperationsInput | string | null
+    discoveredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    artist?: ArtistUpdateOneRequiredWithoutContactInfosNestedInput
+  }
+
+  export type ContactInfoUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    artistId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    confidence?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceType?: NullableStringFieldUpdateOperationsInput | string | null
+    discoveredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContactInfoCreateManyInput = {
+    id?: string
+    artistId: string
+    email: string
+    confidence?: string
+    score?: number
+    sourceUrl?: string | null
+    sourceType?: string | null
+    discoveredAt?: Date | string
+  }
+
+  export type ContactInfoUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    confidence?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceType?: NullableStringFieldUpdateOperationsInput | string | null
+    discoveredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContactInfoUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    artistId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    confidence?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceType?: NullableStringFieldUpdateOperationsInput | string | null
+    discoveredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MergeProposalCreateInput = {
+    id?: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
+    primaryArtist: ArtistCreateNestedOneWithoutPrimaryMergesInput
+    duplicateArtist: ArtistCreateNestedOneWithoutDuplicateMergesInput
+  }
+
+  export type MergeProposalUncheckedCreateInput = {
+    id?: string
+    primaryArtistId: string
+    duplicateArtistId: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
+  }
+
+  export type MergeProposalUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryArtist?: ArtistUpdateOneRequiredWithoutPrimaryMergesNestedInput
+    duplicateArtist?: ArtistUpdateOneRequiredWithoutDuplicateMergesNestedInput
+  }
+
+  export type MergeProposalUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    primaryArtistId?: StringFieldUpdateOperationsInput | string
+    duplicateArtistId?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MergeProposalCreateManyInput = {
+    id?: string
+    primaryArtistId: string
+    duplicateArtistId: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
+  }
+
+  export type MergeProposalUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MergeProposalUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    primaryArtistId?: StringFieldUpdateOperationsInput | string
+    duplicateArtistId?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -15998,6 +20248,18 @@ export namespace Prisma {
     none?: ProjectWhereInput
   }
 
+  export type ContactInfoListRelationFilter = {
+    every?: ContactInfoWhereInput
+    some?: ContactInfoWhereInput
+    none?: ContactInfoWhereInput
+  }
+
+  export type MergeProposalListRelationFilter = {
+    every?: MergeProposalWhereInput
+    some?: MergeProposalWhereInput
+    none?: MergeProposalWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -16016,6 +20278,14 @@ export namespace Prisma {
   }
 
   export type ProjectOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ContactInfoOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MergeProposalOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -16798,6 +21068,206 @@ export namespace Prisma {
     _min?: NestedJsonFilter<$PrismaModel>
     _max?: NestedJsonFilter<$PrismaModel>
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type AgentRunCountOrderByAggregateInput = {
+    id?: SortOrder
+    agentName?: SortOrder
+    mode?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    status?: SortOrder
+    totals?: SortOrder
+    error?: SortOrder
+  }
+
+  export type AgentRunMaxOrderByAggregateInput = {
+    id?: SortOrder
+    agentName?: SortOrder
+    mode?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+  }
+
+  export type AgentRunMinOrderByAggregateInput = {
+    id?: SortOrder
+    agentName?: SortOrder
+    mode?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
+  export type ContactInfoArtistIdEmailCompoundUniqueInput = {
+    artistId: string
+    email: string
+  }
+
+  export type ContactInfoCountOrderByAggregateInput = {
+    id?: SortOrder
+    artistId?: SortOrder
+    email?: SortOrder
+    confidence?: SortOrder
+    score?: SortOrder
+    sourceUrl?: SortOrder
+    sourceType?: SortOrder
+    discoveredAt?: SortOrder
+  }
+
+  export type ContactInfoAvgOrderByAggregateInput = {
+    score?: SortOrder
+  }
+
+  export type ContactInfoMaxOrderByAggregateInput = {
+    id?: SortOrder
+    artistId?: SortOrder
+    email?: SortOrder
+    confidence?: SortOrder
+    score?: SortOrder
+    sourceUrl?: SortOrder
+    sourceType?: SortOrder
+    discoveredAt?: SortOrder
+  }
+
+  export type ContactInfoMinOrderByAggregateInput = {
+    id?: SortOrder
+    artistId?: SortOrder
+    email?: SortOrder
+    confidence?: SortOrder
+    score?: SortOrder
+    sourceUrl?: SortOrder
+    sourceType?: SortOrder
+    discoveredAt?: SortOrder
+  }
+
+  export type ContactInfoSumOrderByAggregateInput = {
+    score?: SortOrder
+  }
+
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type MergeProposalCountOrderByAggregateInput = {
+    id?: SortOrder
+    primaryArtistId?: SortOrder
+    duplicateArtistId?: SortOrder
+    primaryName?: SortOrder
+    duplicateName?: SortOrder
+    similarityScore?: SortOrder
+    confidence?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MergeProposalAvgOrderByAggregateInput = {
+    similarityScore?: SortOrder
+  }
+
+  export type MergeProposalMaxOrderByAggregateInput = {
+    id?: SortOrder
+    primaryArtistId?: SortOrder
+    duplicateArtistId?: SortOrder
+    primaryName?: SortOrder
+    duplicateName?: SortOrder
+    similarityScore?: SortOrder
+    confidence?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MergeProposalMinOrderByAggregateInput = {
+    id?: SortOrder
+    primaryArtistId?: SortOrder
+    duplicateArtistId?: SortOrder
+    primaryName?: SortOrder
+    duplicateName?: SortOrder
+    similarityScore?: SortOrder
+    confidence?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MergeProposalSumOrderByAggregateInput = {
+    similarityScore?: SortOrder
+  }
+
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
 
   export type ArtistCreatetagsInput = {
     set: string[]
@@ -16835,6 +21305,27 @@ export namespace Prisma {
     connect?: ProjectWhereUniqueInput | ProjectWhereUniqueInput[]
   }
 
+  export type ContactInfoCreateNestedManyWithoutArtistInput = {
+    create?: XOR<ContactInfoCreateWithoutArtistInput, ContactInfoUncheckedCreateWithoutArtistInput> | ContactInfoCreateWithoutArtistInput[] | ContactInfoUncheckedCreateWithoutArtistInput[]
+    connectOrCreate?: ContactInfoCreateOrConnectWithoutArtistInput | ContactInfoCreateOrConnectWithoutArtistInput[]
+    createMany?: ContactInfoCreateManyArtistInputEnvelope
+    connect?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+  }
+
+  export type MergeProposalCreateNestedManyWithoutPrimaryArtistInput = {
+    create?: XOR<MergeProposalCreateWithoutPrimaryArtistInput, MergeProposalUncheckedCreateWithoutPrimaryArtistInput> | MergeProposalCreateWithoutPrimaryArtistInput[] | MergeProposalUncheckedCreateWithoutPrimaryArtistInput[]
+    connectOrCreate?: MergeProposalCreateOrConnectWithoutPrimaryArtistInput | MergeProposalCreateOrConnectWithoutPrimaryArtistInput[]
+    createMany?: MergeProposalCreateManyPrimaryArtistInputEnvelope
+    connect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+  }
+
+  export type MergeProposalCreateNestedManyWithoutDuplicateArtistInput = {
+    create?: XOR<MergeProposalCreateWithoutDuplicateArtistInput, MergeProposalUncheckedCreateWithoutDuplicateArtistInput> | MergeProposalCreateWithoutDuplicateArtistInput[] | MergeProposalUncheckedCreateWithoutDuplicateArtistInput[]
+    connectOrCreate?: MergeProposalCreateOrConnectWithoutDuplicateArtistInput | MergeProposalCreateOrConnectWithoutDuplicateArtistInput[]
+    createMany?: MergeProposalCreateManyDuplicateArtistInputEnvelope
+    connect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+  }
+
   export type LeadUncheckedCreateNestedManyWithoutArtistInput = {
     create?: XOR<LeadCreateWithoutArtistInput, LeadUncheckedCreateWithoutArtistInput> | LeadCreateWithoutArtistInput[] | LeadUncheckedCreateWithoutArtistInput[]
     connectOrCreate?: LeadCreateOrConnectWithoutArtistInput | LeadCreateOrConnectWithoutArtistInput[]
@@ -16861,6 +21352,27 @@ export namespace Prisma {
     connectOrCreate?: ProjectCreateOrConnectWithoutArtistInput | ProjectCreateOrConnectWithoutArtistInput[]
     createMany?: ProjectCreateManyArtistInputEnvelope
     connect?: ProjectWhereUniqueInput | ProjectWhereUniqueInput[]
+  }
+
+  export type ContactInfoUncheckedCreateNestedManyWithoutArtistInput = {
+    create?: XOR<ContactInfoCreateWithoutArtistInput, ContactInfoUncheckedCreateWithoutArtistInput> | ContactInfoCreateWithoutArtistInput[] | ContactInfoUncheckedCreateWithoutArtistInput[]
+    connectOrCreate?: ContactInfoCreateOrConnectWithoutArtistInput | ContactInfoCreateOrConnectWithoutArtistInput[]
+    createMany?: ContactInfoCreateManyArtistInputEnvelope
+    connect?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+  }
+
+  export type MergeProposalUncheckedCreateNestedManyWithoutPrimaryArtistInput = {
+    create?: XOR<MergeProposalCreateWithoutPrimaryArtistInput, MergeProposalUncheckedCreateWithoutPrimaryArtistInput> | MergeProposalCreateWithoutPrimaryArtistInput[] | MergeProposalUncheckedCreateWithoutPrimaryArtistInput[]
+    connectOrCreate?: MergeProposalCreateOrConnectWithoutPrimaryArtistInput | MergeProposalCreateOrConnectWithoutPrimaryArtistInput[]
+    createMany?: MergeProposalCreateManyPrimaryArtistInputEnvelope
+    connect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+  }
+
+  export type MergeProposalUncheckedCreateNestedManyWithoutDuplicateArtistInput = {
+    create?: XOR<MergeProposalCreateWithoutDuplicateArtistInput, MergeProposalUncheckedCreateWithoutDuplicateArtistInput> | MergeProposalCreateWithoutDuplicateArtistInput[] | MergeProposalUncheckedCreateWithoutDuplicateArtistInput[]
+    connectOrCreate?: MergeProposalCreateOrConnectWithoutDuplicateArtistInput | MergeProposalCreateOrConnectWithoutDuplicateArtistInput[]
+    createMany?: MergeProposalCreateManyDuplicateArtistInputEnvelope
+    connect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -16953,6 +21465,48 @@ export namespace Prisma {
     deleteMany?: ProjectScalarWhereInput | ProjectScalarWhereInput[]
   }
 
+  export type ContactInfoUpdateManyWithoutArtistNestedInput = {
+    create?: XOR<ContactInfoCreateWithoutArtistInput, ContactInfoUncheckedCreateWithoutArtistInput> | ContactInfoCreateWithoutArtistInput[] | ContactInfoUncheckedCreateWithoutArtistInput[]
+    connectOrCreate?: ContactInfoCreateOrConnectWithoutArtistInput | ContactInfoCreateOrConnectWithoutArtistInput[]
+    upsert?: ContactInfoUpsertWithWhereUniqueWithoutArtistInput | ContactInfoUpsertWithWhereUniqueWithoutArtistInput[]
+    createMany?: ContactInfoCreateManyArtistInputEnvelope
+    set?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+    disconnect?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+    delete?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+    connect?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+    update?: ContactInfoUpdateWithWhereUniqueWithoutArtistInput | ContactInfoUpdateWithWhereUniqueWithoutArtistInput[]
+    updateMany?: ContactInfoUpdateManyWithWhereWithoutArtistInput | ContactInfoUpdateManyWithWhereWithoutArtistInput[]
+    deleteMany?: ContactInfoScalarWhereInput | ContactInfoScalarWhereInput[]
+  }
+
+  export type MergeProposalUpdateManyWithoutPrimaryArtistNestedInput = {
+    create?: XOR<MergeProposalCreateWithoutPrimaryArtistInput, MergeProposalUncheckedCreateWithoutPrimaryArtistInput> | MergeProposalCreateWithoutPrimaryArtistInput[] | MergeProposalUncheckedCreateWithoutPrimaryArtistInput[]
+    connectOrCreate?: MergeProposalCreateOrConnectWithoutPrimaryArtistInput | MergeProposalCreateOrConnectWithoutPrimaryArtistInput[]
+    upsert?: MergeProposalUpsertWithWhereUniqueWithoutPrimaryArtistInput | MergeProposalUpsertWithWhereUniqueWithoutPrimaryArtistInput[]
+    createMany?: MergeProposalCreateManyPrimaryArtistInputEnvelope
+    set?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    disconnect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    delete?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    connect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    update?: MergeProposalUpdateWithWhereUniqueWithoutPrimaryArtistInput | MergeProposalUpdateWithWhereUniqueWithoutPrimaryArtistInput[]
+    updateMany?: MergeProposalUpdateManyWithWhereWithoutPrimaryArtistInput | MergeProposalUpdateManyWithWhereWithoutPrimaryArtistInput[]
+    deleteMany?: MergeProposalScalarWhereInput | MergeProposalScalarWhereInput[]
+  }
+
+  export type MergeProposalUpdateManyWithoutDuplicateArtistNestedInput = {
+    create?: XOR<MergeProposalCreateWithoutDuplicateArtistInput, MergeProposalUncheckedCreateWithoutDuplicateArtistInput> | MergeProposalCreateWithoutDuplicateArtistInput[] | MergeProposalUncheckedCreateWithoutDuplicateArtistInput[]
+    connectOrCreate?: MergeProposalCreateOrConnectWithoutDuplicateArtistInput | MergeProposalCreateOrConnectWithoutDuplicateArtistInput[]
+    upsert?: MergeProposalUpsertWithWhereUniqueWithoutDuplicateArtistInput | MergeProposalUpsertWithWhereUniqueWithoutDuplicateArtistInput[]
+    createMany?: MergeProposalCreateManyDuplicateArtistInputEnvelope
+    set?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    disconnect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    delete?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    connect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    update?: MergeProposalUpdateWithWhereUniqueWithoutDuplicateArtistInput | MergeProposalUpdateWithWhereUniqueWithoutDuplicateArtistInput[]
+    updateMany?: MergeProposalUpdateManyWithWhereWithoutDuplicateArtistInput | MergeProposalUpdateManyWithWhereWithoutDuplicateArtistInput[]
+    deleteMany?: MergeProposalScalarWhereInput | MergeProposalScalarWhereInput[]
+  }
+
   export type LeadUncheckedUpdateManyWithoutArtistNestedInput = {
     create?: XOR<LeadCreateWithoutArtistInput, LeadUncheckedCreateWithoutArtistInput> | LeadCreateWithoutArtistInput[] | LeadUncheckedCreateWithoutArtistInput[]
     connectOrCreate?: LeadCreateOrConnectWithoutArtistInput | LeadCreateOrConnectWithoutArtistInput[]
@@ -17007,6 +21561,48 @@ export namespace Prisma {
     update?: ProjectUpdateWithWhereUniqueWithoutArtistInput | ProjectUpdateWithWhereUniqueWithoutArtistInput[]
     updateMany?: ProjectUpdateManyWithWhereWithoutArtistInput | ProjectUpdateManyWithWhereWithoutArtistInput[]
     deleteMany?: ProjectScalarWhereInput | ProjectScalarWhereInput[]
+  }
+
+  export type ContactInfoUncheckedUpdateManyWithoutArtistNestedInput = {
+    create?: XOR<ContactInfoCreateWithoutArtistInput, ContactInfoUncheckedCreateWithoutArtistInput> | ContactInfoCreateWithoutArtistInput[] | ContactInfoUncheckedCreateWithoutArtistInput[]
+    connectOrCreate?: ContactInfoCreateOrConnectWithoutArtistInput | ContactInfoCreateOrConnectWithoutArtistInput[]
+    upsert?: ContactInfoUpsertWithWhereUniqueWithoutArtistInput | ContactInfoUpsertWithWhereUniqueWithoutArtistInput[]
+    createMany?: ContactInfoCreateManyArtistInputEnvelope
+    set?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+    disconnect?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+    delete?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+    connect?: ContactInfoWhereUniqueInput | ContactInfoWhereUniqueInput[]
+    update?: ContactInfoUpdateWithWhereUniqueWithoutArtistInput | ContactInfoUpdateWithWhereUniqueWithoutArtistInput[]
+    updateMany?: ContactInfoUpdateManyWithWhereWithoutArtistInput | ContactInfoUpdateManyWithWhereWithoutArtistInput[]
+    deleteMany?: ContactInfoScalarWhereInput | ContactInfoScalarWhereInput[]
+  }
+
+  export type MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput = {
+    create?: XOR<MergeProposalCreateWithoutPrimaryArtistInput, MergeProposalUncheckedCreateWithoutPrimaryArtistInput> | MergeProposalCreateWithoutPrimaryArtistInput[] | MergeProposalUncheckedCreateWithoutPrimaryArtistInput[]
+    connectOrCreate?: MergeProposalCreateOrConnectWithoutPrimaryArtistInput | MergeProposalCreateOrConnectWithoutPrimaryArtistInput[]
+    upsert?: MergeProposalUpsertWithWhereUniqueWithoutPrimaryArtistInput | MergeProposalUpsertWithWhereUniqueWithoutPrimaryArtistInput[]
+    createMany?: MergeProposalCreateManyPrimaryArtistInputEnvelope
+    set?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    disconnect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    delete?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    connect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    update?: MergeProposalUpdateWithWhereUniqueWithoutPrimaryArtistInput | MergeProposalUpdateWithWhereUniqueWithoutPrimaryArtistInput[]
+    updateMany?: MergeProposalUpdateManyWithWhereWithoutPrimaryArtistInput | MergeProposalUpdateManyWithWhereWithoutPrimaryArtistInput[]
+    deleteMany?: MergeProposalScalarWhereInput | MergeProposalScalarWhereInput[]
+  }
+
+  export type MergeProposalUncheckedUpdateManyWithoutDuplicateArtistNestedInput = {
+    create?: XOR<MergeProposalCreateWithoutDuplicateArtistInput, MergeProposalUncheckedCreateWithoutDuplicateArtistInput> | MergeProposalCreateWithoutDuplicateArtistInput[] | MergeProposalUncheckedCreateWithoutDuplicateArtistInput[]
+    connectOrCreate?: MergeProposalCreateOrConnectWithoutDuplicateArtistInput | MergeProposalCreateOrConnectWithoutDuplicateArtistInput[]
+    upsert?: MergeProposalUpsertWithWhereUniqueWithoutDuplicateArtistInput | MergeProposalUpsertWithWhereUniqueWithoutDuplicateArtistInput[]
+    createMany?: MergeProposalCreateManyDuplicateArtistInputEnvelope
+    set?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    disconnect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    delete?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    connect?: MergeProposalWhereUniqueInput | MergeProposalWhereUniqueInput[]
+    update?: MergeProposalUpdateWithWhereUniqueWithoutDuplicateArtistInput | MergeProposalUpdateWithWhereUniqueWithoutDuplicateArtistInput[]
+    updateMany?: MergeProposalUpdateManyWithWhereWithoutDuplicateArtistInput | MergeProposalUpdateManyWithWhereWithoutDuplicateArtistInput[]
+    deleteMany?: MergeProposalScalarWhereInput | MergeProposalScalarWhereInput[]
   }
 
   export type ArtistCreateNestedOneWithoutLeadsInput = {
@@ -17429,6 +22025,56 @@ export namespace Prisma {
     update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutInvoiceInput, ProjectUpdateWithoutInvoiceInput>, ProjectUncheckedUpdateWithoutInvoiceInput>
   }
 
+  export type ArtistCreateNestedOneWithoutContactInfosInput = {
+    create?: XOR<ArtistCreateWithoutContactInfosInput, ArtistUncheckedCreateWithoutContactInfosInput>
+    connectOrCreate?: ArtistCreateOrConnectWithoutContactInfosInput
+    connect?: ArtistWhereUniqueInput
+  }
+
+  export type ArtistUpdateOneRequiredWithoutContactInfosNestedInput = {
+    create?: XOR<ArtistCreateWithoutContactInfosInput, ArtistUncheckedCreateWithoutContactInfosInput>
+    connectOrCreate?: ArtistCreateOrConnectWithoutContactInfosInput
+    upsert?: ArtistUpsertWithoutContactInfosInput
+    connect?: ArtistWhereUniqueInput
+    update?: XOR<XOR<ArtistUpdateToOneWithWhereWithoutContactInfosInput, ArtistUpdateWithoutContactInfosInput>, ArtistUncheckedUpdateWithoutContactInfosInput>
+  }
+
+  export type ArtistCreateNestedOneWithoutPrimaryMergesInput = {
+    create?: XOR<ArtistCreateWithoutPrimaryMergesInput, ArtistUncheckedCreateWithoutPrimaryMergesInput>
+    connectOrCreate?: ArtistCreateOrConnectWithoutPrimaryMergesInput
+    connect?: ArtistWhereUniqueInput
+  }
+
+  export type ArtistCreateNestedOneWithoutDuplicateMergesInput = {
+    create?: XOR<ArtistCreateWithoutDuplicateMergesInput, ArtistUncheckedCreateWithoutDuplicateMergesInput>
+    connectOrCreate?: ArtistCreateOrConnectWithoutDuplicateMergesInput
+    connect?: ArtistWhereUniqueInput
+  }
+
+  export type FloatFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type ArtistUpdateOneRequiredWithoutPrimaryMergesNestedInput = {
+    create?: XOR<ArtistCreateWithoutPrimaryMergesInput, ArtistUncheckedCreateWithoutPrimaryMergesInput>
+    connectOrCreate?: ArtistCreateOrConnectWithoutPrimaryMergesInput
+    upsert?: ArtistUpsertWithoutPrimaryMergesInput
+    connect?: ArtistWhereUniqueInput
+    update?: XOR<XOR<ArtistUpdateToOneWithWhereWithoutPrimaryMergesInput, ArtistUpdateWithoutPrimaryMergesInput>, ArtistUncheckedUpdateWithoutPrimaryMergesInput>
+  }
+
+  export type ArtistUpdateOneRequiredWithoutDuplicateMergesNestedInput = {
+    create?: XOR<ArtistCreateWithoutDuplicateMergesInput, ArtistUncheckedCreateWithoutDuplicateMergesInput>
+    connectOrCreate?: ArtistCreateOrConnectWithoutDuplicateMergesInput
+    upsert?: ArtistUpsertWithoutDuplicateMergesInput
+    connect?: ArtistWhereUniqueInput
+    update?: XOR<XOR<ArtistUpdateToOneWithWhereWithoutDuplicateMergesInput, ArtistUpdateWithoutDuplicateMergesInput>, ArtistUncheckedUpdateWithoutDuplicateMergesInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -17736,6 +22382,45 @@ export namespace Prisma {
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
 
   export type LeadCreateWithoutArtistInput = {
     id?: string
@@ -17875,6 +22560,104 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ContactInfoCreateWithoutArtistInput = {
+    id?: string
+    email: string
+    confidence?: string
+    score?: number
+    sourceUrl?: string | null
+    sourceType?: string | null
+    discoveredAt?: Date | string
+  }
+
+  export type ContactInfoUncheckedCreateWithoutArtistInput = {
+    id?: string
+    email: string
+    confidence?: string
+    score?: number
+    sourceUrl?: string | null
+    sourceType?: string | null
+    discoveredAt?: Date | string
+  }
+
+  export type ContactInfoCreateOrConnectWithoutArtistInput = {
+    where: ContactInfoWhereUniqueInput
+    create: XOR<ContactInfoCreateWithoutArtistInput, ContactInfoUncheckedCreateWithoutArtistInput>
+  }
+
+  export type ContactInfoCreateManyArtistInputEnvelope = {
+    data: ContactInfoCreateManyArtistInput | ContactInfoCreateManyArtistInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MergeProposalCreateWithoutPrimaryArtistInput = {
+    id?: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
+    duplicateArtist: ArtistCreateNestedOneWithoutDuplicateMergesInput
+  }
+
+  export type MergeProposalUncheckedCreateWithoutPrimaryArtistInput = {
+    id?: string
+    duplicateArtistId: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
+  }
+
+  export type MergeProposalCreateOrConnectWithoutPrimaryArtistInput = {
+    where: MergeProposalWhereUniqueInput
+    create: XOR<MergeProposalCreateWithoutPrimaryArtistInput, MergeProposalUncheckedCreateWithoutPrimaryArtistInput>
+  }
+
+  export type MergeProposalCreateManyPrimaryArtistInputEnvelope = {
+    data: MergeProposalCreateManyPrimaryArtistInput | MergeProposalCreateManyPrimaryArtistInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MergeProposalCreateWithoutDuplicateArtistInput = {
+    id?: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
+    primaryArtist: ArtistCreateNestedOneWithoutPrimaryMergesInput
+  }
+
+  export type MergeProposalUncheckedCreateWithoutDuplicateArtistInput = {
+    id?: string
+    primaryArtistId: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
+  }
+
+  export type MergeProposalCreateOrConnectWithoutDuplicateArtistInput = {
+    where: MergeProposalWhereUniqueInput
+    create: XOR<MergeProposalCreateWithoutDuplicateArtistInput, MergeProposalUncheckedCreateWithoutDuplicateArtistInput>
+  }
+
+  export type MergeProposalCreateManyDuplicateArtistInputEnvelope = {
+    data: MergeProposalCreateManyDuplicateArtistInput | MergeProposalCreateManyDuplicateArtistInput[]
+    skipDuplicates?: boolean
+  }
+
   export type LeadUpsertWithWhereUniqueWithoutArtistInput = {
     where: LeadWhereUniqueInput
     update: XOR<LeadUpdateWithoutArtistInput, LeadUncheckedUpdateWithoutArtistInput>
@@ -17999,6 +22782,84 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Project"> | Date | string
   }
 
+  export type ContactInfoUpsertWithWhereUniqueWithoutArtistInput = {
+    where: ContactInfoWhereUniqueInput
+    update: XOR<ContactInfoUpdateWithoutArtistInput, ContactInfoUncheckedUpdateWithoutArtistInput>
+    create: XOR<ContactInfoCreateWithoutArtistInput, ContactInfoUncheckedCreateWithoutArtistInput>
+  }
+
+  export type ContactInfoUpdateWithWhereUniqueWithoutArtistInput = {
+    where: ContactInfoWhereUniqueInput
+    data: XOR<ContactInfoUpdateWithoutArtistInput, ContactInfoUncheckedUpdateWithoutArtistInput>
+  }
+
+  export type ContactInfoUpdateManyWithWhereWithoutArtistInput = {
+    where: ContactInfoScalarWhereInput
+    data: XOR<ContactInfoUpdateManyMutationInput, ContactInfoUncheckedUpdateManyWithoutArtistInput>
+  }
+
+  export type ContactInfoScalarWhereInput = {
+    AND?: ContactInfoScalarWhereInput | ContactInfoScalarWhereInput[]
+    OR?: ContactInfoScalarWhereInput[]
+    NOT?: ContactInfoScalarWhereInput | ContactInfoScalarWhereInput[]
+    id?: StringFilter<"ContactInfo"> | string
+    artistId?: StringFilter<"ContactInfo"> | string
+    email?: StringFilter<"ContactInfo"> | string
+    confidence?: StringFilter<"ContactInfo"> | string
+    score?: IntFilter<"ContactInfo"> | number
+    sourceUrl?: StringNullableFilter<"ContactInfo"> | string | null
+    sourceType?: StringNullableFilter<"ContactInfo"> | string | null
+    discoveredAt?: DateTimeFilter<"ContactInfo"> | Date | string
+  }
+
+  export type MergeProposalUpsertWithWhereUniqueWithoutPrimaryArtistInput = {
+    where: MergeProposalWhereUniqueInput
+    update: XOR<MergeProposalUpdateWithoutPrimaryArtistInput, MergeProposalUncheckedUpdateWithoutPrimaryArtistInput>
+    create: XOR<MergeProposalCreateWithoutPrimaryArtistInput, MergeProposalUncheckedCreateWithoutPrimaryArtistInput>
+  }
+
+  export type MergeProposalUpdateWithWhereUniqueWithoutPrimaryArtistInput = {
+    where: MergeProposalWhereUniqueInput
+    data: XOR<MergeProposalUpdateWithoutPrimaryArtistInput, MergeProposalUncheckedUpdateWithoutPrimaryArtistInput>
+  }
+
+  export type MergeProposalUpdateManyWithWhereWithoutPrimaryArtistInput = {
+    where: MergeProposalScalarWhereInput
+    data: XOR<MergeProposalUpdateManyMutationInput, MergeProposalUncheckedUpdateManyWithoutPrimaryArtistInput>
+  }
+
+  export type MergeProposalScalarWhereInput = {
+    AND?: MergeProposalScalarWhereInput | MergeProposalScalarWhereInput[]
+    OR?: MergeProposalScalarWhereInput[]
+    NOT?: MergeProposalScalarWhereInput | MergeProposalScalarWhereInput[]
+    id?: StringFilter<"MergeProposal"> | string
+    primaryArtistId?: StringFilter<"MergeProposal"> | string
+    duplicateArtistId?: StringFilter<"MergeProposal"> | string
+    primaryName?: StringFilter<"MergeProposal"> | string
+    duplicateName?: StringFilter<"MergeProposal"> | string
+    similarityScore?: FloatFilter<"MergeProposal"> | number
+    confidence?: StringFilter<"MergeProposal"> | string
+    reason?: StringFilter<"MergeProposal"> | string
+    status?: StringFilter<"MergeProposal"> | string
+    createdAt?: DateTimeFilter<"MergeProposal"> | Date | string
+  }
+
+  export type MergeProposalUpsertWithWhereUniqueWithoutDuplicateArtistInput = {
+    where: MergeProposalWhereUniqueInput
+    update: XOR<MergeProposalUpdateWithoutDuplicateArtistInput, MergeProposalUncheckedUpdateWithoutDuplicateArtistInput>
+    create: XOR<MergeProposalCreateWithoutDuplicateArtistInput, MergeProposalUncheckedCreateWithoutDuplicateArtistInput>
+  }
+
+  export type MergeProposalUpdateWithWhereUniqueWithoutDuplicateArtistInput = {
+    where: MergeProposalWhereUniqueInput
+    data: XOR<MergeProposalUpdateWithoutDuplicateArtistInput, MergeProposalUncheckedUpdateWithoutDuplicateArtistInput>
+  }
+
+  export type MergeProposalUpdateManyWithWhereWithoutDuplicateArtistInput = {
+    where: MergeProposalScalarWhereInput
+    data: XOR<MergeProposalUpdateManyMutationInput, MergeProposalUncheckedUpdateManyWithoutDuplicateArtistInput>
+  }
+
   export type ArtistCreateWithoutLeadsInput = {
     id?: string
     name: string
@@ -18027,6 +22888,9 @@ export namespace Prisma {
     releases?: ReleaseCreateNestedManyWithoutArtistInput
     instagramPosts?: InstagramPostCreateNestedManyWithoutArtistInput
     projects?: ProjectCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistUncheckedCreateWithoutLeadsInput = {
@@ -18057,6 +22921,9 @@ export namespace Prisma {
     releases?: ReleaseUncheckedCreateNestedManyWithoutArtistInput
     instagramPosts?: InstagramPostUncheckedCreateNestedManyWithoutArtistInput
     projects?: ProjectUncheckedCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoUncheckedCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalUncheckedCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalUncheckedCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistCreateOrConnectWithoutLeadsInput = {
@@ -18157,6 +23024,9 @@ export namespace Prisma {
     releases?: ReleaseUpdateManyWithoutArtistNestedInput
     instagramPosts?: InstagramPostUpdateManyWithoutArtistNestedInput
     projects?: ProjectUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type ArtistUncheckedUpdateWithoutLeadsInput = {
@@ -18187,6 +23057,9 @@ export namespace Prisma {
     releases?: ReleaseUncheckedUpdateManyWithoutArtistNestedInput
     instagramPosts?: InstagramPostUncheckedUpdateManyWithoutArtistNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUncheckedUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUncheckedUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type MessageDraftUpsertWithWhereUniqueWithoutLeadInput = {
@@ -18274,6 +23147,9 @@ export namespace Prisma {
     leads?: LeadCreateNestedManyWithoutArtistInput
     instagramPosts?: InstagramPostCreateNestedManyWithoutArtistInput
     projects?: ProjectCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistUncheckedCreateWithoutReleasesInput = {
@@ -18304,6 +23180,9 @@ export namespace Prisma {
     leads?: LeadUncheckedCreateNestedManyWithoutArtistInput
     instagramPosts?: InstagramPostUncheckedCreateNestedManyWithoutArtistInput
     projects?: ProjectUncheckedCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoUncheckedCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalUncheckedCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalUncheckedCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistCreateOrConnectWithoutReleasesInput = {
@@ -18350,6 +23229,9 @@ export namespace Prisma {
     leads?: LeadUpdateManyWithoutArtistNestedInput
     instagramPosts?: InstagramPostUpdateManyWithoutArtistNestedInput
     projects?: ProjectUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type ArtistUncheckedUpdateWithoutReleasesInput = {
@@ -18380,6 +23262,9 @@ export namespace Prisma {
     leads?: LeadUncheckedUpdateManyWithoutArtistNestedInput
     instagramPosts?: InstagramPostUncheckedUpdateManyWithoutArtistNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUncheckedUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUncheckedUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type ArtistCreateWithoutInstagramPostsInput = {
@@ -18410,6 +23295,9 @@ export namespace Prisma {
     leads?: LeadCreateNestedManyWithoutArtistInput
     releases?: ReleaseCreateNestedManyWithoutArtistInput
     projects?: ProjectCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistUncheckedCreateWithoutInstagramPostsInput = {
@@ -18440,6 +23328,9 @@ export namespace Prisma {
     leads?: LeadUncheckedCreateNestedManyWithoutArtistInput
     releases?: ReleaseUncheckedCreateNestedManyWithoutArtistInput
     projects?: ProjectUncheckedCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoUncheckedCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalUncheckedCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalUncheckedCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistCreateOrConnectWithoutInstagramPostsInput = {
@@ -18486,6 +23377,9 @@ export namespace Prisma {
     leads?: LeadUpdateManyWithoutArtistNestedInput
     releases?: ReleaseUpdateManyWithoutArtistNestedInput
     projects?: ProjectUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type ArtistUncheckedUpdateWithoutInstagramPostsInput = {
@@ -18516,6 +23410,9 @@ export namespace Prisma {
     leads?: LeadUncheckedUpdateManyWithoutArtistNestedInput
     releases?: ReleaseUncheckedUpdateManyWithoutArtistNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUncheckedUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUncheckedUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type LeadCreateWithoutMessagesInput = {
@@ -18682,6 +23579,9 @@ export namespace Prisma {
     leads?: LeadCreateNestedManyWithoutArtistInput
     releases?: ReleaseCreateNestedManyWithoutArtistInput
     instagramPosts?: InstagramPostCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistUncheckedCreateWithoutProjectsInput = {
@@ -18712,6 +23612,9 @@ export namespace Prisma {
     leads?: LeadUncheckedCreateNestedManyWithoutArtistInput
     releases?: ReleaseUncheckedCreateNestedManyWithoutArtistInput
     instagramPosts?: InstagramPostUncheckedCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoUncheckedCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalUncheckedCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalUncheckedCreateNestedManyWithoutDuplicateArtistInput
   }
 
   export type ArtistCreateOrConnectWithoutProjectsInput = {
@@ -18861,6 +23764,9 @@ export namespace Prisma {
     leads?: LeadUpdateManyWithoutArtistNestedInput
     releases?: ReleaseUpdateManyWithoutArtistNestedInput
     instagramPosts?: InstagramPostUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type ArtistUncheckedUpdateWithoutProjectsInput = {
@@ -18891,6 +23797,9 @@ export namespace Prisma {
     leads?: LeadUncheckedUpdateManyWithoutArtistNestedInput
     releases?: ReleaseUncheckedUpdateManyWithoutArtistNestedInput
     instagramPosts?: InstagramPostUncheckedUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUncheckedUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUncheckedUpdateManyWithoutDuplicateArtistNestedInput
   }
 
   export type ProjectFileUpsertWithWhereUniqueWithoutProjectInput = {
@@ -19327,6 +24236,450 @@ export namespace Prisma {
     feedbacks?: ProjectFeedbackUncheckedUpdateManyWithoutProjectNestedInput
   }
 
+  export type ArtistCreateWithoutContactInfosInput = {
+    id?: string
+    name: string
+    instagramHandle?: string | null
+    instagramProfileUrl?: string | null
+    instagramProfileImageUrl?: string | null
+    spotifyArtistId?: string | null
+    spotifyArtistUrl?: string | null
+    spotifyImageUrl?: string | null
+    spotifyAccent?: string | null
+    spotifyAccentStrong?: string | null
+    spotifyHighlight?: string | null
+    officialSiteUrl?: string | null
+    location?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    genre?: string | null
+    tags?: ArtistCreatetagsInput | string[]
+    bio?: string | null
+    emails?: ArtistCreateemailsInput | string[]
+    followerCount?: number | null
+    lastPostAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    leads?: LeadCreateNestedManyWithoutArtistInput
+    releases?: ReleaseCreateNestedManyWithoutArtistInput
+    instagramPosts?: InstagramPostCreateNestedManyWithoutArtistInput
+    projects?: ProjectCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalCreateNestedManyWithoutDuplicateArtistInput
+  }
+
+  export type ArtistUncheckedCreateWithoutContactInfosInput = {
+    id?: string
+    name: string
+    instagramHandle?: string | null
+    instagramProfileUrl?: string | null
+    instagramProfileImageUrl?: string | null
+    spotifyArtistId?: string | null
+    spotifyArtistUrl?: string | null
+    spotifyImageUrl?: string | null
+    spotifyAccent?: string | null
+    spotifyAccentStrong?: string | null
+    spotifyHighlight?: string | null
+    officialSiteUrl?: string | null
+    location?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    genre?: string | null
+    tags?: ArtistCreatetagsInput | string[]
+    bio?: string | null
+    emails?: ArtistCreateemailsInput | string[]
+    followerCount?: number | null
+    lastPostAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    leads?: LeadUncheckedCreateNestedManyWithoutArtistInput
+    releases?: ReleaseUncheckedCreateNestedManyWithoutArtistInput
+    instagramPosts?: InstagramPostUncheckedCreateNestedManyWithoutArtistInput
+    projects?: ProjectUncheckedCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalUncheckedCreateNestedManyWithoutPrimaryArtistInput
+    duplicateMerges?: MergeProposalUncheckedCreateNestedManyWithoutDuplicateArtistInput
+  }
+
+  export type ArtistCreateOrConnectWithoutContactInfosInput = {
+    where: ArtistWhereUniqueInput
+    create: XOR<ArtistCreateWithoutContactInfosInput, ArtistUncheckedCreateWithoutContactInfosInput>
+  }
+
+  export type ArtistUpsertWithoutContactInfosInput = {
+    update: XOR<ArtistUpdateWithoutContactInfosInput, ArtistUncheckedUpdateWithoutContactInfosInput>
+    create: XOR<ArtistCreateWithoutContactInfosInput, ArtistUncheckedCreateWithoutContactInfosInput>
+    where?: ArtistWhereInput
+  }
+
+  export type ArtistUpdateToOneWithWhereWithoutContactInfosInput = {
+    where?: ArtistWhereInput
+    data: XOR<ArtistUpdateWithoutContactInfosInput, ArtistUncheckedUpdateWithoutContactInfosInput>
+  }
+
+  export type ArtistUpdateWithoutContactInfosInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    instagramHandle?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistId?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccent?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccentStrong?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyHighlight?: NullableStringFieldUpdateOperationsInput | string | null
+    officialSiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    genre?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: ArtistUpdatetagsInput | string[]
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    emails?: ArtistUpdateemailsInput | string[]
+    followerCount?: NullableIntFieldUpdateOperationsInput | number | null
+    lastPostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leads?: LeadUpdateManyWithoutArtistNestedInput
+    releases?: ReleaseUpdateManyWithoutArtistNestedInput
+    instagramPosts?: InstagramPostUpdateManyWithoutArtistNestedInput
+    projects?: ProjectUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUpdateManyWithoutDuplicateArtistNestedInput
+  }
+
+  export type ArtistUncheckedUpdateWithoutContactInfosInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    instagramHandle?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistId?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccent?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccentStrong?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyHighlight?: NullableStringFieldUpdateOperationsInput | string | null
+    officialSiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    genre?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: ArtistUpdatetagsInput | string[]
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    emails?: ArtistUpdateemailsInput | string[]
+    followerCount?: NullableIntFieldUpdateOperationsInput | number | null
+    lastPostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leads?: LeadUncheckedUpdateManyWithoutArtistNestedInput
+    releases?: ReleaseUncheckedUpdateManyWithoutArtistNestedInput
+    instagramPosts?: InstagramPostUncheckedUpdateManyWithoutArtistNestedInput
+    projects?: ProjectUncheckedUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput
+    duplicateMerges?: MergeProposalUncheckedUpdateManyWithoutDuplicateArtistNestedInput
+  }
+
+  export type ArtistCreateWithoutPrimaryMergesInput = {
+    id?: string
+    name: string
+    instagramHandle?: string | null
+    instagramProfileUrl?: string | null
+    instagramProfileImageUrl?: string | null
+    spotifyArtistId?: string | null
+    spotifyArtistUrl?: string | null
+    spotifyImageUrl?: string | null
+    spotifyAccent?: string | null
+    spotifyAccentStrong?: string | null
+    spotifyHighlight?: string | null
+    officialSiteUrl?: string | null
+    location?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    genre?: string | null
+    tags?: ArtistCreatetagsInput | string[]
+    bio?: string | null
+    emails?: ArtistCreateemailsInput | string[]
+    followerCount?: number | null
+    lastPostAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    leads?: LeadCreateNestedManyWithoutArtistInput
+    releases?: ReleaseCreateNestedManyWithoutArtistInput
+    instagramPosts?: InstagramPostCreateNestedManyWithoutArtistInput
+    projects?: ProjectCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoCreateNestedManyWithoutArtistInput
+    duplicateMerges?: MergeProposalCreateNestedManyWithoutDuplicateArtistInput
+  }
+
+  export type ArtistUncheckedCreateWithoutPrimaryMergesInput = {
+    id?: string
+    name: string
+    instagramHandle?: string | null
+    instagramProfileUrl?: string | null
+    instagramProfileImageUrl?: string | null
+    spotifyArtistId?: string | null
+    spotifyArtistUrl?: string | null
+    spotifyImageUrl?: string | null
+    spotifyAccent?: string | null
+    spotifyAccentStrong?: string | null
+    spotifyHighlight?: string | null
+    officialSiteUrl?: string | null
+    location?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    genre?: string | null
+    tags?: ArtistCreatetagsInput | string[]
+    bio?: string | null
+    emails?: ArtistCreateemailsInput | string[]
+    followerCount?: number | null
+    lastPostAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    leads?: LeadUncheckedCreateNestedManyWithoutArtistInput
+    releases?: ReleaseUncheckedCreateNestedManyWithoutArtistInput
+    instagramPosts?: InstagramPostUncheckedCreateNestedManyWithoutArtistInput
+    projects?: ProjectUncheckedCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoUncheckedCreateNestedManyWithoutArtistInput
+    duplicateMerges?: MergeProposalUncheckedCreateNestedManyWithoutDuplicateArtistInput
+  }
+
+  export type ArtistCreateOrConnectWithoutPrimaryMergesInput = {
+    where: ArtistWhereUniqueInput
+    create: XOR<ArtistCreateWithoutPrimaryMergesInput, ArtistUncheckedCreateWithoutPrimaryMergesInput>
+  }
+
+  export type ArtistCreateWithoutDuplicateMergesInput = {
+    id?: string
+    name: string
+    instagramHandle?: string | null
+    instagramProfileUrl?: string | null
+    instagramProfileImageUrl?: string | null
+    spotifyArtistId?: string | null
+    spotifyArtistUrl?: string | null
+    spotifyImageUrl?: string | null
+    spotifyAccent?: string | null
+    spotifyAccentStrong?: string | null
+    spotifyHighlight?: string | null
+    officialSiteUrl?: string | null
+    location?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    genre?: string | null
+    tags?: ArtistCreatetagsInput | string[]
+    bio?: string | null
+    emails?: ArtistCreateemailsInput | string[]
+    followerCount?: number | null
+    lastPostAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    leads?: LeadCreateNestedManyWithoutArtistInput
+    releases?: ReleaseCreateNestedManyWithoutArtistInput
+    instagramPosts?: InstagramPostCreateNestedManyWithoutArtistInput
+    projects?: ProjectCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalCreateNestedManyWithoutPrimaryArtistInput
+  }
+
+  export type ArtistUncheckedCreateWithoutDuplicateMergesInput = {
+    id?: string
+    name: string
+    instagramHandle?: string | null
+    instagramProfileUrl?: string | null
+    instagramProfileImageUrl?: string | null
+    spotifyArtistId?: string | null
+    spotifyArtistUrl?: string | null
+    spotifyImageUrl?: string | null
+    spotifyAccent?: string | null
+    spotifyAccentStrong?: string | null
+    spotifyHighlight?: string | null
+    officialSiteUrl?: string | null
+    location?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    genre?: string | null
+    tags?: ArtistCreatetagsInput | string[]
+    bio?: string | null
+    emails?: ArtistCreateemailsInput | string[]
+    followerCount?: number | null
+    lastPostAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    leads?: LeadUncheckedCreateNestedManyWithoutArtistInput
+    releases?: ReleaseUncheckedCreateNestedManyWithoutArtistInput
+    instagramPosts?: InstagramPostUncheckedCreateNestedManyWithoutArtistInput
+    projects?: ProjectUncheckedCreateNestedManyWithoutArtistInput
+    contactInfos?: ContactInfoUncheckedCreateNestedManyWithoutArtistInput
+    primaryMerges?: MergeProposalUncheckedCreateNestedManyWithoutPrimaryArtistInput
+  }
+
+  export type ArtistCreateOrConnectWithoutDuplicateMergesInput = {
+    where: ArtistWhereUniqueInput
+    create: XOR<ArtistCreateWithoutDuplicateMergesInput, ArtistUncheckedCreateWithoutDuplicateMergesInput>
+  }
+
+  export type ArtistUpsertWithoutPrimaryMergesInput = {
+    update: XOR<ArtistUpdateWithoutPrimaryMergesInput, ArtistUncheckedUpdateWithoutPrimaryMergesInput>
+    create: XOR<ArtistCreateWithoutPrimaryMergesInput, ArtistUncheckedCreateWithoutPrimaryMergesInput>
+    where?: ArtistWhereInput
+  }
+
+  export type ArtistUpdateToOneWithWhereWithoutPrimaryMergesInput = {
+    where?: ArtistWhereInput
+    data: XOR<ArtistUpdateWithoutPrimaryMergesInput, ArtistUncheckedUpdateWithoutPrimaryMergesInput>
+  }
+
+  export type ArtistUpdateWithoutPrimaryMergesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    instagramHandle?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistId?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccent?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccentStrong?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyHighlight?: NullableStringFieldUpdateOperationsInput | string | null
+    officialSiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    genre?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: ArtistUpdatetagsInput | string[]
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    emails?: ArtistUpdateemailsInput | string[]
+    followerCount?: NullableIntFieldUpdateOperationsInput | number | null
+    lastPostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leads?: LeadUpdateManyWithoutArtistNestedInput
+    releases?: ReleaseUpdateManyWithoutArtistNestedInput
+    instagramPosts?: InstagramPostUpdateManyWithoutArtistNestedInput
+    projects?: ProjectUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUpdateManyWithoutArtistNestedInput
+    duplicateMerges?: MergeProposalUpdateManyWithoutDuplicateArtistNestedInput
+  }
+
+  export type ArtistUncheckedUpdateWithoutPrimaryMergesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    instagramHandle?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistId?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccent?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccentStrong?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyHighlight?: NullableStringFieldUpdateOperationsInput | string | null
+    officialSiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    genre?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: ArtistUpdatetagsInput | string[]
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    emails?: ArtistUpdateemailsInput | string[]
+    followerCount?: NullableIntFieldUpdateOperationsInput | number | null
+    lastPostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leads?: LeadUncheckedUpdateManyWithoutArtistNestedInput
+    releases?: ReleaseUncheckedUpdateManyWithoutArtistNestedInput
+    instagramPosts?: InstagramPostUncheckedUpdateManyWithoutArtistNestedInput
+    projects?: ProjectUncheckedUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUncheckedUpdateManyWithoutArtistNestedInput
+    duplicateMerges?: MergeProposalUncheckedUpdateManyWithoutDuplicateArtistNestedInput
+  }
+
+  export type ArtistUpsertWithoutDuplicateMergesInput = {
+    update: XOR<ArtistUpdateWithoutDuplicateMergesInput, ArtistUncheckedUpdateWithoutDuplicateMergesInput>
+    create: XOR<ArtistCreateWithoutDuplicateMergesInput, ArtistUncheckedCreateWithoutDuplicateMergesInput>
+    where?: ArtistWhereInput
+  }
+
+  export type ArtistUpdateToOneWithWhereWithoutDuplicateMergesInput = {
+    where?: ArtistWhereInput
+    data: XOR<ArtistUpdateWithoutDuplicateMergesInput, ArtistUncheckedUpdateWithoutDuplicateMergesInput>
+  }
+
+  export type ArtistUpdateWithoutDuplicateMergesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    instagramHandle?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistId?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccent?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccentStrong?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyHighlight?: NullableStringFieldUpdateOperationsInput | string | null
+    officialSiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    genre?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: ArtistUpdatetagsInput | string[]
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    emails?: ArtistUpdateemailsInput | string[]
+    followerCount?: NullableIntFieldUpdateOperationsInput | number | null
+    lastPostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leads?: LeadUpdateManyWithoutArtistNestedInput
+    releases?: ReleaseUpdateManyWithoutArtistNestedInput
+    instagramPosts?: InstagramPostUpdateManyWithoutArtistNestedInput
+    projects?: ProjectUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUpdateManyWithoutPrimaryArtistNestedInput
+  }
+
+  export type ArtistUncheckedUpdateWithoutDuplicateMergesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    instagramHandle?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    instagramProfileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistId?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyArtistUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccent?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyAccentStrong?: NullableStringFieldUpdateOperationsInput | string | null
+    spotifyHighlight?: NullableStringFieldUpdateOperationsInput | string | null
+    officialSiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    genre?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: ArtistUpdatetagsInput | string[]
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    emails?: ArtistUpdateemailsInput | string[]
+    followerCount?: NullableIntFieldUpdateOperationsInput | number | null
+    lastPostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leads?: LeadUncheckedUpdateManyWithoutArtistNestedInput
+    releases?: ReleaseUncheckedUpdateManyWithoutArtistNestedInput
+    instagramPosts?: InstagramPostUncheckedUpdateManyWithoutArtistNestedInput
+    projects?: ProjectUncheckedUpdateManyWithoutArtistNestedInput
+    contactInfos?: ContactInfoUncheckedUpdateManyWithoutArtistNestedInput
+    primaryMerges?: MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput
+  }
+
   export type LeadCreateManyArtistInput = {
     id?: string
     status?: $Enums.LeadStatus
@@ -19369,6 +24722,40 @@ export namespace Prisma {
     review?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type ContactInfoCreateManyArtistInput = {
+    id?: string
+    email: string
+    confidence?: string
+    score?: number
+    sourceUrl?: string | null
+    sourceType?: string | null
+    discoveredAt?: Date | string
+  }
+
+  export type MergeProposalCreateManyPrimaryArtistInput = {
+    id?: string
+    duplicateArtistId: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
+  }
+
+  export type MergeProposalCreateManyDuplicateArtistInput = {
+    id?: string
+    primaryArtistId: string
+    primaryName: string
+    duplicateName: string
+    similarityScore: number
+    confidence: string
+    reason: string
+    status?: string
+    createdAt?: Date | string
   }
 
   export type LeadUpdateWithoutArtistInput = {
@@ -19511,6 +24898,108 @@ export namespace Prisma {
     review?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContactInfoUpdateWithoutArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    confidence?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceType?: NullableStringFieldUpdateOperationsInput | string | null
+    discoveredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContactInfoUncheckedUpdateWithoutArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    confidence?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceType?: NullableStringFieldUpdateOperationsInput | string | null
+    discoveredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContactInfoUncheckedUpdateManyWithoutArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    confidence?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceType?: NullableStringFieldUpdateOperationsInput | string | null
+    discoveredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MergeProposalUpdateWithoutPrimaryArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    duplicateArtist?: ArtistUpdateOneRequiredWithoutDuplicateMergesNestedInput
+  }
+
+  export type MergeProposalUncheckedUpdateWithoutPrimaryArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    duplicateArtistId?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MergeProposalUncheckedUpdateManyWithoutPrimaryArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    duplicateArtistId?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MergeProposalUpdateWithoutDuplicateArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryArtist?: ArtistUpdateOneRequiredWithoutPrimaryMergesNestedInput
+  }
+
+  export type MergeProposalUncheckedUpdateWithoutDuplicateArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    primaryArtistId?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MergeProposalUncheckedUpdateManyWithoutDuplicateArtistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    primaryArtistId?: StringFieldUpdateOperationsInput | string
+    primaryName?: StringFieldUpdateOperationsInput | string
+    duplicateName?: StringFieldUpdateOperationsInput | string
+    similarityScore?: FloatFieldUpdateOperationsInput | number
+    confidence?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MessageDraftCreateManyLeadInput = {

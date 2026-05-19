@@ -67,10 +67,13 @@ model Artist {
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
 
-  leads          Lead[]
-  releases       Release[]
-  instagramPosts InstagramPost[]
-  projects       Project[]
+  leads           Lead[]
+  releases        Release[]
+  instagramPosts  InstagramPost[]
+  projects        Project[]
+  contactInfos    ContactInfo[]
+  primaryMerges   MergeProposal[] @relation("PrimaryMergeProposals")
+  duplicateMerges MergeProposal[] @relation("DuplicateMergeProposals")
 }
 
 model Lead {
@@ -205,4 +208,46 @@ model ProjectInvoice {
   updatedAt        DateTime  @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AgentRun {
+  id         String    @id @default(cuid())
+  agentName  String
+  mode       String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  status     String
+  totals     Json?
+  error      String?
+}
+
+model ContactInfo {
+  id           String   @id @default(cuid())
+  artistId     String
+  email        String
+  confidence   String   @default("uncertain") // verified, inferred, uncertain
+  score        Int      @default(0)
+  sourceUrl    String?
+  sourceType   String?
+  discoveredAt DateTime @default(now())
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId, email])
+}
+
+model MergeProposal {
+  id                String   @id @default(cuid())
+  primaryArtistId   String
+  duplicateArtistId String   @unique
+  primaryName       String
+  duplicateName     String
+  similarityScore   Float
+  confidence        String // HIGH, MEDIUM, LOW
+  reason            String
+  status            String   @default("PENDING") // PENDING, APPLIED, REJECTED
+  createdAt         DateTime @default(now())
+
+  primaryArtist   Artist @relation("PrimaryMergeProposals", fields: [primaryArtistId], references: [id], onDelete: Cascade)
+  duplicateArtist Artist @relation("DuplicateMergeProposals", fields: [duplicateArtistId], references: [id], onDelete: Cascade)
 }

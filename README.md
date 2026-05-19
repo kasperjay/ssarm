@@ -22,7 +22,7 @@ An internal CRM and automation platform for managing artist leads, outreach, and
 
 ### Prerequisites
 
-- **Docker** (for PostgreSQL)
+- **Docker** or **Podman** (for PostgreSQL)
 - **Node.js** ≥ 20
 - **npm** ≥ 10
 
@@ -52,7 +52,7 @@ An internal CRM and automation platform for managing artist leads, outreach, and
    npm run launch
    ```
 
-   This runs `scripts/launch.sh`, which starts Docker, waits for PostgreSQL, runs Prisma migrations, and starts the Next.js dev server.
+   This runs `scripts/launch.sh`, which detects your container engine (Docker or Podman), starts PostgreSQL, runs Prisma migrations, and starts the Next.js dev server.
 
 4. **Alternatively, run components separately**
 

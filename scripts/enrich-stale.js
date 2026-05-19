@@ -2,9 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { PrismaClient } = require("../prisma/generated-client");
-const { PrismaPg } = require("@prisma/adapter-pg");
-const { Pool } = require("pg");
+const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
 
 // Load .env
 const envPath = path.join(process.cwd(), ".env");
@@ -171,7 +169,7 @@ async function getArtistsToEnrich(options) {
   });
 }
 
-// ─── Location backfill ─────────────────────────────────────────────────────
+// â”€â”€â”€ Location backfill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function fixArtistLocations(options = {}) {
   const { limit = 100, dryRun = false, skipGoogle = false } = options;
@@ -191,7 +189,7 @@ async function fixArtistLocations(options = {}) {
     orderBy: { updatedAt: "asc" },
   });
 
-  console.log(`\n🔍 Found ${artists.length} artists missing location, genre, or bio.\n`);
+  console.log(`\nðŸ” Found ${artists.length} artists missing location, genre, or bio.\n`);
   if (dryRun) {
     for (const a of artists) {
       const missing = [!a.location && "location", !a.genre && "genre", !a.bio && "bio"].filter(Boolean);
@@ -229,11 +227,11 @@ async function fixArtistLocations(options = {}) {
       });
 
       if (res.ok) {
-        process.stdout.write(" ✓\n");
+        process.stdout.write(" âœ“\n");
         updated++;
       } else {
         const errText = await res.text();
-        process.stdout.write(` ✗ (${res.status}: ${errText.substring(0, 80)})\n`);
+        process.stdout.write(` âœ— (${res.status}: ${errText.substring(0, 80)})\n`);
         failed++;
       }
 
@@ -241,12 +239,12 @@ async function fixArtistLocations(options = {}) {
       // but we add extra breathing room here between artists.
       await new Promise((r) => setTimeout(r, 1500));
     } catch (err) {
-      process.stdout.write(` ✗ (${err.message})\n`);
+      process.stdout.write(` âœ— (${err.message})\n`);
       failed++;
     }
   }
 
-  console.log(`\n📍 Location/Genre/Bio Backfill: ${updated} updated, ${failed} failed`);
+  console.log(`\nðŸ“ Location/Genre/Bio Backfill: ${updated} updated, ${failed} failed`);
 }
 
 async function main() {
@@ -256,23 +254,23 @@ async function main() {
   const limitArg = getArg("--limit");
   const limit = limitArg ? parseInt(limitArg, 10) : 100;
 
-  console.log("📊 Data Enrichment & Staleness Agent");
+  console.log("ðŸ“Š Data Enrichment & Staleness Agent");
   console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"} | Limit: ${limit}`);
   console.log();
 
-  // ── Location / Genre / Bio backfill mode ─────────────────────────────────
+  // â”€â”€ Location / Genre / Bio backfill mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (fixLocations) {
-    console.log("📍 Running location/genre/bio backfill...");
-    if (skipGoogle) console.log("   (Skipping Google/homepage stages — --no-google)");
+    console.log("ðŸ“ Running location/genre/bio backfill...");
+    if (skipGoogle) console.log("   (Skipping Google/homepage stages â€” --no-google)");
     await fixArtistLocations({ limit, dryRun, skipGoogle });
     return { processedCount: 0 };
   }
 
-  // ── Normal staleness check mode ───────────────────────────────────────────
+  // â”€â”€ Normal staleness check mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const artists = await getArtistsToEnrich({ limit });
 
   if (artists.length === 0) {
-    console.log("✓ No artists to enrich");
+    console.log("âœ“ No artists to enrich");
     return { processedCount: 0 };
   }
 
@@ -327,21 +325,21 @@ async function main() {
             });
 
             if (res.ok) {
-              process.stdout.write("✓\n");
+              process.stdout.write("âœ“\n");
               results.refreshed++;
             } else {
               const errText = await res.text();
-              process.stdout.write(`✗ (${res.status}: ${errText.substring(0, 80)})\n`);
+              process.stdout.write(`âœ— (${res.status}: ${errText.substring(0, 80)})\n`);
               results.failed++;
             }
           } catch (apiError) {
-            process.stdout.write(`✗ (${apiError.message})\n`);
+            process.stdout.write(`âœ— (${apiError.message})\n`);
             results.failed++;
           }
         }
       }
 
-      // ── Touch Logic ────────────────────────────────────────────────────────
+      // â”€â”€ Touch Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       // This ensures the artist moves to the back of the queue (updatedAt asc)
       // regardless of whether they were healthy or refreshed.
       if (!dryRun) {
@@ -368,7 +366,7 @@ async function main() {
     }
   }
 
-  console.log("📈 Results:");
+  console.log("ðŸ“ˆ Results:");
   console.log(`  Checked: ${results.total}`);
   console.log(`  Healthy: ${results.healthy}`);
   console.log(`  Needs Refresh: ${results.needsRefresh}`);
@@ -383,10 +381,10 @@ async function main() {
 
   if (dryRun) {
     console.log();
-    console.log("⚠️  DRY RUN: No activities logged to database");
+    console.log("âš ï¸  DRY RUN: No activities logged to database");
   }
 
-  console.log(`\n✨ Finished. Processed ${results.refreshed} stale leads.`);
+  console.log(`\nâœ¨ Finished. Processed ${results.refreshed} stale leads.`);
   return { processedCount: results.refreshed };
 }
 
