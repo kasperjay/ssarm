@@ -1,0 +1,17 @@
+{
+  "skipInstagramFetch": true,
+  "skipSpotifyFetch": true,
+  "isDiscoveryImport": true,
+  "artist": {
+    "name": "Kas",
+    "instagramHandle": "kasgotthatsound",
+    "genre": "Test Genre",
+    "location": "Test Location",
+    "bio": "Test bio"
+  },
+  "lead": {
+    "status": "CONTACTED",
+    "score": 85,
+    "scoreRationale": "Test lead"
+  }
+}
