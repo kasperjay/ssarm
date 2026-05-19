@@ -1,5 +1,6 @@
 {
   "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
-  "summary":  "Step-by-step guide for completing the Novu in-app notification integration for Instagram reply alerts in Spectral Soundworks. Covers: getting the secret key, creating the Novu workflow in the dashboard, verifying the subscriber ID, testing with curl, and wiring up the IG bot webhook.",
-  "updatedAt":  "2026-05-18T06:31:20.031646900Z"
+  "summary":  "Complete step-by-step guide for wiring Meta's official Instagram Messaging API directly into Spectral Soundworks. Covers creating a Meta Developer App, setting up the webhook with ngrok for local dev, generating a Page Access Token, subscribing to the messages webhook, and verifying the full notification pipeline end-to-end.",
+  "updatedAt":  "2026-05-19T04:03:00.838778900Z",
+  "version":  "2"
 }

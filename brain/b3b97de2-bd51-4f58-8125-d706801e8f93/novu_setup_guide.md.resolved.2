@@ -10,14 +10,25 @@
 
 ---
 
-## Step 1 — Your Webhook URL
+## Step 1 — Get a Public URL
 
-Your public URL is **`https://hq.spectralsound.works`** — no tunnel needed.
+Meta can't call `localhost`. Pick one:
 
-Your Meta webhook callback URL is:
+### Option A — ngrok (dev/testing)
+```bash
+# Install once
+npm install -g ngrok
+
+# In a separate terminal while your app is running
+ngrok http 3000
 ```
-https://hq.spectralsound.works/api/ig/meta-webhook
-```
+Copy the `https://xxxx.ngrok-free.app` URL. Use this as your base URL below.
+
+> [!NOTE]
+> Free ngrok URLs change every restart. You'll need to update the Meta webhook URL each time. For persistent testing, sign up for a free ngrok account and get a static domain.
+
+### Option B — Deploy (production)
+Use your deployed URL (Vercel, Railway, etc.) — no ngrok needed.
 
 ---
 
@@ -53,7 +64,7 @@ https://hq.spectralsound.works/api/ig/meta-webhook
 
    | Field | Value |
    |---|---|
-   | **Callback URL** | `https://hq.spectralsound.works/api/ig/meta-webhook` |
+   | **Callback URL** | `https://YOUR_PUBLIC_URL/api/ig/meta-webhook` |
    | **Verify Token** | `spectral_ig_verify_2024` (matches your `.env.local`) |
 
 5. Click **Verify and Save** — Meta will call `GET /api/ig/meta-webhook` and check the challenge. Your route handles this automatically.
@@ -109,7 +120,7 @@ The notification won't fire without this:
 
 ### Test Novu (no real DM needed):
 ```bash
-curl -X POST https://hq.spectralsound.works/api/ig/test-notification \
+curl -X POST http://localhost:3000/api/ig/test-notification \
   -H "Content-Type: application/json" \
   -d '{"artistName":"Beach House","instagramHandle":"beachhouse","messageSnippet":"Would love to connect!"}'
 ```
@@ -117,7 +128,7 @@ curl -X POST https://hq.spectralsound.works/api/ig/test-notification \
 
 ### Test the Meta webhook handler:
 ```bash
-curl -X POST https://hq.spectralsound.works/api/ig/meta-webhook \
+curl -X POST http://localhost:3000/api/ig/meta-webhook \
   -H "Content-Type: application/json" \
   -d '{
     "object": "instagram",

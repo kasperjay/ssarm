@@ -1,117 +1,179 @@
-# Novu IG Reply Notifications — Setup Guide
+# Meta Direct Webhooks → Spectral Soundworks
 
 ## What Was Built
 
-The full notification pipeline now exists. Here's what each piece does:
-
 | File | Purpose |
 |---|---|
-| `src/lib/novu.ts` | Server-side Novu client + `triggerIgReplyNotification()` helper |
-| `src/app/api/ig/reply/route.ts` | Webhook receiver — your IG bot POSTs here when an artist replies |
-| `src/app/api/ig/test-notification/route.ts` | Dev-only test endpoint to fire a notification without a real reply |
-| `src/components/NotificationInbox.tsx` | Client-side bell icon (already in Sidebar + mobile nav) ✅ |
+| `src/app/api/ig/meta-webhook/route.ts` | **GET** — Meta verification handshake. **POST** — receives DM events, resolves PSID → username, logs Activity, triggers Novu bell |
+| `src/lib/novu.ts` | `triggerIgReplyNotification()` helper |
+| `src/app/api/ig/test-notification/route.ts` | Dev shortcut to test Novu without a real DM |
 
 ---
 
-## Step 1 — Get Your Novu Secret Key
+## Step 1 — Your Webhook URL
 
-1. Go to [https://dashboard.novu.co](https://dashboard.novu.co) → **API Keys**
-2. Copy your **Secret Key** (starts with `ApiKey ` or similar)
-3. Open `.env.local` and fill in:
+Your public URL is **`https://hq.spectralsound.works`** — no tunnel needed.
+
+Your Meta webhook callback URL is:
+```
+https://hq.spectralsound.works/api/ig/meta-webhook
+```
+
+---
+
+## Step 2 — Create a Meta Developer App
+
+1. Go to **[developers.facebook.com](https://developers.facebook.com)** → **My Apps → Create App**
+2. Select app type: **Business**
+3. Fill in name (e.g. `Spectral Soundworks`) and contact email → **Create App**
+
+---
+
+## Step 3 — Add the Instagram Product
+
+1. In your new app → **Add Products** → find **Instagram** → **Set Up**
+2. Under Instagram → **API Setup with Instagram Business Login**
+3. Click **Generate Token** next to your Instagram Business account
+4. Copy the token → paste into `.env.local`:
+   ```
+   META_PAGE_ACCESS_TOKEN=your_token_here
+   ```
+
+> [!IMPORTANT]
+> This token expires. For production, generate a **Long-Lived Token** or use a System User token. See [Meta docs on token types](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/get-started#access-tokens).
+
+---
+
+## Step 4 — Configure the Webhook
+
+1. In your Meta App → left sidebar → **Webhooks**
+2. Select object type: **Instagram**
+3. Click **Subscribe to this object**
+4. Fill in:
+
+   | Field | Value |
+   |---|---|
+   | **Callback URL** | `https://hq.spectralsound.works/api/ig/meta-webhook` |
+   | **Verify Token** | `spectral_ig_verify_2024` (matches your `.env.local`) |
+
+5. Click **Verify and Save** — Meta will call `GET /api/ig/meta-webhook` and check the challenge. Your route handles this automatically.
+
+---
+
+## Step 5 — Subscribe to the `messages` Field
+
+After verifying, you'll see a list of subscription fields:
+
+1. Find **`messages`** → click **Subscribe**
+2. Also subscribe to **`messaging_optins`** (optional but recommended)
+
+That's it — Meta will now POST to your webhook whenever someone replies to your DMs.
+
+---
+
+## Step 6 — Add Your Instagram Account to the App
+
+1. In your Meta App → **Instagram → Accounts**
+2. Add your Instagram Business account
+3. Make sure the account has the `instagram_manage_messages` permission granted
+
+---
+
+## Step 7 — Fill In Your Novu Secret Key
+
+The notification won't fire without this:
+
+1. Go to **[dashboard.novu.co](https://dashboard.novu.co)** → **API Keys**
+2. Copy your **Secret Key**
+3. Add to `.env.local`:
    ```
    NOVU_SECRET_KEY=your_secret_key_here
    ```
 
 ---
 
-## Step 2 — Create the Workflow in Novu Dashboard
+## Step 8 — Create the Novu Workflow
 
-> [!IMPORTANT]
-> The workflow ID must exactly match `ig-reply-received` (or whatever you set in `NOVU_IG_REPLY_WORKFLOW_ID`).
-
-1. Go to [https://dashboard.novu.co](https://dashboard.novu.co) → **Workflows**
-2. Click **Create Workflow**
-3. Name it anything — but set the **Workflow Identifier** (slug) to exactly: `ig-reply-received`
-4. Click **Add Step** → select **In-App**
-5. In the In-App step editor, set:
-   - **Subject:** `Artist reply: {{artistName}}`
-   - **Body:** `@{{instagramHandle}} replied: "{{messageSnippet}}" — [View lead]({{leadUrl}})`
-6. Click **Save** then **Publish**
+1. Novu Dashboard → **Workflows → Create Workflow**
+2. Set the **Workflow Identifier** (slug) to exactly: **`ig-reply-received`**
+3. Add step → **In-App**
+4. Set body to:
+   ```
+   @{{instagramHandle}} replied: "{{messageSnippet}}"
+   ```
+5. **Publish** the workflow
 
 ---
 
-## Step 3 — Verify Your Subscriber ID
+## Step 9 — Test the Full Pipeline
 
-The `subscriber` prop in `NotificationInbox.tsx` and the `OPERATOR_SUBSCRIBER_ID` in `src/lib/novu.ts` both default to `69f9702caca4539eeab8f6bc`.
-
-To confirm this is correct:
-- Go to Novu Dashboard → **Subscribers**
-- Your subscriber ID should be listed there
-- If it's different, set it in `.env.local`:
-  ```
-  NOVU_OPERATOR_SUBSCRIBER_ID=your_actual_subscriber_id
-  ```
-
----
-
-## Step 4 — Test the Notification
-
-Restart your dev server (so new env vars load), then run:
-
+### Test Novu (no real DM needed):
 ```bash
-curl -X POST http://localhost:3000/api/ig/test-notification \
+curl -X POST https://hq.spectralsound.works/api/ig/test-notification \
   -H "Content-Type: application/json" \
-  -d '{"artistName":"Beach House","instagramHandle":"beachhouse","messageSnippet":"Hey! Would love to connect about mixing."}'
+  -d '{"artistName":"Beach House","instagramHandle":"beachhouse","messageSnippet":"Would love to connect!"}'
 ```
+→ Bell icon should light up in your sidebar immediately.
 
-You should see the 🔔 bell badge appear in your sidebar immediately.
+### Test the Meta webhook handler:
+```bash
+curl -X POST https://hq.spectralsound.works/api/ig/meta-webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "object": "instagram",
+    "entry": [{
+      "id": "123",
+      "messaging": [{
+        "sender": { "id": "SENDER_PSID" },
+        "recipient": { "id": "PAGE_ID" },
+        "timestamp": 1234567890,
+        "message": { "mid": "MSG_123", "text": "Hey! This sounds awesome." }
+      }]
+    }]
+  }'
+```
+→ Check server logs for `[meta-webhook] Incoming DM` and notification trigger.
 
 ---
 
-## Step 5 — Wire Up Your IG Bot
-
-Point your IG DM bot's reply webhook to:
-```
-POST https://your-app-domain.com/api/ig/reply
-```
-
-Expected payload:
-```json
-{
-  "instagramHandle": "artisthandle",
-  "messageText": "The full reply text from the artist",
-  "secret": "same value as IG_DM_WEBHOOK_SECRET"
-}
-```
-
-The route will:
-1. ✅ Verify the shared secret
-2. ✅ Find the lead by Instagram handle
-3. ✅ Log a `REPLY_RECEIVED` Activity
-4. ✅ Update lead status `CONTACTED → FOLLOW_UP`
-5. ✅ Fire a Novu in-app notification to the bell icon
-
----
-
-## Flow Diagram
+## How It All Flows
 
 ```
-IG Bot receives artist reply
+Artist replies to your IG DM
         │
         ▼
-POST /api/ig/reply
+Meta servers detect new message
         │
-        ├─── Verify secret
-        ├─── Lookup lead by @handle
-        ├─── Log Activity (REPLY_RECEIVED)
-        ├─── Update status → FOLLOW_UP
+        ▼
+POST /api/ig/meta-webhook
+        │
+        ├── Skip echo (messages YOU sent)
+        ├── GET graph.facebook.com/{psid}?fields=username
+        │         → resolves PSID to @artisthandle
+        ├── Find lead by @instagramHandle in DB
+        ├── Log Activity: REPLY_RECEIVED
+        ├── Update lead: CONTACTED → FOLLOW_UP
         │
         ▼
 triggerIgReplyNotification()
         │
         ▼
-Novu API → "ig-reply-received" workflow
+Novu "ig-reply-received" workflow
         │
         ▼
-🔔 Bell badge appears in your Sidebar
+🔔 Bell badge in your Sidebar
 ```
+
+---
+
+## Checklist
+
+- [ ] Meta Developer App created
+- [ ] Instagram product added + token generated
+- [ ] `META_PAGE_ACCESS_TOKEN=` filled in `.env.local`
+- [ ] `META_WEBHOOK_VERIFY_TOKEN=spectral_ig_verify_2024` in `.env.local`
+- [ ] Webhook URL registered + verified in Meta Console
+- [ ] `messages` field subscribed in Meta Console
+- [ ] `NOVU_SECRET_KEY=` filled in `.env.local`
+- [ ] `ig-reply-received` workflow created + published in Novu Dashboard
+- [ ] Test notification fires bell icon ✅

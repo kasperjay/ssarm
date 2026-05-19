@@ -1,0 +1,154 @@
+# Make.com → Spectral Soundworks IG Reply Notifications
+
+## Important: What Make.com Can Actually Do
+
+> [!WARNING]
+> Make.com's Instagram module does **not** have a native "Watch DMs" trigger (Meta removed it). The practical options through Make are:
+> 1. **Custom Webhook from Meta directly** — Make acts as the receiver, you set up the Meta app
+> 2. **Via Manychat** — Manychat captures DMs and fires a webhook to Make, which forwards to your app
+> 3. **Watch Comments** — only works for comments on posts, not DMs
+>
+> **Recommended path: Use Make as a Webhook relay from Manychat.** It's the fastest zero-code option for DMs.
+
+---
+
+## Option A — Manychat → Make → Spectral (Recommended, ~30 min)
+
+Manychat has a native Instagram DM integration and can fire HTTP requests when messages are received.
+
+### Prerequisites
+- [Manychat](https://manychat.com) account (free tier works)
+- Instagram account connected to Manychat (Business or Creator + Facebook Page required)
+- Your app publicly accessible (see "Expose Your App" below)
+
+### Step 1 — Expose Your App
+
+**For local dev (temporary):**
+```bash
+# Install ngrok
+npm install -g ngrok
+
+# In a new terminal, expose port 3000
+ngrok http 3000
+```
+Copy the `https://xxxx.ngrok-free.app` URL — that's your public base URL.
+
+**For production:** Use your deployed domain directly.
+
+### Step 2 — Set Up Manychat
+
+1. Go to [app.manychat.com](https://app.manychat.com) → Connect Instagram
+2. Create a new **Flow** → trigger: **Instagram DM received**
+3. Add an **External Request** action (HTTP POST) with:
+
+   **URL:**
+   ```
+   https://YOUR_PUBLIC_URL/api/ig/reply
+   ```
+
+   **Method:** `POST`
+
+   **Headers:**
+   ```
+   Content-Type: application/json
+   X-Webhook-Secret: PhsGL0lGJOigNIxYro1ZFdpyTvG8OlZ0312BZadab+k=
+   ```
+
+   **Body:**
+   ```json
+   {
+     "instagramHandle": "{{last_input_text}}",
+     "messageText": "{{last_input_text}}",
+     "secret": "PhsGL0lGJOigNIxYro1ZFdpyTvG8OlZ0312BZadab+k="
+   }
+   ```
+
+   > [!NOTE]
+   > In Manychat, use the variable picker to insert the actual field names:
+   > - `instagramHandle` → use `{{contact.ig_username}}` (the artist's IG handle)
+   > - `messageText` → use `{{last_input_text}}` (the message they sent)
+
+4. Save and publish the flow.
+
+---
+
+## Option B — Meta Webhook Directly into Make (More Setup, More Reliable)
+
+If you want Make to receive the raw Meta webhook:
+
+### Step 1 — Create a Make Scenario
+
+1. New scenario → search **Webhooks** → **Custom Webhook**
+2. Click **Add** → name it `ig-reply-receiver` → copy the webhook URL
+3. Add a second module: **HTTP → Make a Request**
+
+### Step 2 — Configure the HTTP Module
+
+| Field | Value |
+|---|---|
+| URL | `https://YOUR_PUBLIC_URL/api/ig/reply` |
+| Method | `POST` |
+| Body type | `Raw` |
+| Content type | `JSON (application/json)` |
+| Request content | See below |
+
+**Request body (mapping Make's webhook output):**
+```json
+{
+  "instagramHandle": "{{1.entry[].messaging[].sender.username}}",
+  "messageText": "{{1.entry[].messaging[].message.text}}",
+  "secret": "PhsGL0lGJOigNIxYro1ZFdpyTvG8OlZ0312BZadab+k="
+}
+```
+
+> [!IMPORTANT]
+> Meta often sends only a numeric **sender ID**, not a username. If `sender.username` is blank, you'll need to add a lookup step — see "Sender ID Fallback" below.
+
+### Step 3 — Register the Make Webhook with Meta
+
+In the [Meta Developer Console](https://developers.facebook.com):
+1. Create an App (type: Business)
+2. Add **Instagram** product
+3. Under Webhooks → Subscribe to `messages` events
+4. Set callback URL to your Make webhook URL
+5. Set verify token to any string (e.g., `spectral_verify`)
+
+### Sender ID Fallback
+
+If Make receives a numeric sender ID instead of a username, add a **HTTP module** between the webhook and your relay:
+
+```
+GET https://graph.facebook.com/v19.0/{{sender_id}}?fields=username&access_token={{page_access_token}}
+```
+
+Then map `{{username}}` into the `instagramHandle` field of the relay request.
+
+---
+
+## Verify It's Working
+
+Once set up, send a test DM to your Instagram account from another account. You should see:
+
+1. ✅ `POST /api/ig/reply` hit in your Next.js server logs
+2. ✅ A new `REPLY_RECEIVED` Activity on the lead in the DB
+3. ✅ Lead status updated: `CONTACTED → FOLLOW_UP`
+4. ✅ 🔔 Novu bell badge in your sidebar
+
+You can also test the notification side independently at any time:
+```bash
+curl -X POST http://localhost:3000/api/ig/test-notification \
+  -H "Content-Type: application/json" \
+  -d '{"artistName":"Test Artist","instagramHandle":"testartist","messageSnippet":"Yo this sounds great!"}'
+```
+
+---
+
+## Quick Decision Guide
+
+| Your situation | Use |
+|---|---|
+| Want it working today, no code | **Manychat → Make → `/api/ig/reply`** |
+| Want it long-term, properly | **Meta Webhooks → Make → `/api/ig/reply`** |
+| Want full control, no third party | **Meta Webhooks → `/api/ig/reply` directly** |
+
+All three options POST to the same `/api/ig/reply` endpoint — the endpoint is already built and waiting.
