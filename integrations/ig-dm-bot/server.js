@@ -159,6 +159,46 @@ app.post("/ig/refresh-login", async (req, res) => {
 
 app.get("/health", (_, res) => res.json({ ok: true }));
 
+/* ─── Reply Polling ──────────────────────────────────────────
+ * Poll for replies every 20 minutes + 1-300s of random jitter
+ * ─────────────────────────────────────────────────────────── */
+function startReplyChecker() {
+  const baseIntervalMs = 20 * 60 * 1000; // 20 minutes
+  const maxJitterMs = 300 * 1000; // 5 minutes
+
+  async function checkLoop() {
+    const scriptPath = path.join(BOT_ROOT, "src", "check_replies.js");
+    console.log("🕒 Spawning reply checker...");
+
+    const child = spawn("node", [scriptPath], {
+      env: { ...process.env },
+      stdio: "inherit",
+    });
+
+    child.on("exit", (code) => {
+      console.log(`■ Reply checker finished with code ${code}`);
+      scheduleNext();
+    });
+
+    child.on("error", (err) => {
+      console.error("❌ Reply checker spawn error:", err);
+      scheduleNext();
+    });
+  }
+
+  function scheduleNext() {
+    const jitter = Math.floor(Math.random() * maxJitterMs) + 1000;
+    const nextWait = baseIntervalMs + jitter;
+    console.log(`⏱️ Next reply check in ${(nextWait / 1000 / 60).toFixed(2)} minutes...`);
+    setTimeout(checkLoop, nextWait);
+  }
+
+  // Start the first check after a short initial delay (e.g., 30s) so the server can fully boot
+  setTimeout(checkLoop, 30000);
+}
+
+startReplyChecker();
+
 app.listen(PORT, () => {
   console.log(`🚀 Local webhook server listening on http://localhost:${PORT}`);
 });

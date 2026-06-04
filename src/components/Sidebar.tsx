@@ -8,10 +8,12 @@ import { NotificationInbox } from './NotificationInbox';
 const NavIcon = ({ children, active = false }: { children: React.ReactNode, active?: boolean }) => (
   <div className={`
     h-12 w-12 rounded-[18px] flex items-center justify-center transition-all duration-300 cursor-pointer group relative
-    ${active 
-      ? 'bg-accent text-black shadow-[0_0_20px_rgba(0,242,255,0.4)]' 
+    ${active
+      ? 'bg-accent text-black'
       : 'bg-white/5 text-white/40 hover:bg-accent/20 hover:text-accent hover:rounded-[14px]'}
-  `}>
+  `}
+  style={active ? { boxShadow: '0 0 20px color-mix(in srgb, var(--accent) 40%, transparent)' } : undefined}
+  >
     {active && <div className="absolute -left-4 w-1 h-8 bg-accent rounded-r-full" />}
     {children}
   </div>
@@ -76,7 +78,8 @@ export function Sidebar({ className = "" }: { className?: string }) {
             type="button"
             aria-label="Open explore"
             onClick={() => setIsExploreOpen((open) => !open)}
-            className={`h-12 w-12 rounded-[18px] flex items-center justify-center transition-all duration-300 cursor-pointer group relative ${isExploreOpen ? 'bg-accent text-black shadow-[0_0_20px_rgba(0,242,255,0.4)]' : 'bg-white/5 text-white/40 hover:bg-accent/20 hover:text-accent hover:rounded-[14px]'}`}
+            className={`h-12 w-12 rounded-[18px] flex items-center justify-center transition-all duration-300 cursor-pointer group relative ${isExploreOpen ? 'bg-accent text-black' : 'bg-white/5 text-white/40 hover:bg-accent/20 hover:text-accent hover:rounded-[14px]'}`}
+            style={isExploreOpen ? { boxShadow: '0 0 20px color-mix(in srgb, var(--accent) 40%, transparent)' } : undefined}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
           </button>

@@ -35,10 +35,13 @@ export function NotificationInbox({
   placement,
   placementOffset,
 }: NotificationInboxProps) {
-  const applicationIdentifier =
-    process.env.NEXT_PUBLIC_NOVU_APPLICATION_IDENTIFIER ?? "pQnsBUs5VGYp";
+  const applicationIdentifier = process.env.NEXT_PUBLIC_NOVU_APPLICATION_IDENTIFIER;
   const backendUrl = process.env.NEXT_PUBLIC_NOVU_BACKEND_URL;
   const socketUrl = process.env.NEXT_PUBLIC_NOVU_SOCKET_URL;
+
+  if (!applicationIdentifier) {
+    return null; // Don't render the inbox if misconfigured
+  }
 
   return (
     <Inbox
@@ -60,7 +63,7 @@ export function NotificationInbox({
           colorCounterForeground: "var(--background)",
           colorNeutral: "rgba(255, 255, 255, 0.12)",
           colorShadow: "rgba(0, 0, 0, 0.55)",
-          colorRing: "rgba(0, 242, 255, 0.25)",
+          colorRing: "var(--border-accent)",
           fontSize: "14px",
           borderRadius: "18px",
         },

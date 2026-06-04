@@ -1,0 +1,37 @@
+{
+    "actorSpecification": 1,
+    "name": "valhalla-tavern-calendar-scraper",
+    "title": "Valhalla Tavern Calendar Scraper",
+    "description": "Scrapes event listings from the Valhalla Tavern Milkshake (msha.ke) link-in-bio page. Extracts date, lineup, cover charge, ticket links, and artist links for each event.",
+    "version": "0.1.0",
+    "dockerfile": "./Dockerfile",
+    "input": "./INPUT_SCHEMA.json",
+    "storages": {
+        "dataset": {
+            "actorSpecification": 1,
+            "title": "Valhalla Tavern Events",
+            "description": "Dataset of scraped events from Valhalla Tavern",
+            "views": {
+                "titles": {
+                    "title": "Event titles",
+                    "transformation": {
+                        "fields": ["dateHeadline", "eventName", "date", "cover", "lineup", "ticketLinks", "image", "venueUrl"]
+                    },
+                    "display": {
+                        "component": "table",
+                        "properties": {
+                            "dateHeadline": { "label": "Date", "format": "text" },
+                            "eventName": { "label": "Event / Lineup", "format": "text" },
+                            "date": { "label": "ISO Date", "format": "text" },
+                            "cover": { "label": "Cover", "format": "text" },
+                            "lineup": { "label": "Lineup Details", "format": "array" },
+                            "ticketLinks": { "label": "Tickets", "format": "array" },
+                            "image": { "label": "Image URL", "format": "text" },
+                            "venueUrl": { "label": "Venue", "format": "text" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

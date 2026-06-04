@@ -209,10 +209,19 @@ interface Props {
 
 const DEFAULT_ACCENT = "#00f2ff";
 
+// Apply a set of CSS variables to a target element (defaults to document.documentElement)
+function applyVars(vars: Record<string, string>, target?: HTMLElement | null) {
+    const el = target || document.documentElement;
+    for (const [key, val] of Object.entries(vars)) {
+        el.style.setProperty(key, val);
+    }
+}
+
 export function DynamicThemeShell({ imageUrl, artistName, genre, accentColors, children }: Props) {
     const shellRef = useRef<HTMLDivElement>(null);
     const fontInjected = useRef(false);
     const accentsStored = useRef(false);
+    const paletteApplied = useRef(false);
 
     const applyFont = useCallback(() => {
         if (fontInjected.current) return;
@@ -236,31 +245,40 @@ export function DynamicThemeShell({ imageUrl, artistName, genre, accentColors, c
     const applyStoredAccents = useCallback(() => {
         if (!shellRef.current || accentsStored.current) return;
         if (!accentColors) return;
-
-        // When an image URL is present, palette extraction drives the full theme
-        // (accent, accent-strong, highlight, background, surface, etc.).
-        // Stored accent values must NOT be applied in this case — they would
-        // override the palette with stale Spotify colors and ruin the vibe.
-        if (imageUrl) return;
+        // If palette was already extracted from the image, don't override with stored accents
+        if (paletteApplied.current) return;
 
         const { accent, accentStrong, highlight, secondary } = accentColors;
         if (!accent && !accentStrong && !highlight) return;
 
-        const shell = shellRef.current;
+        const rootVars: Record<string, string> = {};
+        const shellVars: Record<string, string> = {};
 
-        if (accent) shell.style.setProperty("--accent", accent);
+        if (accent) {
+            rootVars["--accent"] = accent;
+            shellVars["--accent"] = accent;
+        }
         if (accentStrong) {
-            shell.style.setProperty("--accent-strong", accentStrong);
+            rootVars["--accent-strong"] = accentStrong;
+            shellVars["--accent-strong"] = accentStrong;
             if (!secondary) {
                 const rgb = hexToRgb(accentStrong);
                 if (rgb) {
                     const darkened = darken(rgb, 0.15);
-                    shell.style.setProperty("--accent-secondary", rgbToHex(darkened));
+                    const hex = rgbToHex(darkened);
+                    rootVars["--accent-secondary"] = hex;
+                    shellVars["--accent-secondary"] = hex;
                 }
             }
         }
-        if (highlight) shell.style.setProperty("--highlight", highlight);
-        if (secondary) shell.style.setProperty("--accent-secondary", secondary);
+        if (highlight) {
+            rootVars["--highlight"] = highlight;
+            shellVars["--highlight"] = highlight;
+        }
+        if (secondary) {
+            rootVars["--accent-secondary"] = secondary;
+            shellVars["--accent-secondary"] = secondary;
+        }
 
         // Build background/foreground from accent — only when no image palette.
         if (accent) {
@@ -269,19 +287,31 @@ export function DynamicThemeShell({ imageUrl, artistName, genre, accentColors, c
                 const bg = darken(rgb, 0.82);
                 const fg = lighten(rgb, 0.65);
                 const surface = darken(rgb, 0.75);
-                shell.style.setProperty("--background", rgbToHex(bg));
-                shell.style.setProperty("--foreground", rgbToHex(fg));
-                shell.style.setProperty("--surface", rgbToHex(surface));
+                const bgHex = rgbToHex(bg);
+                const fgHex = rgbToHex(fg);
+                const surfaceHex = rgbToHex(surface);
+                rootVars["--background"] = bgHex;
+                rootVars["--foreground"] = fgHex;
+                rootVars["--surface"] = surfaceHex;
+                shellVars["--background"] = bgHex;
+                shellVars["--foreground"] = fgHex;
+                shellVars["--surface"] = surfaceHex;
                 const glassBase = `rgba(${surface.r}, ${surface.g}, ${surface.b}, 0.65)`;
                 const glassStrong = `rgba(${surface.r}, ${surface.g}, ${surface.b}, 0.85)`;
-                shell.style.setProperty("--surface-glass", glassBase);
-                shell.style.setProperty("--surface-glass-strong", glassStrong);
+                rootVars["--surface-glass"] = glassBase;
+                rootVars["--surface-glass-strong"] = glassStrong;
+                shellVars["--surface-glass"] = glassBase;
+                shellVars["--surface-glass-strong"] = glassStrong;
             }
         }
 
+        // Apply to BOTH :root (so Sidebar/Navbar pick it up) and the shell container
+        applyVars(rootVars);
+        applyVars(shellVars, shellRef.current);
+
         accentsStored.current = true;
-        console.log("[Shell] Applied stored accents:", accentColors);
-    }, [accentColors, imageUrl]);
+        console.log("[Shell] Applied stored accents to :root and shell:", accentColors);
+    }, [accentColors]);
 
     useEffect(() => {
         applyFont();
@@ -293,14 +323,23 @@ export function DynamicThemeShell({ imageUrl, artistName, genre, accentColors, c
             try {
                 const palette = extractPalette(img);
                 if (palette.length > 0) {
+                    paletteApplied.current = true;
+                    // Reset stored-accents flag so palette can override
+                    accentsStored.current = false;
                     const theme = buildTheme(palette);
-                    for (const [key, val] of Object.entries(theme)) {
-                        shellRef.current?.style.setProperty(key, val);
-                    }
+                    // Apply to :root so the ENTIRE page (Sidebar, Navbar, everything) updates
+                    applyVars(theme);
+                    // Also apply to shell container for scoped overrides
+                    applyVars(theme, shellRef.current);
+                    console.log("[Shell] Applied image palette to :root:", theme);
                 }
             } catch {
                 // CORS or extraction failure — stored accents already applied
+                console.log("[Shell] Palette extraction failed, using stored accents");
             }
+        };
+        img.onerror = () => {
+            console.log("[Shell] Image failed to load, using stored accents");
         };
         img.src = imageUrl;
     }, [imageUrl, applyFont, applyStoredAccents]);

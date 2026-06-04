@@ -27,6 +27,8 @@ export const OPERATOR_SUBSCRIBER_ID =
 /**
  * Trigger an in-app notification when an artist replies to an IG DM.
  */
+let subscriberIdentified = false;
+
 export async function triggerIgReplyNotification({
   artistName,
   instagramHandle,
@@ -44,7 +46,19 @@ export async function triggerIgReplyNotification({
   }
 
   try {
-    await novu.trigger({
+    if (!subscriberIdentified) {
+      await novu.subscribers.create({
+        subscriberId: OPERATOR_SUBSCRIBER_ID,
+        firstName: "Operator",
+      }).catch(err => {
+        // Ignore if subscriber already exists
+        if (err?.message?.includes("already exists")) return;
+        console.warn("[novu] Non-fatal error creating subscriber:", err.message);
+      });
+      subscriberIdentified = true;
+    }
+
+    const response = await novu.trigger({
       workflowId: IG_REPLY_WORKFLOW_ID,
       to: OPERATOR_SUBSCRIBER_ID,
       payload: {
@@ -55,8 +69,8 @@ export async function triggerIgReplyNotification({
         leadUrl: leadId ? `/leads/${leadId}` : "/leads",
       },
     });
-    console.log(`[novu] ✅ Triggered IG reply notification for ${artistName}`);
-  } catch (err) {
-    console.error("[novu] Failed to trigger notification:", err);
+    console.log(`[novu] ✅ Triggered IG reply notification for ${artistName}. Status: ${response?.result?.acknowledged ? "acknowledged" : "unknown"}`);
+  } catch (err: any) {
+    console.error("[novu] Failed to trigger notification:", err?.message || err);
   }
 }

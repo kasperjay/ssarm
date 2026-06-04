@@ -23,7 +23,8 @@ const ACTOR_VENUES = [
     { id: "spectral-soundworks/continental-club-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
     { id: "spectral-soundworks/broken-spoke-calendar-scraper", url: "https://www.brokenspokeaustintx.net/events-calendar" },
     { id: "spectral-soundworks/antones-calendar-scraper", url: "https://antonesnightclub.com/calendar/" },
-    { id: "spectral-soundworks/3ten-calendar-scraper", url: "https://www.3tenaustin.com/calendar" }
+    { id: "spectral-soundworks/3ten-calendar-scraper", url: "https://www.3tenaustin.com/calendar" },
+    { id: "spectral-soundworks/valhalla-tavern-calendar-scraper", url: "https://msha.ke/valhallatavern" }
 ];
 
 export default function DiscoverPage() {

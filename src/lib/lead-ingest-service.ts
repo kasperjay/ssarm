@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { logger } from "@/lib/logger";
+import logger from "@/lib/logger";
 import { discoverEmailsFromUrls, extractEmailsFromTextSafe, mergeEmails } from "@/lib/email";
 import { resolveArtistEnrichment } from "@/lib/location";
 import { scoreLead } from "@/lib/scoring";
@@ -114,10 +114,10 @@ export class LeadIngestService {
       const lead = await this.resolveLead(artist, payload);
 
       await Promise.all([
-        this.processReleases(artist, payload, context).catch(e => logger.error(`[LeadIngestService] Failed to process releases for ${name}:`, e)),
-        this.processInstagramPosts(artist, payload, context).catch(e => logger.error(`[LeadIngestService] Failed to process IG posts for ${name}:`, e)),
-        this.processMessageDrafts(lead, payload).catch(e => logger.error(`[LeadIngestService] Failed to process drafts for ${name}:`, e)),
-        this.processActivities(lead, payload).catch(e => logger.error(`[LeadIngestService] Failed to process activities for ${name}:`, e)),
+        this.processReleases(artist, payload, context).catch(e => logger.error({ err: e }, `[LeadIngestService] Failed to process releases for ${name}`)),
+        this.processInstagramPosts(artist, payload, context).catch(e => logger.error({ err: e }, `[LeadIngestService] Failed to process IG posts for ${name}`)),
+        this.processMessageDrafts(lead, payload).catch(e => logger.error({ err: e }, `[LeadIngestService] Failed to process drafts for ${name}`)),
+        this.processActivities(lead, payload).catch(e => logger.error({ err: e }, `[LeadIngestService] Failed to process activities for ${name}`)),
       ]);
 
       await scoreLead(lead.id);
@@ -128,7 +128,7 @@ export class LeadIngestService {
         leadId: lead.id,
       };
     } catch (error: any) {
-      logger.error(`[LeadIngestService] Critical failure during ingestion for ${name}:`, error);
+      logger.error({ err: error }, `[LeadIngestService] Critical failure during ingestion for ${name}`);
       throw error;
     }
   }
@@ -169,17 +169,17 @@ export class LeadIngestService {
       include: { leads: true }
     });
 
-    const resolvedSpotifyArtistUrl = spotifyArtistUrl ?? enrichment.scrapedSpotifyProfile?.url ?? existingArtist?.spotifyArtistUrl ?? null;
+    const resolvedSpotifyArtistUrl = spotifyArtistUrl ?? enrichment.spotifyProfile?.url ?? existingArtist?.spotifyArtistUrl ?? null;
     const resolvedSpotifyImageUrl = spotifyImageUrl ??
       existingArtist?.spotifyImageUrl ??
-      enrichment.scrapedSpotifyProfile?.imageUrl ??
+      enrichment.spotifyProfile?.imageUrl ??
       (await this.fetchSpotifyImageUrl(resolvedSpotifyArtistUrl, resolvedSpotifyArtistId));
     
     const computedAccent = resolvedSpotifyImageUrl 
       ? await extractAccentFromImage(resolvedSpotifyImageUrl) 
       : null;
 
-    const igProfileUrl = enrichment.scrapedInstagramProfile?.profileImageUrl ?? existingArtist?.instagramProfileImageUrl;
+    const igProfileUrl = enrichment.instagramProfile?.profileImageUrl ?? existingArtist?.instagramProfileImageUrl;
     const igAccent = !computedAccent && igProfileUrl 
       ? await extractAccentFromImage(igProfileUrl) 
       : null;
@@ -189,35 +189,35 @@ export class LeadIngestService {
     const resolvedSpotifyHighlight = spotifyHighlight ?? computedAccent?.highlight ?? igAccent?.highlight ?? existingArtist?.spotifyHighlight ?? resolvedSpotifyAccent;
     
     const derivedEmails = extractEmailsFromTextSafe(
-      bio ?? enrichment.scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? null
+      bio ?? enrichment.instagramProfile?.bio ?? existingArtist?.bio ?? null
     );
     const resolvedEmails = mergeEmails(
       existingArtist?.emails,
       emails ?? undefined,
       derivedEmails,
-      enrichment.scrapedInstagramProfile?.businessEmail ? [enrichment.scrapedInstagramProfile.businessEmail] : undefined
+      enrichment.instagramProfile?.businessEmail ? [enrichment.instagramProfile.businessEmail] : undefined
     );
-    const resolvedOfficialSiteUrl = officialSiteUrl ?? enrichment.scrapedInstagramProfile?.externalUrl ?? existingArtist?.officialSiteUrl ?? null;
-    const resolvedInstagramProfileImageUrl = instagramProfileImageUrl ?? enrichment.scrapedInstagramProfile?.profileImageUrl ?? existingArtist?.instagramProfileImageUrl ?? null;
+    const resolvedOfficialSiteUrl = officialSiteUrl ?? enrichment.instagramProfile?.externalUrl ?? existingArtist?.officialSiteUrl ?? null;
+    const resolvedInstagramProfileImageUrl = instagramProfileImageUrl ?? enrichment.instagramProfile?.profileImageUrl ?? existingArtist?.instagramProfileImageUrl ?? null;
     
     const scrapedWebsiteEmails = await discoverEmailsFromUrls([resolvedOfficialSiteUrl]);
     const resolvedEmailsWithWebsite = mergeEmails(resolvedEmails, scrapedWebsiteEmails);
 
-    let resolvedBio = bio ?? enrichment.scrapedInstagramProfile?.bio ?? existingArtist?.bio ?? undefined;
+    let resolvedBio = bio ?? enrichment.instagramProfile?.bio ?? existingArtist?.bio ?? undefined;
     const maxFollowers = Math.max(
       followerCount ?? 0,
-      enrichment.scrapedInstagramProfile?.followersCount ?? 0,
+      enrichment.instagramProfile?.followersCount ?? 0,
       existingArtist?.followerCount ?? 0
     );
     const resolvedFollowerCount = maxFollowers > 0 ? maxFollowers : undefined;
     
     const payloadLastPostAt = this.toDate(lastPostAt);
-    const scrapedLastPostAt = enrichment.scrapedInstagramPosts?.[0]?.postedAt ? new Date(enrichment.scrapedInstagramPosts[0].postedAt) : undefined;
+    const scrapedLastPostAt = enrichment.instagramPosts?.[0]?.postedAt ? new Date(enrichment.instagramPosts[0].postedAt) : undefined;
     const existingLastPostAt = existingArtist?.lastPostAt;
     const dateOptions = [payloadLastPostAt, scrapedLastPostAt, existingLastPostAt].filter(Boolean) as Date[];
     const resolvedLastPostAt = dateOptions.length > 0 ? new Date(Math.max(...dateOptions.map(d => d.getTime()))) : undefined;
     
-    let resolvedGenre = genre ?? enrichment.scrapedSpotifyProfile?.genres?.[0] ?? existingArtist?.genre ?? undefined;
+    let resolvedGenre = genre ?? enrichment.spotifyProfile?.genres?.[0] ?? existingArtist?.genre ?? undefined;
     const resolvedCity = city ?? existingArtist?.city ?? undefined;
     const resolvedState = state ?? existingArtist?.state ?? undefined;
     const resolvedCountry = country ?? existingArtist?.country ?? undefined;
@@ -228,7 +228,7 @@ export class LeadIngestService {
       try {
         const enrichmentData = await resolveArtistEnrichment({
           name,
-          bio: resolvedBio ?? enrichment.scrapedInstagramProfile?.bio ?? null,
+          bio: resolvedBio ?? enrichment.instagramProfile?.bio ?? null,
           externalUrl: resolvedOfficialSiteUrl,
           rawData: payload.artist as unknown as Record<string, unknown>,
           skipGoogle: payload.isDiscoveryImport === true,
@@ -240,7 +240,7 @@ export class LeadIngestService {
           resolvedBio = source ? `${enrichmentData.externalBio}\n\n— ${source}` : enrichmentData.externalBio;
         }
       } catch (e) {
-        logger.error(`[LeadIngestService] Enrichment failed for ${name}:`, e);
+        logger.error({ err: e }, `[LeadIngestService] Enrichment failed for ${name}`);
       }
     }
 
@@ -308,7 +308,7 @@ export class LeadIngestService {
   }
 
   private async processReleases(artist: any, payload: LeadPayload, context: IngestContext) {
-    const resolvedReleases = this.mergeReleases(payload.releases, context.enrichment.scrapedSpotifyReleases);
+    const resolvedReleases = this.mergeReleases(payload.releases, context.enrichment.spotifyReleases);
 
     if (!resolvedReleases?.length) return;
 
@@ -358,7 +358,7 @@ export class LeadIngestService {
               data: releaseData,
             });
           } catch (e) {
-            logger.error(`[LeadIngestService] Failed to process release ${release.title}:`, e);
+            logger.error({ err: e }, `[LeadIngestService] Failed to process release ${release.title}`);
           }
         })()
       )
@@ -366,7 +366,7 @@ export class LeadIngestService {
   }
 
   private async processInstagramPosts(artist: any, payload: LeadPayload, context: IngestContext) {
-    const resolvedPosts = this.mergeInstagramPosts(payload.instagramPosts, context.enrichment.scrapedInstagramPosts);
+    const resolvedPosts = this.mergeInstagramPosts(payload.instagramPosts, context.enrichment.instagramPosts);
 
     if (!resolvedPosts?.length) return;
 
@@ -405,7 +405,7 @@ export class LeadIngestService {
               });
             }
           } catch (e) {
-            logger.error(`[LeadIngestService] Failed to process IG post ${post.url}:`, e);
+            logger.error({ err: e }, `[LeadIngestService] Failed to process IG post ${post.url}`);
           }
         })()
       )
@@ -466,7 +466,7 @@ export class LeadIngestService {
     return value ? new Date(value) : undefined;
   }
 
-  private mergeInstagramPosts(incoming: any[], scraped: any[]) {
+  private mergeInstagramPosts(incoming: any[] | undefined, scraped: any[] | undefined) {
     if (!scraped?.length) return incoming;
     if (!incoming?.length) return scraped;
 
@@ -503,7 +503,7 @@ export class LeadIngestService {
     return [...mergedScraped, ...incomingOnly];
   }
 
-  private mergeReleases(incoming: any[], spotify: any[]) {
+  private mergeReleases(incoming: any[] | undefined, spotify: any[] | undefined) {
     if (!spotify?.length) return incoming;
     if (!incoming?.length) return spotify;
 
