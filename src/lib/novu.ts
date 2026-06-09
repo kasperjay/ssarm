@@ -31,11 +31,13 @@ let subscriberIdentified = false;
 
 export async function triggerIgReplyNotification({
   artistName,
+  artistImageUrl,
   instagramHandle,
   leadId,
   messageSnippet,
 }: {
   artistName: string;
+  artistImageUrl?: string | null;
   instagramHandle?: string | null;
   leadId?: string | null;
   messageSnippet?: string | null;
@@ -63,6 +65,7 @@ export async function triggerIgReplyNotification({
       to: OPERATOR_SUBSCRIBER_ID,
       payload: {
         artistName,
+        artistImageUrl: artistImageUrl ?? "",
         instagramHandle: instagramHandle ?? "",
         leadId: leadId ?? "",
         messageSnippet: messageSnippet ?? "They replied to your message.",
