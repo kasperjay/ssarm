@@ -142,12 +142,21 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
     imageUrl: { notIn: ["", " "] },
   };
 
+  const releaseWhere = {
+    artistId: lead.artist.id,
+    OR: [
+      { spotifyTrackId: { not: null } },
+      { spotifyReleaseId: { not: null } },
+      { url: { not: null } },
+    ],
+  };
+
   const [releaseRows, postRows, releaseCount, postCount] = await Promise.all([
     prisma.release.findMany({
-      where: { artistId: lead.artist.id },
+      where: releaseWhere,
       orderBy: [
-        { spotifyTrackId: "desc" },  // nulls last due to descending
-        { spotifyReleaseId: "desc" }, // nulls last due to descending
+        { spotifyTrackId: { sort: "desc", nulls: "last" } },
+        { spotifyReleaseId: { sort: "desc", nulls: "last" } },
         { releaseDate: "desc" },
         { createdAt: "desc" },
       ],
@@ -160,7 +169,7 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
       skip: (postPage - 1) * postPageSize,
       take: postPageSize,
     }),
-    prisma.release.count({ where: { artistId: lead.artist.id } }),
+    prisma.release.count({ where: releaseWhere }),
     prisma.instagramPost.count({ where: postWhere }),
   ]);
 
@@ -344,7 +353,7 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                 <div className="flex items-start gap-4 mb-6">
                   <div className="h-16 w-16 rounded-2xl overflow-hidden border border-white/10 bg-black/30 shrink-0">
                     {instagramAvatar ? (
-                      <img src={instagramAvatar} alt={lead.artist.name} className="h-full w-full object-cover" />
+                      <img src={instagramAvatar} alt={lead.artist.name} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-white/20 text-xs font-bold">IG</div>
                     )}
@@ -393,7 +402,7 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                         >
                           <div className="h-[150px] w-full bg-black/30">
                             {post.imageUrl ? (
-                              <img src={proxiedHelper(post.imageUrl)} alt="Instagram post" className="h-full w-full object-cover" />
+                              <img src={proxiedHelper(post.imageUrl)} alt="Instagram post" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                             ) : null}
                           </div>
                           <div className="p-3 space-y-1">

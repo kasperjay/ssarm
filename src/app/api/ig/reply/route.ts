@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { triggerIgReplyNotification } from "@/lib/novu";
+import { fetchInstagramProfile } from "@/lib/instagram";
 
 /**
  * POST /api/ig/reply
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
   // --- 3. Look up the lead ---
   let leadId: string | null = bodyLeadId ?? null;
   let artistName = instagramHandle ?? "Unknown Artist";
+  let profileImageUrl: string | null = null;
 
   try {
     let lead = leadId
@@ -104,6 +106,25 @@ export async function POST(req: NextRequest) {
     if (lead) {
       leadId = lead.id;
       artistName = lead.artist.name;
+      profileImageUrl = lead.artist.instagramProfileImageUrl;
+
+      // Fetch profile image if we have the handle but no image URL
+      if (instagramHandle && !profileImageUrl) {
+        const igHandle = instagramHandle.replace(/^@/, "");
+        try {
+          const profile = await fetchInstagramProfile(igHandle);
+          if (profile?.profileImageUrl) {
+            profileImageUrl = profile.profileImageUrl;
+            // Optionally cache this back to the artist record
+            await prisma.artist.update({
+              where: { id: lead.artistId },
+              data: { instagramProfileImageUrl: profileImageUrl },
+            });
+          }
+        } catch (err) {
+          console.warn("[ig/reply] Failed to fetch profile image:", err);
+        }
+      }
 
       // --- 4. Log the reply as an Activity ---
       await prisma.activity.create({
@@ -124,9 +145,18 @@ export async function POST(req: NextRequest) {
 
       console.log(`[ig/reply] Logged reply from ${artistName} (lead ${leadId})`);
     } else {
-      console.warn(
-        `[ig/reply] No lead found for handle @${instagramHandle} — firing notification without DB record`
-      );
+      // Try to fetch profile image for the artist even if no lead exists
+      if (instagramHandle) {
+        const igHandle = instagramHandle.replace(/^@/, "");
+        try {
+          const profile = await fetchInstagramProfile(igHandle);
+          if (profile?.profileImageUrl) {
+            profileImageUrl = profile.profileImageUrl;
+          }
+        } catch (err) {
+          console.warn("[ig/reply] Failed to fetch profile image:", err);
+        }
+      }
     }
   } catch (err) {
     console.error("[ig/reply] DB error:", err);
@@ -136,6 +166,7 @@ export async function POST(req: NextRequest) {
   // --- 5. Trigger Novu in-app notification ---
   await triggerIgReplyNotification({
     artistName,
+    artistImageUrl: profileImageUrl,
     instagramHandle,
     leadId,
     messageSnippet,
