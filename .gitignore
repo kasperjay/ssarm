@@ -46,3 +46,7 @@ next-env.d.ts
 /integrations/ig-dm-bot/node_modules
 /integrations/ig-dm-bot/logs
 /integrations/ig-dm-bot/data/*.json
+
+chat_*.csv
+conversation_export.csv
+full_chat_conversation.csv

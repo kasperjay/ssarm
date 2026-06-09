@@ -220,7 +220,7 @@ async function discoverContactsForLead(lead, dryRun = false) {
           data: { emails: [...existingEmails, ...newItems.map((e) => e.email)] },
         });
 
-        const emailsList = newItems.map((e) => `${e.email} (${e.confidence}, ${e.score}%)`).join(", ");
+        const emailsList = newItems.map((e) => `${e.email} (${e.confidence}, ${e.score}%, via ${e.sourceType} → ${e.sourceUrl})`).join("; ");
         await prisma.activity.create({
           data: {
             leadId: lead.id,

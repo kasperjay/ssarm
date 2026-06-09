@@ -508,12 +508,49 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                 <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">{lead.activities.length}</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {lead.activities.slice(0, 6).map((activity) => (
-                  <div key={activity.id} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
-                    <p className="text-xs text-white/60 line-clamp-2">{activity.note || "Activity"}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/25 mt-1">{formatRelativeDate(activity.occurredAt)}</p>
-                  </div>
-                ))}
+                {lead.activities.slice(0, 6).map((activity) => {
+                  const isEmailDiscovery = activity.note?.startsWith("[AUTO-DISCOVER]");
+                  if (isEmailDiscovery && activity.note) {
+                    const detailStr = activity.note.replace(/^\[AUTO-DISCOVER\] Found contact\(s\):\s*/, "");
+                    const entries = detailStr.split("; ").map(entry => {
+                      const match = entry.match(/^(.+?)\s+\((\w+),\s*(\d+)%,\s*via\s+(\S+)\s+→\s+(\S+)\)$/);
+                      if (match) {
+                        return { email: match[1], confidence: match[2], score: match[3], sourceType: match[4], sourceUrl: match[5] };
+                      }
+                      return null;
+                    }).filter(Boolean);
+
+                    return (
+                      <div key={activity.id} className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 px-3 py-2">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">📧 Email Discovered</span>
+                        </div>
+                        {entries.map((entry, idx) => (
+                          <div key={idx} className="mt-1">
+                            <p className="text-xs font-semibold text-white/90 font-mono">{entry!.email}</p>
+                            <p className="text-[10px] text-white/45 mt-0.5">
+                              <span className="text-emerald-400/60">{entry!.confidence}</span> · {entry!.score}% confidence
+                            </p>
+                            <p className="text-[10px] text-white/35 mt-0.5 truncate">
+                              via <span className="text-white/50">{entry!.sourceType}</span> → <span className="text-accent/60">{entry!.sourceUrl}</span>
+                            </p>
+                          </div>
+                        ))}
+                        {entries.length === 0 && (
+                          <p className="text-xs text-white/60 line-clamp-2">{activity.note}</p>
+                        )}
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/25 mt-1.5">{formatRelativeDate(activity.occurredAt)}</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={activity.id} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
+                      <p className="text-xs text-white/60 line-clamp-2">{activity.note || "Activity"}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/25 mt-1">{formatRelativeDate(activity.occurredAt)}</p>
+                    </div>
+                  );
+                })}
               </div>
             </GlassCard>
           </div>

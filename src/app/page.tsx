@@ -79,9 +79,18 @@ export default async function Home(props: {
     prisma.project.count({ where: { status: "ACTIVE" } }),
   ]);
 
+  const proxyUrl = (url: string) => {
+    const needsProxy = [
+      "fbcdn.net", "instagram.com", "fbsbx.com", "cdninstagram.com",
+      "scdn.co", "spotifycdn.com", "i.scdn.co",
+    ].some((d) => url.includes(d));
+    return needsProxy ? `/api/proxy?url=${encodeURIComponent(url)}` : url;
+  };
+
   const leads = leadRows.map((lead) => {
     const latestRelease = lead.artist.releases[0];
     const score = clampScore(lead.score);
+    const imageUrl = lead.artist.spotifyImageUrl ?? lead.artist.instagramProfileImageUrl ?? null;
     return {
       id: lead.id,
       name: lead.artist.name,
@@ -98,6 +107,7 @@ export default async function Home(props: {
       lastRelease: latestRelease
         ? `${formatRelativeDate(latestRelease.releaseDate ?? latestRelease.createdAt)} - "${latestRelease.title}"`
         : "No recent activity",
+      imageUrl: imageUrl ? proxyUrl(imageUrl) : null,
     };
   });
 
@@ -212,9 +222,15 @@ export default async function Home(props: {
                ) : (
                  leads.map((lead) => (
                    <div key={lead.id} className="group relative p-6 rounded-[32px] bg-white/2 border border-white/5 hover:bg-white/5 transition-all flex items-center gap-6">
-                      <div className="h-20 w-20 rounded-2xl bg-linear-to-br from-white/10 to-white/5 flex items-center justify-center text-xl font-bold text-white/20 group-hover:text-accent transition-colors">
-                        {lead.name[0]}
-                      </div>
+                      {lead.imageUrl ? (
+                        <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 border border-white/10 bg-black/30">
+                          <img src={lead.imageUrl} alt={lead.name} className="h-full w-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-20 w-20 rounded-2xl bg-linear-to-br from-white/10 to-white/5 flex items-center justify-center text-xl font-bold text-white/20 group-hover:text-accent transition-colors">
+                          {lead.name[0]}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <Link href={`/leads/${lead.id}`} className="text-lg font-bold text-white truncate hover:text-accent transition-colors block leading-tight mb-1">
                           {lead.name}
