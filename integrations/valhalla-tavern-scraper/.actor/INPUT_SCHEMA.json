@@ -1,0 +1,24 @@
+{
+    "title": "Valhalla Tavern Calendar Scraper",
+    "description": "Scrapes event listings from the Valhalla Tavern Milkshake (msha.ke) link-in-bio page. Each event card is extracted with date, lineup, cover charge, and ticket links.",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "url": {
+            "title": "Valhalla Tavern Page URL",
+            "type": "string",
+            "description": "The URL of the Valhalla Tavern Milkshake page.",
+            "default": "https://msha.ke/valhallatavern",
+            "editor": "textfield"
+        },
+        "requestTimeoutSecs": {
+            "title": "Request Timeout (seconds)",
+            "type": "integer",
+            "description": "Timeout for the HTTP request to fetch the page.",
+            "default": 30,
+            "minimum": 10,
+            "maximum": 120
+        }
+    },
+    "required": []
+}

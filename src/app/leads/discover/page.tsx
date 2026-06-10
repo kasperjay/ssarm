@@ -8,23 +8,23 @@ import { NeonButton } from "@/components/NeonButton";
 import { cleanArtistName } from "@/lib/utils";
 
 const ACTOR_VENUES = [
-    { id: "spectral-soundworks/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
-    { id: "spectral-soundworks/mohawk-calendar-scraper", url: "https://mohawkaustin.com/" },
-    { id: "spectral-soundworks/hotelvegas-calendar-scraper", url: "https://texashotelvegas.com/calendar/" },
-    { id: "spectral-soundworks/empire-atx-calendar-scraper", url: "https://empireatx.com/calendar/" },
-    { id: "spectral-soundworks/haute-spot-calendar-scraper", url: "https://hautespot.live/calendar" },
-    { id: "spectral-soundworks/parkerjazz-calendar-scraper", url: "https://parker-jazz.turntabletickets.com/" },
-    { id: "spectral-soundworks/the-cut-calendar-scraper", url: "https://partners-endpoint.dice.fm/api/v2/events" },
-    { id: "spectral-soundworks/scootinn-calendar-scraper", url: "https://www.scootinnaustin.com/shows" },
-    { id: "spectral-soundworks/saxon-pub-calendar-scraper", url: "https://thesaxonpub.com/events/" },
-    { id: "spectral-soundworks/elephant-room-calendar-scraper", url: "https://elephantroom.com/calendar" },
-    { id: "spectral-soundworks/continental-gallery-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
-    { id: "spectral-soundworks/cboys-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714969/events" },
-    { id: "spectral-soundworks/continental-club-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
-    { id: "spectral-soundworks/broken-spoke-calendar-scraper", url: "https://www.brokenspokeaustintx.net/events-calendar" },
-    { id: "spectral-soundworks/antones-calendar-scraper", url: "https://antonesnightclub.com/calendar/" },
-    { id: "spectral-soundworks/3ten-calendar-scraper", url: "https://www.3tenaustin.com/calendar" },
-    { id: "spectral-soundworks/valhalla-tavern-calendar-scraper", url: "https://msha.ke/valhallatavern" }
+    { id: "specsoundwrx/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
+    { id: "specsoundwrx/mohawk-calendar-scraper", url: "https://mohawkaustin.com/" },
+    { id: "specsoundwrx/hotelvegas-calendar-scraper", url: "https://texashotelvegas.com/calendar/" },
+    { id: "specsoundwrx/empire-atx-calendar-scraper", url: "https://empireatx.com/calendar/" },
+    { id: "specsoundwrx/haute-spot-calendar-scraper", url: "https://hautespot.live/calendar" },
+    { id: "specsoundwrx/parkerjazz-calendar-scraper", url: "https://parker-jazz.turntabletickets.com/" },
+    { id: "specsoundwrx/the-cut-calendar-scraper", url: "https://partners-endpoint.dice.fm/api/v2/events" },
+    { id: "specsoundwrx/scootinn-calendar-scraper", url: "https://www.scootinnaustin.com/shows" },
+    { id: "specsoundwrx/saxon-pub-calendar-scraper", url: "https://thesaxonpub.com/events/" },
+    { id: "specsoundwrx/elephant-room-calendar-scraper", url: "https://elephantroom.com/calendar" },
+    { id: "specsoundwrx/continental-gallery-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
+    { id: "specsoundwrx/cboys-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714969/events" },
+    { id: "specsoundwrx/continental-club-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
+    { id: "specsoundwrx/broken-spoke-calendar-scraper", url: "https://www.brokenspokeaustintx.net/events-calendar" },
+    { id: "specsoundwrx/antones-calendar-scraper", url: "https://antonesnightclub.com/calendar/" },
+    { id: "specsoundwrx/3ten-calendar-scraper", url: "https://www.3tenaustin.com/calendar" },
+    { id: "specsoundwrx/valhalla-tavern-calendar-scraper", url: "https://msha.ke/valhallatavern" }
 ];
 
 export default function DiscoverPage() {
@@ -428,7 +428,7 @@ export default function DiscoverPage() {
 
                 <main className="space-y-12 relative z-10">
                     {error && (
-                        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm font-medium text-red-100"></div>
+                        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm font-medium text-red-100">{error}</div>
                     )}
                     <GlassCard className="p-10!">
                         <div className="flex items-center gap-1 justify-between mb-10 p-1 bg-white/5 rounded-2xl border border-white/5">

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
         const personalToken = process.env.APIFY_TOKEN;
         const orgToken = process.env.APIFY_ORG_TOKEN;
-        const isOrgActor = actorId.startsWith("spectral-soundworks/");
+        const isOrgActor = actorId.startsWith("specsoundwrx/");
         const isPublicInstagramActor = actorId === "apify/instagram-scraper" || actorId === "apify/instagram-hashtag-scraper" || actorId === "apify/instagram-profile-scraper";
 
         const token = isOrgActor

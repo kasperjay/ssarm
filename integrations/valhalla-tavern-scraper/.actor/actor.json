@@ -3,7 +3,7 @@
     "name": "valhalla-tavern-calendar-scraper",
     "title": "Valhalla Tavern Calendar Scraper",
     "description": "Scrapes event listings from the Valhalla Tavern Milkshake (msha.ke) link-in-bio page. Extracts date, lineup, cover charge, ticket links, and artist links for each event.",
-    "version": "0.1.0",
+    "version": "0.1",
     "dockerfile": "./Dockerfile",
     "input": "./INPUT_SCHEMA.json",
     "storages": {
