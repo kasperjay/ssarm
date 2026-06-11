@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import { ApifyClient } from "apify-client";
 
+const MAX_CONCURRENT_RUNS = 2;
+
+async function getActiveRunCount(client: ApifyClient): Promise<number> {
+    try {
+        const result = await client.runs().list({ status: "RUNNING", limit: 20 });
+        const items = (result as any).items || [];
+        return items.length;
+    } catch {
+        return 0;
+    }
+}
+
 export async function POST(request: Request) {
     try {
         const { actorId, input } = await request.json();
@@ -29,10 +41,20 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log(`[DISCOVER] Starting actor ${actorId} with ${isOrgActor ? "org" : "personal"} token: ${token.substring(0, 10)}...`);
         const client = new ApifyClient({ token });
 
-        // Start the Apify actor and immediately return the run info
+        if (isOrgActor) {
+            const activeCount = await getActiveRunCount(client);
+            if (activeCount >= MAX_CONCURRENT_RUNS) {
+                return NextResponse.json(
+                    { error: `Concurrency limit reached (${MAX_CONCURRENT_RUNS} max). ${activeCount} runs are already active. Wait for one to finish and try again.` },
+                    { status: 429 }
+                );
+            }
+        }
+
+        console.log(`[DISCOVER] Starting actor ${actorId} with ${isOrgActor ? "org" : "personal"} token: ${token.substring(0, 10)}...`);
+
         const run = await client.actor(actorId).start(input);
         console.log(`[DISCOVER] Run started: ${run.id}`);
 

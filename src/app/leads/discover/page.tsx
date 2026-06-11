@@ -47,6 +47,7 @@ export default function DiscoverPage() {
     const [searchHistory, setSearchHistory] = useState<string[]>([]);
     const [showHistory, setShowHistory] = useState(false);
     const [siftMode, setSiftMode] = useState<"ai" | "fallback" | null>(null);
+    const [concurrencyBusy, setConcurrencyBusy] = useState(false);
 
     useEffect(() => {
         const history = localStorage.getItem("ss_search_history");
@@ -70,6 +71,7 @@ export default function DiscoverPage() {
         try {
             setLoading(true);
             setError(null);
+            setConcurrencyBusy(false);
             setResults([]);
             setPollStatus("STARTING");
             setPollItemCount(0);
@@ -121,6 +123,12 @@ export default function DiscoverPage() {
                 const textBody = await res.text();
                 try {
                     const data = JSON.parse(textBody);
+                    if (res.status === 429) {
+                        setConcurrencyBusy(true);
+                        setLoading(false);
+                        setError(data.error || data.detail || "Too many searches running. Wait for one to finish.");
+                        return;
+                    }
                     throw new Error(data.detail || data.error || "Failed to start discovery run.");
                 } catch (e) {
                     throw new Error(`Server returned non-JSON error (${res.status}): ${textBody.substring(0, 500)}`);
@@ -183,6 +191,7 @@ export default function DiscoverPage() {
             if (data.status === "SUCCEEDED" || data.status === "FAILED" || data.status === "ABORTED") {
                 setPolling(false);
                 setLoading(false);
+                setConcurrencyBusy(false);
                 if (data.status === "SUCCEEDED") {
                     const flattened = (data.items || []).flatMap((rawItem: any) => {
                         const nestedKeys = Object.keys(rawItem).filter(k => !isNaN(Number(k)));
@@ -496,7 +505,7 @@ export default function DiscoverPage() {
                                         <div className="pt-4">
                                             <button
                                                 onClick={handleDiscover}
-                                                disabled={loading}
+                                                disabled={loading || concurrencyBusy}
                                                 className="w-full rounded-2xl font-bold uppercase tracking-[0.2em] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 px-8 py-8 text-sm bg-accent text-black neon-glow hover:bg-accent/90 hover:scale-[1.02] border-2 border-accent"
                                             >
                                                 {loading ? "Searching..." : "Begin Artist Search"}
@@ -544,7 +553,7 @@ export default function DiscoverPage() {
                                 <div className="pt-4">
                                     <button
                                         onClick={handleDiscover}
-                                        disabled={loading}
+                                        disabled={loading || concurrencyBusy}
                                         className="w-full rounded-2xl font-bold uppercase tracking-[0.2em] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 px-8 py-8 text-sm bg-accent text-black neon-glow hover:bg-accent/90 hover:scale-[1.02] border-2 border-accent"
                                     >
                                         {loading ? "Searching..." : "Begin Artist Search"}
