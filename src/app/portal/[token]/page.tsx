@@ -111,7 +111,7 @@ export default async function CustomerPortalPage({
                                     {deliverables.map((file) => (
                                         <a
                                             key={file.id}
-                                            href={file.url}
+                                            href={`/api/uploads/${file.key}`}
                                             download
                                             target="_blank"
                                             rel="noreferrer"
@@ -131,7 +131,7 @@ export default async function CustomerPortalPage({
                                             </GlassCard>
                                             {file.mimeType.startsWith("audio/") && (
                                                 <AudioPlayer
-                                                    fileUrl={file.url}
+                                                    fileUrl={`/api/uploads/${file.key}`}
                                                     fileId={file.id}
                                                     projectId={project.id}
                                                     token={token}
@@ -140,7 +140,9 @@ export default async function CustomerPortalPage({
                                                         .map(fb => ({
                                                             id: fb.id,
                                                             timestamp: fb.timestamp || 0,
-                                                            content: fb.content
+                                                            content: fb.content,
+                                                            resolved: fb.resolved,
+                                                            createdAt: fb.createdAt?.toISOString(),
                                                         }))
                                                     }
                                                     onAddFeedback={async (content, timestamp) => {
@@ -178,7 +180,7 @@ export default async function CustomerPortalPage({
                                     {workingFiles.map((file) => (
                                         <a
                                             key={file.id}
-                                            href={file.url}
+                                            href={`/api/uploads/${file.key}`}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="group"
@@ -201,7 +203,7 @@ export default async function CustomerPortalPage({
                                             </GlassCard>
                                             {file.mimeType.startsWith("audio/") && (
                                                 <AudioPlayer
-                                                    fileUrl={file.url}
+                                                    fileUrl={`/api/uploads/${file.key}`}
                                                     fileId={file.id}
                                                     projectId={project.id}
                                                     token={token}
@@ -210,7 +212,9 @@ export default async function CustomerPortalPage({
                                                         .map(fb => ({
                                                             id: fb.id,
                                                             timestamp: fb.timestamp || 0,
-                                                            content: fb.content
+                                                            content: fb.content,
+                                                            resolved: fb.resolved,
+                                                            createdAt: fb.createdAt?.toISOString(),
                                                         }))
                                                     }
                                                     onAddFeedback={async (content, timestamp) => {
@@ -238,7 +242,7 @@ export default async function CustomerPortalPage({
                                 
                                 <GlassCard className="p-8! bg-white/2 shadow-2xl relative overflow-hidden group">
                                     <div className="absolute -top-10 -right-10 h-32 w-32 bg-accent/5 blur-3xl rounded-full" />
-                                    <FeedbackForm projectId={project.id} token={project.portalToken} />
+                                    <FeedbackForm projectId={project.id} token={project.portalToken} files={project.files} />
 
                                     {/* Previous Notes Log */}
                                     {project.feedbacks.length > 0 && (

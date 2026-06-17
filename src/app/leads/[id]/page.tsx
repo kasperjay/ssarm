@@ -229,7 +229,7 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                   Change Tone
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                 </div>
-                <div className="hidden group-hover/tone:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl animate-in fade-in slide-in-from-left-2 transition-all">
+                <div className="hidden group-hover/tone:block absolute left-full bottom-0 before:content-[''] before:absolute before:top-0 before:-left-3 before:w-3 before:h-full before:z-10 pl-3 w-48 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl animate-in fade-in slide-in-from-left-2 transition-all">
                   {["professional", "casual"].map((hint) => (
                     <form key={hint} action={regenerateDraft}>
                       <input type="hidden" name="leadId" value={lead.id} />
@@ -249,7 +249,7 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                   Change Style
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                 </div>
-                <div className="hidden group-hover/style:block absolute left-full bottom-0 ml-2 w-48 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl animate-in fade-in slide-in-from-left-2 transition-all">
+                <div className="hidden group-hover/style:block absolute left-full bottom-0 before:content-[''] before:absolute before:top-0 before:-left-3 before:w-3 before:h-full before:z-10 pl-3 w-48 rounded-2xl border border-white/10 bg-[#0f0f13] p-2 shadow-2xl animate-in fade-in slide-in-from-left-2 transition-all">
                   {["boring", "fun"].map((hint) => (
                     <form key={hint} action={regenerateDraft}>
                       <input type="hidden" name="leadId" value={lead.id} />

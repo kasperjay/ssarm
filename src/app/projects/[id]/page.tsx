@@ -155,7 +155,13 @@ export default async function ProjectDetailPage({
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-4 mb-2">
-                            <p className="font-bold text-lg text-white group-hover/file:text-accent transition-colors truncate tracking-tighter">{file.name}</p>
+                            <a
+                              href={`/api/uploads/${file.key}`}
+                              download={file.name}
+                              className="font-bold text-lg text-white group-hover/file:text-accent transition-colors truncate tracking-tighter hover:underline"
+                            >
+                              {file.name}
+                            </a>
                             <VisibilityToggle fileId={file.id} isPublic={file.isPublic} projectId={project.id} />
                           </div>
                           <div className="flex items-center gap-4 text-xs font-sans font-bold text-white/40 uppercase tracking-[0.2em]">
@@ -167,19 +173,30 @@ export default async function ProjectDetailPage({
                           </div>
                         </div>
                       </div>
-                      <form action={async () => {
-                        "use server";
-                        await deleteFileFromProject(file.id, project.id);
-                      }}>
-                        <button className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all group/delbtn">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/delbtn:animate-pulse"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                          DELETE
-                        </button>
-                      </form>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/api/uploads/${file.key}`}
+                          download={file.name}
+                          className="flex items-center gap-2 text-xs font-bold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all"
+                          title={`Download ${file.name}`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                          DOWNLOAD
+                        </a>
+                        <form action={async () => {
+                          "use server";
+                          await deleteFileFromProject(file.id, project.id);
+                        }}>
+                          <button className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all group/delbtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/delbtn:animate-pulse"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            DELETE
+                          </button>
+                        </form>
+                      </div>
                     </div>
                     {file.mimeType.startsWith("audio/") && (
                         <AudioPlayer
-                            fileUrl={`/uploads/${file.key}`}
+                            fileUrl={`/api/uploads/${file.key}`}
                             fileId={file.id}
                             projectId={project.id}
                             feedbacks={project.feedbacks
@@ -187,7 +204,9 @@ export default async function ProjectDetailPage({
                                 .map(fb => ({
                                     id: fb.id,
                                     timestamp: fb.timestamp || 0,
-                                    content: fb.content
+                                    content: fb.content,
+                                    resolved: fb.resolved,
+                                    createdAt: fb.createdAt?.toISOString(),
                                 }))
                             }
                             onAddFeedback={async (content, timestamp) => {
@@ -222,7 +241,13 @@ export default async function ProjectDetailPage({
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-3 mb-1">
-                            <p className="font-bold text-sm text-white/90 truncate tracking-tight">{file.name}</p>
+                            <a
+                              href={`/api/uploads/${file.key}`}
+                              download={file.name}
+                              className="font-bold text-sm text-white/90 truncate tracking-tight hover:text-accent hover:underline transition-colors"
+                            >
+                              {file.name}
+                            </a>
                             <VisibilityToggle fileId={file.id} isPublic={file.isPublic} projectId={project.id} />
                           </div>
                           <div className="flex items-center gap-3 text-xs font-sans font-bold text-white/20 uppercase tracking-widest">
@@ -232,19 +257,30 @@ export default async function ProjectDetailPage({
                           </div>
                         </div>
                       </div>
-                      <form action={async () => {
-                        "use server";
-                        await deleteFileFromProject(file.id, project.id);
-                      }}>
-                        <button className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all group/delbtn">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/delbtn:animate-pulse"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                          Delete
-                        </button>
-                      </form>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/api/uploads/${file.key}`}
+                          download={file.name}
+                          className="flex items-center gap-2 text-xs font-bold text-white/50 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-2 uppercase tracking-widest transition-all"
+                          title={`Download ${file.name}`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                          DOWNLOAD
+                        </a>
+                        <form action={async () => {
+                          "use server";
+                          await deleteFileFromProject(file.id, project.id);
+                        }}>
+                          <button className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-4 py-2 uppercase tracking-widest transition-all group/delbtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover/delbtn:animate-pulse"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            DELETE
+                          </button>
+                        </form>
+                      </div>
                     </div>
                     {file.mimeType.startsWith("audio/") && (
                         <AudioPlayer
-                            fileUrl={file.url}
+                            fileUrl={`/api/uploads/${file.key}`}
                             fileId={file.id}
                             projectId={project.id}
                             feedbacks={project.feedbacks
@@ -252,7 +288,9 @@ export default async function ProjectDetailPage({
                                 .map(fb => ({
                                     id: fb.id,
                                     timestamp: fb.timestamp || 0,
-                                    content: fb.content
+                                    content: fb.content,
+                                    resolved: fb.resolved,
+                                    createdAt: fb.createdAt?.toISOString(),
                                 }))
                             }
                             onAddFeedback={async (content, timestamp) => {
