@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { triggerIgReplyNotification } from "@/lib/novu";
+import { markRespondedRow } from "@/lib/google-sheets";
 
 /**
  * GET /api/ig/meta-webhook
@@ -119,6 +120,8 @@ export async function POST(req: NextRequest) {
                 data: { status: "FOLLOW_UP" },
               });
             }
+
+            await markRespondedRow(artistName);
 
             console.log(`[meta-webhook] Matched lead ${leadId} for @${instagramHandle}`);
           } else {

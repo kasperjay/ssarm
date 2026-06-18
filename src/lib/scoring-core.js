@@ -111,7 +111,30 @@ function calculateGenreBonus(artist) {
   return 0;
 }
 
-function calculateLeadScoreFromData(artist, releaseCount) {
+function calculateLyricalRangeScore(analysisStats) {
+  if (!analysisStats || !analysisStats.trackCount) return 0;
+  const diversity = (analysisStats.moodCount || 0) + (analysisStats.themeCount || 0);
+  if (diversity < 3) return 2;
+  if (diversity < 6) return 5;
+  if (diversity < 10) return 8;
+  return 10;
+}
+
+function calculateContentMaturityScore(analysisStats) {
+  if (!analysisStats || !analysisStats.trackCount) return 0;
+  const matureCount = (analysisStats.ratingCounts?.PG13 || 0) + (analysisStats.ratingCounts?.R || 0);
+  const ratio = matureCount / analysisStats.trackCount;
+  if (ratio >= 0.5) return 5;
+  if (ratio >= 0.25) return 3;
+  return 0;
+}
+
+function calculateCommercialReadability(analysisStats) {
+  if (analysisStats && analysisStats.trackCount > 0) return 5;
+  return 0;
+}
+
+function calculateLeadScoreFromData(artist, releaseCount, trackAnalysisStats) {
   const proximityScore = calculateProximityScore(artist);
   const followerScore = calculateFollowerScore(artist.followerCount);
   const recencyScore = calculateRecencyScore(artist.lastPostAt);
@@ -119,6 +142,9 @@ function calculateLeadScoreFromData(artist, releaseCount) {
   const completenessScore = calculateDataCompletenessScore(artist);
   const engagementScore = calculateEngagementScore(artist);
   const genreBonus = calculateGenreBonus(artist);
+  const lyricalRangeScore = calculateLyricalRangeScore(trackAnalysisStats);
+  const contentMaturityScore = calculateContentMaturityScore(trackAnalysisStats);
+  const commercialReadabilityScore = calculateCommercialReadability(trackAnalysisStats);
 
   const rawScore =
     proximityScore +
@@ -127,7 +153,10 @@ function calculateLeadScoreFromData(artist, releaseCount) {
     releaseScore +
     completenessScore +
     engagementScore +
-    genreBonus;
+    genreBonus +
+    lyricalRangeScore +
+    contentMaturityScore +
+    commercialReadabilityScore;
   const totalScore = Math.min(rawScore, 100);
 
   const rationales = [];
@@ -148,6 +177,11 @@ function calculateLeadScoreFromData(artist, releaseCount) {
   }
   if (engagementScore > 0) rationales.push(`engagement signals (${engagementScore}pts)`);
   if (genreBonus > 0) rationales.push(`genre "${artist.genre}" (${genreBonus}pts)`);
+  if (lyricalRangeScore > 0 && trackAnalysisStats && trackAnalysisStats.trackCount > 0) {
+    rationales.push(`lyrical range (${trackAnalysisStats.moodCount}moods/${trackAnalysisStats.themeCount}themes, ${lyricalRangeScore}pts)`);
+  }
+  if (contentMaturityScore > 0) rationales.push(`content maturity (${contentMaturityScore}pts)`);
+  if (commercialReadabilityScore > 0) rationales.push(`sync-ready catalog (${commercialReadabilityScore}pts)`);
   if (rawScore > totalScore) rationales.push(`capped at 100 from ${rawScore} raw pts`);
 
   const scoreRationale = rationales.length > 0 ? rationales.join("; ") : "No scoring data available";
@@ -167,6 +201,9 @@ function calculateLeadScoreFromData(artist, releaseCount) {
       completenessScore,
       engagementScore,
       genreBonus,
+      lyricalRangeScore,
+      contentMaturityScore,
+      commercialReadabilityScore,
     },
   };
 }
@@ -174,4 +211,7 @@ function calculateLeadScoreFromData(artist, releaseCount) {
 module.exports = {
   SCORING_CONFIG,
   calculateLeadScoreFromData,
+  calculateLyricalRangeScore,
+  calculateContentMaturityScore,
+  calculateCommercialReadability,
 };

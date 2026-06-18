@@ -172,6 +172,21 @@ exports.Prisma.ReleaseScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.TrackAnalysisScalarFieldEnum = {
+  id: 'id',
+  releaseId: 'releaseId',
+  moods: 'moods',
+  themes: 'themes',
+  entities: 'entities',
+  explicit: 'explicit',
+  rating: 'rating',
+  mxmTrackId: 'mxmTrackId',
+  mxmArtistId: 'mxmArtistId',
+  rawPayload: 'rawPayload',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.InstagramPostScalarFieldEnum = {
   id: 'id',
   artistId: 'artistId',
@@ -295,12 +310,12 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
-exports.Prisma.JsonNullValueInput = {
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull
 };
 
-exports.Prisma.NullableJsonNullValueInput = {
-  DbNull: Prisma.DbNull,
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -351,6 +366,7 @@ exports.Prisma.ModelName = {
   Artist: 'Artist',
   Lead: 'Lead',
   Release: 'Release',
+  TrackAnalysis: 'TrackAnalysis',
   InstagramPost: 'InstagramPost',
   MessageDraft: 'MessageDraft',
   Activity: 'Activity',

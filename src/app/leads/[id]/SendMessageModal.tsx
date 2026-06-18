@@ -11,6 +11,7 @@ type SendMessageModalProps = {
   label: string;
   defaultBody?: string;
   source?: string;
+  tone?: string;
   variant?: "primary" | "ghost" | "lime" | "amber" | "pink" | "outline";
   className?: string;
 };
@@ -20,6 +21,7 @@ export default function SendMessageModal({
   label,
   defaultBody = "",
   source,
+  tone,
   variant = "ghost",
   className = "",
 }: SendMessageModalProps) {
@@ -42,7 +44,7 @@ export default function SendMessageModal({
   const handleSubmit = () => {
     setError(null);
     startTransition(async () => {
-      const result = await sendMessage({ leadId, body, source });
+      const result = await sendMessage({ leadId, body, source, tone });
       if (!result?.ok) {
         setError(result?.error || "An unexpected error occurred.");
       }

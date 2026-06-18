@@ -104,7 +104,26 @@ model Release {
   releaseType      String?
   createdAt        DateTime  @default(now())
 
-  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  artist        Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  trackAnalysis TrackAnalysis?
+}
+
+model TrackAnalysis {
+  id          String   @id @default(cuid())
+  releaseId   String   @unique
+  moods       String[] @default([])
+  themes      String[] @default([])
+  entities    Json?
+  explicit    Boolean?
+  rating      String?
+  mxmTrackId  String?
+  mxmArtistId String?
+  rawPayload  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
 }
 
 model InstagramPost {

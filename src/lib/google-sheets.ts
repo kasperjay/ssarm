@@ -15,56 +15,71 @@
 
 const SHEET_COLUMNS = {
   ARTIST_CONTACTED: 0,
-  SOCIAL_MEDIA: 1,
-  EMAIL: 2,
-  DATE_CONTACTED: 3,
+  CONTACT_NAME: 1,
+  PHONE: 2,
+  SOCIAL_MEDIA: 3,
+  EMAIL: 4,
+  WEBSITE: 5,
+  RESPONDED: 6,
+  BOOKED: 7,
+  RECORDED: 8,
+  CLIENT: 9,
+  MONEY_MADE: 10,
+  NOTES: 11,
+  DATE_CONTACTED: 12,
 } as const;
 
-export type ContactMethod = "Social Media" | "Email";
+export type ContactMethod = "Email" | "Social Media" | "Phone" | "Other";
 
 export interface ContactRow {
   artistName: string;
   contactMethod: ContactMethod;
   instagramHandle?: string | null;
   email?: string | null;
+  website?: string | null;
+  messageText?: string | null;
   dateContacted?: Date;
 }
 
 /**
- * Appends a single row to the configured Google Sheet.
- * Safely no-ops if the webhook URL is not set — contact logging never blocks outreach.
+ * Infer the primary contact method based on available channels.
  */
-export async function appendContactRow(row: ContactRow): Promise<void> {
+export function inferContactMethod(opts: { hasEmail: boolean }): ContactMethod {
+  return opts.hasEmail ? "Email" : "Social Media";
+}
+
+/**
+ * Append a row to the Contact Log Google Sheet via the deployed Apps Script URL.
+ */
+export async function appendContactRow(row: ContactRow) {
   const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
   if (!webhookUrl) {
-    console.warn("[google-sheets] GOOGLE_SHEETS_WEBHOOK_URL not set — skipping sheet write");
+    console.warn("[google-sheets] GOOGLE_SHEETS_WEBHOOK_URL not set — skipping sheet append.");
     return;
   }
 
-  const dateContacted = row.dateContacted ?? new Date();
-  const formattedDate = new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(dateContacted);
+  const formattedDate = row.dateContacted
+    ? row.dateContacted.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "";
 
-  // Sheet has 13 columns: A=Artist, B=Contact Name, C=Phone, D=Social Media, E=Email, F=Website,
-  // G=Responded, H=Booked, I=Recorded, J=Client, K=Money Made, L=Notes, M=Date Contacted
-  // Only A (artist name), D (handle), E (email), M (date) are populated.
-  const values: [string, string, string, string, string, string, string, string, string, string, string, string, string] = [
-    row.artistName,     // A: Artist Contacted
-    "",                 // B: Contact Name
-    "",                 // C: Phone
-    row.contactMethod === "Social Media" ? (row.instagramHandle ?? "") : "", // D: Social Media
-    row.contactMethod === "Email" ? (row.email ?? "") : "",                // E: Email
-    "",                 // F: Website
-    "",                 // G: Responded
-    "",                 // H: Booked
-    "",                 // I: Recorded
-    "",                 // J: Client
-    "",                 // K: Money Made
-    "",                 // L: Notes
-    formattedDate,      // M: Date Contacted
+  const values = [
+    row.artistName,                                     // A: Artist Contacted
+    "",                                                 // B: Contact Name
+    "",                                                 // C: Phone
+    row.instagramHandle ?? "",                          // D: Social Media
+    row.email ?? "",                                    // E: Email
+    row.website ?? "",                                  // F: Website
+    "",                                                 // G: Responded (blank until reply)
+    "",                                                 // H: Booked
+    "",                                                 // I: Recorded
+    "",                                                 // J: Client
+    "",                                                 // K: Money Made
+    (row.messageText ?? "").slice(0, 500),              // L: Notes (truncated)
+    formattedDate,                                      // M: Date Contacted
   ];
 
   try {
@@ -78,25 +93,40 @@ export async function appendContactRow(row: ContactRow): Promise<void> {
     });
 
     if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      console.error(`[google-sheets] Sheet write failed (${response.status}): ${text}`);
-    } else {
-      console.info(`[google-sheets] Row appended for "${row.artistName}" via ${row.contactMethod}`);
+      const text = await response.text().catch(() => "No response body");
+      console.error(`[google-sheets] Append failed (${response.status}):`, text.slice(0, 200));
     }
   } catch (err) {
-    // Never let sheet errors break the outreach flow
-    console.error("[google-sheets] Network error writing to sheet:", err);
+    console.error("[google-sheets] Append error:", err instanceof Error ? err.message : err);
   }
 }
 
 /**
- * Infers the best contact method for a lead.
- * Prefers Email if available, otherwise Social Media.
+ * Mark an artist's row as responded in the sheet by putting "✓" in column G.
+ * Finds the most recent matching row by artist name in column A.
  */
-export function inferContactMethod(params: {
-  hasEmail: boolean;
-  preferredMethod?: ContactMethod;
-}): ContactMethod {
-  if (params.preferredMethod) return params.preferredMethod;
-  return params.hasEmail ? "Email" : "Social Media";
+export async function markRespondedRow(artistName: string) {
+  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  if (!webhookUrl) {
+    console.warn("[google-sheets] GOOGLE_SHEETS_WEBHOOK_URL not set — skipping markResponded.");
+    return;
+  }
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        action: "markResponded",
+        artistName,
+      }).toString(),
+    });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "No response body");
+      console.error(`[google-sheets] markResponded failed (${response.status}):`, text.slice(0, 200));
+    }
+  } catch (err) {
+    console.error("[google-sheets] markResponded error:", err instanceof Error ? err.message : err);
+  }
 }

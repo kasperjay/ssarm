@@ -74,6 +74,7 @@ async function main() {
     if (success) {
       sentCount++;
       await recordSuccess(lead, draft, channel, providerResponse);
+      await logToSheet(lead, draft.body);
     } else {
       console.log("❌ Failed to deliver message.");
     }
@@ -166,6 +167,58 @@ async function recordSuccess(lead, draft, channel, provider) {
   });
 
   // console.log("✅ Recorded success in database.");
+}
+
+async function logToSheet(lead, messageBody) {
+  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  try {
+    const artistName = lead.artist.name;
+    const instagramHandle = lead.artist.instagramHandle ?? "";
+    const email = (lead.artist.emails && lead.artist.emails[0]) ?? "";
+    const website = lead.artist.officialSiteUrl ?? "";
+
+    const formattedDate = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    const values = [
+      artistName,                           // A: Artist Contacted
+      "",                                   // B: Contact Name
+      "",                                   // C: Phone
+      instagramHandle,                      // D: Social Media
+      email,                                // E: Email
+      website,                              // F: Website
+      "",                                   // G: Responded
+      "",                                   // H: Booked
+      "",                                   // I: Recorded
+      "",                                   // J: Client
+      "",                                   // K: Money Made
+      (messageBody ?? "").slice(0, 500),    // L: Notes
+      formattedDate,                        // M: Date Contacted
+    ];
+
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        action: "appendRow",
+        values: JSON.stringify(values),
+      }).toString(),
+    });
+
+    if (response.ok) {
+      console.log(`[sheet] Logged: ${artistName}`);
+    } else {
+      const text = await response.text().catch(() => "No response body");
+      console.error(`[sheet] Failed (${response.status}):`, text.slice(0, 200));
+    }
+  } catch (err) {
+    console.error("[sheet] Error:", err.message);
+  }
 }
 
 withAgentRun("send-messages", { dryRun: CONFIG.dryRun }, main)

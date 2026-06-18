@@ -14,6 +14,7 @@
     "score": "node scripts/score-leads.js",
     "score:auto": "node scripts/score-auto.js",
     "enrich:stale": "node scripts/enrich-stale.js",
+    "enrich:analysis": "node scripts/enrich-analysis.js",
     "followup:remind": "node scripts/followup-remind.js",
     "discover:contacts": "node scripts/discover-contacts.js",
     "report:campaign": "node scripts/report-campaign.js",

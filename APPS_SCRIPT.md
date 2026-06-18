@@ -12,11 +12,11 @@ Delete everything in the editor and paste the following:
 
 ```js
 /**
- * Web App entry point — handles POST requests to append a row to the contact sheet.
+ * Web App entry point — handles POST requests to append a row or mark replied.
  *
- * Expected POST body (application/x-www-form-urlencoded):
- *   action   = "appendRow"
- *   values   = JSON.stringify([...])   ← 13-element array matching the sheet columns
+ * Supported actions:
+ *   action=appendRow  → values=JSON.stringify([...13 elements...])
+ *   action=markResponded → artistName=string
  *
  * Security: The script is deployed as "Anyone" access, so the URL is public.
  *           If you ever need to revoke access, just delete the deployment.
@@ -34,8 +34,11 @@ function getContactSheet() {
 
 /**
  * Appends a row to the sheet. Empty strings fill the unused columns so the
- * array aligns with the correct column positions (A=Artist, D=Handle,
- * E=Email, M=Date Contacted).
+ * array aligns with the correct column positions.
+ *
+ * Columns: A=Artist, B=Contact Name, C=Phone, D=Social Media, E=Email,
+ * F=Website, G=Responded, H=Booked, I=Recorded, J=Client, K=Money Made,
+ * L=Notes, M=Date Contacted
  */
 function appendRow(values) {
   if (!values || !Array.isArray(values)) {
@@ -43,6 +46,24 @@ function appendRow(values) {
   }
   const sheet = getContactSheet();
   sheet.appendRow(values);
+}
+
+/**
+ * Finds the most recent row matching the artist name in column A and
+ * sets column G (Responded) to "✓". Returns true if a match was found.
+ */
+function markResponded(artistName) {
+  const sheet = getContactSheet();
+  const data = sheet.getDataRange().getValues();
+
+  // Walk in reverse so we mark the most recent contact row
+  for (let i = data.length - 1; i >= 0; i--) {
+    if (data[i][0] === artistName) {
+      sheet.getRange(i + 1, 7).setValue("✓");
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -68,6 +89,20 @@ function doPost(e) {
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (action === "markResponded") {
+      const artistName = e.parameter.artistName;
+      if (!artistName) {
+        return ContentService.createTextOutput(
+          JSON.stringify({ error: "Missing artistName parameter" })
+        ).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      const found = markResponded(artistName);
+      return ContentService.createTextOutput(
+        JSON.stringify({ status: found ? "ok" : "notFound" })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+
     return ContentService.createTextOutput(
       JSON.stringify({ error: "Unknown action: " + action })
     ).setMimeType(ContentService.MimeType.JSON);
@@ -84,7 +119,7 @@ function doPost(e) {
  */
 function doGet(e) {
   return ContentService.createTextOutput(
-    "Sheet Contact Row Writer — send a POST request to append rows."
+    "Sheet Contact Row Writer — POST action=appendRow or action=markResponded."
   );
 }
 ```

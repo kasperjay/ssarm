@@ -35,7 +35,19 @@ async function calculateLeadScore(lead) {
     where: { artistId: lead.artist.id },
   });
 
-  return calculateLeadScoreFromData(lead.artist, releaseCount);
+  const analyses = await prisma.trackAnalysis.findMany({
+    where: { release: { artistId: lead.artist.id } },
+    select: { moods: true, themes: true, rating: true },
+  });
+
+  const trackAnalysisStats = analyses.length > 0 ? {
+    uniqueMoods: [...new Set(analyses.flatMap(a => a.moods))].length,
+    uniqueThemes: [...new Set(analyses.flatMap(a => a.themes))].length,
+    maturityRatings: [...new Set(analyses.map(a => a.rating).filter(Boolean))],
+    hasAnalysis: true,
+  } : undefined;
+
+  return calculateLeadScoreFromData(lead.artist, releaseCount, trackAnalysisStats);
 }
 
 async function scoreLeadsAutomatic(options) {

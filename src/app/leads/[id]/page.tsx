@@ -16,6 +16,7 @@ import {
   generateDraftsForLead,
   refreshLeadData,
   regenerateDraft,
+  regenerateAllDrafts,
   updateLeadStatus,
   trashLeadAction,
 } from "./actions";
@@ -271,6 +272,7 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
             label="Review + Send"
             defaultBody={message.body}
             source="draft"
+            tone={message.tone ?? undefined}
             variant="primary"
           />
         </div>
@@ -449,6 +451,15 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
             <div className="space-y-6">
               <div className="flex items-center justify-between border-b border-white/5 pb-3">
                 <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/25">Generated Replies</h3>
+                <form action={regenerateAllDrafts}>
+                  <input type="hidden" name="leadId" value={lead.id} />
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/3 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all"
+                  >
+                    Regenerate All
+                  </button>
+                </form>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -23,6 +23,7 @@ type SendMessageState = {
   leadId: string;
   body: string;
   source?: string;
+  tone?: string;
 };
 
 const formatPrettyDate = (date?: Date | null) => {
@@ -108,6 +109,7 @@ export async function markContacted(state: LeadActionState) {
     contactMethod,
     instagramHandle: lead.artist.instagramHandle,
     email: lead.artist.emails?.[0],
+    website: lead.artist.officialSiteUrl,
     dateContacted: new Date(),
   });
 }
@@ -212,6 +214,7 @@ export async function sendMessage(state: SendMessageState) {
       body: trimmed,
       source: state.source ?? "sent",
       selected: true,
+      ...(state.tone ? { tone: state.tone } : {}),
     },
   });
 
@@ -219,6 +222,7 @@ export async function sendMessage(state: SendMessageState) {
     where: {
       leadId: lead.id,
       source: "reachout",
+      ...(state.tone ? { tone: state.tone } : {}),
     },
   });
 
@@ -228,6 +232,8 @@ export async function sendMessage(state: SendMessageState) {
     contactMethod,
     instagramHandle: lead.artist.instagramHandle,
     email: lead.artist.emails?.[0],
+    website: lead.artist.officialSiteUrl,
+    messageText: trimmed,
     dateContacted: new Date(),
   });
 
@@ -463,6 +469,19 @@ export async function regenerateDraft(formData: FormData) {
     });
     revalidatePath(`/leads/${lead.id}`);
   }
+}
+
+export async function regenerateAllDrafts(formData: FormData) {
+  const leadId = formData.get("leadId");
+  if (typeof leadId !== "string" || !leadId.trim()) return;
+  await generateDraftsForLead(leadId, { shouldRevalidate: true });
+  await prisma.activity.create({
+    data: {
+      leadId,
+      type: "NOTE",
+      note: "Regenerated all reachout drafts.",
+    },
+  });
 }
 
 export async function refreshLeadData(formData: FormData) {
