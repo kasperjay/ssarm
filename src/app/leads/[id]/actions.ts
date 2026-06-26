@@ -8,6 +8,7 @@ import { generateReachoutDrafts } from "@/lib/reachout";
 import { scoreLead } from "@/lib/scoring";
 import { ensureBotRunning } from "@/lib/instagram-bot";
 import { appendContactRow, inferContactMethod } from "@/lib/google-sheets";
+import { buildBookingUrl, buildBookingMessage } from "@/lib/google-calendar";
 
 type UpdateStatusState = {
   leadId: string;
@@ -240,6 +241,128 @@ export async function sendMessage(state: SendMessageState) {
   revalidatePath(`/leads/${lead.id}`);
   revalidatePath("/leads");
   redirect("/leads");
+}
+
+type SendCalendarLinkState = {
+  leadId: string;
+  channel?: "ig" | "copy";
+};
+
+export async function sendCalendarLink(state: SendCalendarLinkState) {
+  const channel = state.channel ?? "ig";
+  const lead = await prisma.lead.findUnique({
+    where: { id: state.leadId },
+    include: { artist: true },
+  });
+
+  if (!lead) return { ok: false, error: "Lead not found." };
+
+  const bookingUrl = buildBookingUrl({
+    artistName: lead.artist.name,
+    artistEmail: lead.artist.emails?.[0] ?? null,
+    artistHandle: lead.artist.instagramHandle,
+  });
+
+  const messageBody = buildBookingMessage({
+    artistName: lead.artist.name,
+    bookingUrl,
+  });
+
+  if (channel === "ig") {
+    const webhookUrl = process.env.IG_DM_WEBHOOK_URL;
+    if (webhookUrl) {
+      await ensureBotRunning();
+      try {
+        const response = await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(process.env.IG_DM_WEBHOOK_SECRET
+              ? { "X-Webhook-Secret": process.env.IG_DM_WEBHOOK_SECRET }
+              : {}),
+          },
+          body: JSON.stringify({
+            leadId: lead.id,
+            artist: {
+              name: lead.artist.name,
+              instagramHandle: lead.artist.instagramHandle,
+              instagramProfileUrl: lead.artist.instagramProfileUrl,
+            },
+            message: {
+              body: messageBody,
+              source: "calendar_link",
+            },
+            followUpAt: null,
+          }),
+        });
+
+        if (!response.ok) {
+          const text = await response.text().catch(() => "No response body");
+          console.error("Calendar link IG DM failed", response.status, text);
+          return {
+            ok: false,
+            bookingUrl,
+            error: `Bot server error (${response.status}): ${text.slice(0, 100)}`,
+          };
+        }
+      } catch (error) {
+        console.error("Failed to call IG DM webhook for calendar link", error);
+        return {
+          ok: false,
+          bookingUrl,
+          error: error instanceof Error ? error.message : "Network error",
+        };
+      }
+    }
+  }
+
+  const nextActionAt = getFollowUpDate();
+
+  await prisma.lead.update({
+    where: { id: lead.id },
+    data: {
+      status: "CONTACTED",
+      lastContactedAt: new Date(),
+      ...(nextActionAt ? { nextActionAt } : {}),
+    },
+  });
+
+  await prisma.activity.create({
+    data: {
+      leadId: lead.id,
+      type: "MESSAGE_SENT",
+      note: channel === "ig"
+        ? `Sent Google Calendar booking link via IG DM: ${bookingUrl}`
+        : `Generated Google Calendar booking link: ${bookingUrl}`,
+    },
+  });
+
+  await prisma.messageDraft.create({
+    data: {
+      leadId: lead.id,
+      body: messageBody,
+      source: "calendar_link",
+      selected: true,
+    },
+  });
+
+  const contactMethod = inferContactMethod({
+    hasEmail: (lead.artist.emails?.length ?? 0) > 0,
+  });
+  appendContactRow({
+    artistName: lead.artist.name,
+    contactMethod,
+    instagramHandle: lead.artist.instagramHandle,
+    email: lead.artist.emails?.[0],
+    website: lead.artist.officialSiteUrl,
+    messageText: messageBody,
+    dateContacted: new Date(),
+  });
+
+  revalidatePath(`/leads/${lead.id}`);
+  revalidatePath("/leads");
+
+  return { ok: true, bookingUrl };
 }
 
 export async function generateDraftsForLead(

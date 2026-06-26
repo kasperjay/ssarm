@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { LeadStatus } from "local-prisma-client";
 import DraftCopy from "./DraftCopy";
 import SendMessageModal from "./SendMessageModal";
+import SendCalendarLinkModal from "./SendCalendarLinkModal";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { StatusPill } from "@/components/StatusPill";
@@ -20,6 +21,7 @@ import {
   updateLeadStatus,
   trashLeadAction,
 } from "./actions";
+import { buildBookingUrl } from "@/lib/google-calendar";
 
 const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
@@ -344,6 +346,16 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                 <input type="hidden" name="leadId" value={lead.id} />
                 <NeonButton type="submit" variant="outline" size="sm">Update Profile</NeonButton>
               </form>
+
+              <SendCalendarLinkModal
+                leadId={lead.id}
+                artistName={lead.artist.name}
+                bookingUrl={buildBookingUrl({
+                  artistName: lead.artist.name,
+                  artistEmail: lead.artist.emails?.[0] ?? null,
+                  artistHandle: lead.artist.instagramHandle,
+                })}
+              />
 
               <div className="ml-auto">
                 <StatusPill status={lead.status} />

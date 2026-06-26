@@ -149,3 +149,92 @@ GOOGLE_SHEETS_WEBHOOK_URL="https://script.google.com/macros/s/AKfycb.../exec"
 Ctrl+C  # stop the dev server
 npm run dev
 ```
+
+---
+
+## Calendar Event Lister (for `/calendar` page)
+
+The `/calendar` page in the app calls `GOOGLE_CALENDAR_WEBHOOK_URL` with
+`action=listEvents&maxResults=N&daysAhead=N` to fetch upcoming bookings from
+your primary Google Calendar. Add the snippet below to your existing Apps Script
+project (the same one as the Sheets writer) and redeploy.
+
+### 1. Append these functions to your Apps Script
+
+```javascript
+/**
+ * Returns JSON { events: [...] } for events in the user's primary calendar.
+ *
+ * Query params:
+ *   maxResults  - max number of events (default 25)
+ *   daysAhead   - how many days forward to look (default 30)
+ *   query       - optional free-text filter (matches summary/description)
+ */
+function listCalendarEvents(maxResults, daysAhead, query) {
+  maxResults = maxResults || 25;
+  daysAhead  = daysAhead  || 30;
+
+  var now = new Date();
+  var end = new Date(now.getTime() + (daysAhead * 24 * 60 * 60 * 1000));
+
+  var optionalArgs = {
+    maxResults: maxResults,
+    singleEvents: true,
+    orderBy: 'startTime',
+    timeMin: now.toISOString(),
+    timeMax: end.toISOString(),
+    showDeleted: false,
+  };
+
+  if (query) optionalArgs.q = query;
+
+  var response = Calendar.Events.list('primary', optionalArgs);
+  var items = (response.items || []).map(function (event) {
+    var isAllDay = !event.start || !event.start.dateTime;
+    return {
+      id:          event.id,
+      summary:     event.summary || '(no title)',
+      description: event.description || '',
+      location:    event.location || '',
+      start:       event.start ? (event.start.dateTime || event.start.date) : null,
+      end:         event.end   ? (event.end.dateTime   || event.end.date)   : null,
+      allDay:      isAllDay,
+      htmlLink:    event.htmlLink || '',
+      attendees:   (event.attendees || []).map(function (a) {
+        return { email: a.email, displayName: a.displayName || '', responseStatus: a.responseStatus };
+      }),
+    };
+  });
+
+  return { events: items };
+}
+```
+
+### 2. Extend `doPost(e)` so it routes the new action
+
+Find the spot in your existing `doPost` that switches on `action`. Add a new
+branch (right after the `appendRow` / `markResponded` cases):
+
+```javascript
+    if (action === "listEvents") {
+      var maxResults = parseInt(e.parameter.maxResults || "25", 10);
+      var daysAhead  = parseInt(e.parameter.daysAhead  || "30", 10);
+      var query      = e.parameter.query || "";
+      var result     = listCalendarEvents(maxResults, daysAhead, query);
+      return ContentService.createTextOutput(
+        JSON.stringify(result)
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+```
+
+### 3. Redeploy
+
+After saving, you must **Deploy → Manage deployments → pencil icon → Version: New version → Deploy**
+for the new `doPost` action to be reachable. Then copy the URL into `.env`:
+
+```
+GOOGLE_CALENDAR_WEBHOOK_URL="https://script.google.com/macros/s/AKfycb.../exec"
+```
+
+If `/calendar` shows the "Webhook not configured" state, double-check the
+deployment URL and that you re-deployed after adding the new function.

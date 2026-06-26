@@ -40,5 +40,6 @@ export const SCORING_CONFIG: {
 
 export function calculateLeadScoreFromData(
   artist: ScoreableArtist,
-  releaseCount: number
+  releaseCount: number,
+  trackAnalysisStats?: unknown
 ): LeadScoreResult;
