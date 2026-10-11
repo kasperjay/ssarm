@@ -8,23 +8,22 @@ import { NeonButton } from "@/components/NeonButton";
 import { cleanArtistName } from "@/lib/utils";
 
 const ACTOR_VENUES = [
-    { id: "specsoundwrx/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
-    { id: "specsoundwrx/mohawk-calendar-scraper", url: "https://mohawkaustin.com/" },
-    { id: "specsoundwrx/hotelvegas-calendar-scraper", url: "https://texashotelvegas.com/calendar/" },
-    { id: "specsoundwrx/empire-atx-calendar-scraper", url: "https://empireatx.com/calendar/" },
-    { id: "specsoundwrx/haute-spot-calendar-scraper", url: "https://hautespot.live/calendar" },
-    { id: "specsoundwrx/parkerjazz-calendar-scraper", url: "https://parker-jazz.turntabletickets.com/" },
-    { id: "specsoundwrx/the-cut-calendar-scraper", url: "https://partners-endpoint.dice.fm/api/v2/events" },
-    { id: "specsoundwrx/scootinn-calendar-scraper", url: "https://www.scootinnaustin.com/shows" },
-    { id: "specsoundwrx/saxon-pub-calendar-scraper", url: "https://thesaxonpub.com/events/" },
-    { id: "specsoundwrx/elephant-room-calendar-scraper", url: "https://elephantroom.com/calendar" },
-    { id: "specsoundwrx/continental-gallery-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
-    { id: "specsoundwrx/cboys-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714969/events" },
-    { id: "specsoundwrx/continental-club-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
-    { id: "specsoundwrx/broken-spoke-calendar-scraper", url: "https://www.brokenspokeaustintx.net/events-calendar" },
-    { id: "specsoundwrx/antones-calendar-scraper", url: "https://antonesnightclub.com/calendar/" },
-    { id: "specsoundwrx/3ten-calendar-scraper", url: "https://www.3tenaustin.com/calendar" },
-    { id: "specsoundwrx/valhalla-tavern-calendar-scraper", url: "https://msha.ke/valhallatavern" }
+    { id: "spectral-soundworks/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
+    { id: "spectral-soundworks/mohawk-calendar-scraper", url: "https://mohawkaustin.com/" },
+    { id: "spectral-soundworks/hotelvegas-calendar-scraper", url: "https://texashotelvegas.com/calendar/" },
+    { id: "spectral-soundworks/empire-atx-calendar-scraper", url: "https://empireatx.com/calendar/" },
+    { id: "spectral-soundworks/haute-spot-calendar-scraper", url: "https://hautespot.live/calendar" },
+    { id: "spectral-soundworks/parkerjazz-calendar-scraper", url: "https://parker-jazz.turntabletickets.com/" },
+    { id: "spectral-soundworks/the-cut-calendar-scraper", url: "https://partners-endpoint.dice.fm/api/v2/events" },
+    { id: "spectral-soundworks/scootinn-calendar-scraper", url: "https://www.scootinnaustin.com/shows" },
+    { id: "spectral-soundworks/saxon-pub-calendar-scraper", url: "https://thesaxonpub.com/events/" },
+    { id: "spectral-soundworks/elephant-room-calendar-scraper", url: "https://elephantroom.com/calendar" },
+    { id: "spectral-soundworks/continental-gallery-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
+    { id: "spectral-soundworks/cboys-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714969/events" },
+    { id: "spectral-soundworks/continental-club-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
+    { id: "spectral-soundworks/broken-spoke-calendar-scraper", url: "https://www.brokenspokeaustintx.net/events-calendar" },
+    { id: "spectral-soundworks/antones-calendar-scraper", url: "https://antonesnightclub.com/calendar/" },
+    { id: "spectral-soundworks/3ten-calendar-scraper", url: "https://www.3tenaustin.com/calendar" },
 ];
 
 export default function DiscoverPage() {
@@ -121,18 +120,19 @@ export default function DiscoverPage() {
 
             if (!res.ok) {
                 const textBody = await res.text();
+                let data: { detail?: string; error?: string } | null = null;
                 try {
-                    const data = JSON.parse(textBody);
-                    if (res.status === 429) {
-                        setConcurrencyBusy(true);
-                        setLoading(false);
-                        setError(data.error || data.detail || "Too many searches running. Wait for one to finish.");
-                        return;
-                    }
-                    throw new Error(data.detail || data.error || "Failed to start discovery run.");
-                } catch (e) {
+                    data = JSON.parse(textBody);
+                } catch {
                     throw new Error(`Server returned non-JSON error (${res.status}): ${textBody.substring(0, 500)}`);
                 }
+                if (res.status === 429) {
+                    setConcurrencyBusy(true);
+                    setLoading(false);
+                    setError(data?.error || data?.detail || "Too many searches running. Wait for one to finish.");
+                    return;
+                }
+                throw new Error(data?.detail || data?.error || "Failed to start discovery run.");
             }
 
             const text = await res.text();
@@ -162,12 +162,13 @@ export default function DiscoverPage() {
 
             if (!res.ok) {
                 const text = await res.text();
+                let data: { detail?: string; error?: string } | null = null;
                 try {
-                    const data = JSON.parse(text);
-                    throw new Error(data.detail || data.error || "Failed to poll status.");
-                } catch (e) {
+                    data = JSON.parse(text);
+                } catch {
                     throw new Error(`Status check returned non-JSON error (${res.status}): ${text.substring(0, 500)}`);
                 }
+                throw new Error(data?.detail || data?.error || "Failed to poll status.");
             }
 
             const textBody = await res.text();

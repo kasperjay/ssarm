@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ApifyClient } from "apify-client";
 
 const MAX_CONCURRENT_RUNS = 2;
+const ORG_ACTOR_OWNER = "spectral-soundworks";
 
 async function getActiveRunCount(client: ApifyClient): Promise<number> {
     try {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
 
         const personalToken = process.env.APIFY_TOKEN;
         const orgToken = process.env.APIFY_ORG_TOKEN;
-        const isOrgActor = actorId.startsWith("specsoundwrx/");
+        const isOrgActor = actorId.startsWith(`${ORG_ACTOR_OWNER}/`);
         const isPublicInstagramActor = actorId === "apify/instagram-scraper" || actorId === "apify/instagram-hashtag-scraper" || actorId === "apify/instagram-profile-scraper";
 
         const token = isOrgActor
@@ -70,9 +71,10 @@ export async function POST(request: Request) {
             detail += ` | Response: ${typeof error.response.body === 'string' ? error.response.body.substring(0, 500) : JSON.stringify(error.response.body)}`;
         }
 
+        const status = error.statusCode || error.response?.status || 500;
         return NextResponse.json(
             { error: "Failed to run discovery actor", detail },
-            { status: 500 }
+            { status: status >= 400 && status < 600 ? status : 500 }
         );
     }
 }
