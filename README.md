@@ -13,7 +13,7 @@ An internal CRM and automation platform for managing artist leads, outreach, and
 | **ORM** | Prisma 7 with `@prisma/adapter-pg` |
 | **Styling** | Tailwind CSS 4 |
 | **Automation** | Node.js CLI agent scripts |
-| **Discovery** | Apify actors for Instagram / Spotify |
+| **Discovery** | Direct-hosted Do512 venue-calendar scrapers for the six-venue MVP; Apify remains for Instagram / Spotify |
 | **Email** | Nodemailer (SMTP) |
 
 ---
@@ -77,7 +77,7 @@ Create a `.env` file at the project root with the following:
 # Database
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/spectral
 
-# Apify (for artist discovery scraping)
+# Apify (for Instagram discovery and other Apify-backed scrapers; venue calendar searches do not use it)
 APIFY_TOKEN=your_apify_token
 
 # Instagram DM Webhook
@@ -176,7 +176,7 @@ The scoring core has a test suite using Node's native test runner:
 npm run test
 ```
 
-Tests cover all scoring components (proximity, followers, recency, releases, genre, data completeness), the 100-point cap, and the qualification threshold.
+`npm test` covers all scoring components, the 100-point cap, and qualification threshold. `npm run test:scrapers` checks the six-venue MVP list, separate lineup artists, 30-day filtering, event-page enrichment, and title fallback when a detail page fails.
 
 ---
 
@@ -187,7 +187,7 @@ Tests cover all scoring components (proximity, followers, recency, releases, gen
 | `/` | Dashboard |
 | `/leads` | Lead pipeline |
 | `/leads/[id]` | Lead detail view with scoring, drafts, and activity |
-| `/leads/discover` | Trigger Apify discovery jobs |
+| `/leads/discover` | Search Instagram via Apify or search the next 30 days of six direct-hosted Austin venue calendars. Venue searches run in parallel, read event pages for lineups, and return artists separately. |
 | `/projects` | Client project workspace |
 | `/portal/[token]` | Client-facing portal (no auth required) |
 | `/operations` | Operations queue — due follow-ups & high-score uncontacted leads |

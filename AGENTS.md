@@ -2,7 +2,7 @@
 
 This document tracks the current automation, data quality, outreach, and client-portal roadmap for Spectral Soundworks.
 
-Last reevaluated: 2026-05-05
+Last reevaluated: 2026-10-11
 
 > **Session summary (2026-05-05):** Completed all 7 items from the Suggested Implementation Order: consolidated scoring tests, implemented email delivery via SMTP, added `AgentRun` logging across all agents, built the Operations Queue UI, added structured `ContactInfo` tracking, hardened duplicate merge with `MergeProposal` persistence and audit trails, and replaced the README with full project documentation.
 
@@ -25,7 +25,7 @@ The next phase should focus less on adding isolated scripts and more on making t
 | Duplicate detection | Implemented, recently aligned to schema | `scripts/detect-duplicates.js` | Removed non-schema `bandcampUrl` merge field; should add merge audit logging. |
 | Genre standardization | Implemented, recently fixed auto-fix logging | `scripts/standardize-genres.js` | Auto-fix now looks up a lead before writing Activity. |
 | Message delivery | Partially implemented | `scripts/send-messages.js` | IG webhook delivery exists; email path is still placeholder behavior. |
-| Discovery jobs | Implemented | `/api/discover`, `/api/discover/status` | Apify actors can be started and polled from the app. |
+| Discovery jobs | Mixed | `/api/discover`, `/api/discover/status`, `/api/discover/calendar` | Instagram discovery still uses Apify; the venue-calendar flow scrapes the next 30 days from six Do512 Family venue calendars directly, in parallel, with a 30-second per-venue limit and individual artist results. |
 | Client projects and portals | Implemented | `src/app/projects`, `src/app/portal/[token]` | Strong base for delivery workflow, feedback, visibility, invoices, and completion ratings. |
 
 ## Fixes Completed In This Reevaluation

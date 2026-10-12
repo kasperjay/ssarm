@@ -2,36 +2,43 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { cleanArtistName } from "@/lib/utils";
+import { MVP_VENUES } from "@/lib/scrapers/config";
 
-const ACTOR_VENUES = [
-    { id: "spectral-soundworks/come-and-take-it-calendar-scraper", url: "https://comeandtakeitproductions.com/live" },
-    { id: "spectral-soundworks/mohawk-calendar-scraper", url: "https://mohawkaustin.com/" },
-    { id: "spectral-soundworks/hotelvegas-calendar-scraper", url: "https://texashotelvegas.com/calendar/" },
-    { id: "spectral-soundworks/empire-atx-calendar-scraper", url: "https://empireatx.com/calendar/" },
-    { id: "spectral-soundworks/haute-spot-calendar-scraper", url: "https://hautespot.live/calendar" },
-    { id: "spectral-soundworks/parkerjazz-calendar-scraper", url: "https://parker-jazz.turntabletickets.com/" },
-    { id: "spectral-soundworks/the-cut-calendar-scraper", url: "https://partners-endpoint.dice.fm/api/v2/events" },
-    { id: "spectral-soundworks/scootinn-calendar-scraper", url: "https://www.scootinnaustin.com/shows" },
-    { id: "spectral-soundworks/saxon-pub-calendar-scraper", url: "https://thesaxonpub.com/events/" },
-    { id: "spectral-soundworks/elephant-room-calendar-scraper", url: "https://elephantroom.com/calendar" },
-    { id: "spectral-soundworks/continental-gallery-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
-    { id: "spectral-soundworks/cboys-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714969/events" },
-    { id: "spectral-soundworks/continental-club-calendar-scraper", url: "https://timelyapp.time.ly/api/calendars/54714987/events" },
-    { id: "spectral-soundworks/broken-spoke-calendar-scraper", url: "https://www.brokenspokeaustintx.net/events-calendar" },
-    { id: "spectral-soundworks/antones-calendar-scraper", url: "https://antonesnightclub.com/calendar/" },
-    { id: "spectral-soundworks/3ten-calendar-scraper", url: "https://www.3tenaustin.com/calendar" },
-];
+type VenueRunStatus = {
+    venueId: string;
+    venueName: string;
+    sourceUrl: string;
+    status: "success" | "partial" | "failed";
+    artistCount: number;
+    eventCount: number;
+    eventPagesRead: number;
+    durationMs: number;
+    warnings: string[];
+    error?: string;
+};
+type ImportIssue = { artist: string; reason: string };
+type ImportSummary = { selected: number; saved: number; issues: ImportIssue[] };
+
+
+function formatEventDate(value?: string, dateOnly = false): string {
+    if (!value) return "";
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return value;
+    return new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Chicago",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        ...(dateOnly ? {} : { hour: "numeric", minute: "2-digit" }),
+    }).format(date);
+}
 
 export default function DiscoverPage() {
-    const router = useRouter();
     const [activeTab, setActiveTab] = useState<"venues" | "tags">("venues");
     const [instagramTag, setInstagramTag] = useState("");
-    const [actorId, setActorId] = useState(ACTOR_VENUES[0].id);
-    const [inputJson, setInputJson] = useState(JSON.stringify({ url: ACTOR_VENUES[0].url }, null, 2));
     const [loading, setLoading] = useState(false);
     const [polling, setPolling] = useState(false);
     const [pollStatus, setPollStatus] = useState<string | null>(null);
@@ -41,12 +48,15 @@ export default function DiscoverPage() {
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
     const [importing, setImporting] = useState(false);
     const [importProgress, setImportProgress] = useState(0);
+    const [importSummary, setImportSummary] = useState<ImportSummary | null>(null);
     const [sifting, setSifting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [searchHistory, setSearchHistory] = useState<string[]>([]);
     const [showHistory, setShowHistory] = useState(false);
     const [siftMode, setSiftMode] = useState<"ai" | "fallback" | null>(null);
     const [concurrencyBusy, setConcurrencyBusy] = useState(false);
+    const [selectedVenueIds, setSelectedVenueIds] = useState<Set<string>>(() => new Set(MVP_VENUES.map((venue) => venue.id)));
+    const [venueStatuses, setVenueStatuses] = useState<VenueRunStatus[]>([]);
 
     useEffect(() => {
         const history = localStorage.getItem("ss_search_history");
@@ -66,88 +76,117 @@ export default function DiscoverPage() {
         localStorage.setItem("ss_search_history", JSON.stringify(newHistory));
     };
 
-    const handleDiscover = async () => {
+    const handleCalendarDiscover = async () => {
+        if (selectedVenueIds.size === 0) {
+            setError("Select at least one venue.");
+            return;
+        }
+
+        const controller = new AbortController();
+        let timeoutId: number | undefined;
         try {
             setLoading(true);
+            setPolling(true);
             setError(null);
+            setImportSummary(null);
             setConcurrencyBusy(false);
             setResults([]);
+            setVenueStatuses([]);
+            setSelectedIndices(new Set());
+            setPollStatus("Scraping selected venue calendars");
+            setPollItemCount(0);
+
+            timeoutId = window.setTimeout(() => controller.abort(), 35_000);
+            const res = await fetch("/api/discover/calendar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ venueIds: [...selectedVenueIds] }),
+                signal: controller.signal,
+            });
+            const text = await res.text();
+            let data: any;
+            try {
+                data = JSON.parse(text);
+            } catch {
+                throw new Error(`Calendar search returned a non-JSON response (${res.status}): ${text.substring(0, 500)}`);
+            }
+            if (!res.ok) throw new Error(data?.detail || data?.error || "Failed to search venue calendars.");
+
+            const foundItems = Array.isArray(data.items) ? data.items : [];
+            setResults(foundItems);
+            setVenueStatuses(Array.isArray(data.venues) ? data.venues : []);
+            setSelectedIndices(new Set());
+            setPollItemCount(foundItems.length);
+            setPollStatus(data.status === "partial" ? "Complete · some venues need attention" : "Complete");
+            if (data.status === "failed") setError("All selected venue calendars failed. See the venue status details below.");
+        } catch (err: any) {
+            setError(err.name === "AbortError" ? "Calendar search timed out after 35 seconds. Try fewer venues or run it again." : err.message || "Calendar search failed.");
+        } finally {
+            if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+            setPolling(false);
+            setLoading(false);
+            setConcurrencyBusy(false);
+        }
+    };
+
+    const handleDiscover = async () => {
+        const term = instagramTag.trim();
+        if (!term) {
+            setError("Please enter an Instagram tag or handle.");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setPolling(false);
+            setError(null);
+            setImportSummary(null);
+            setConcurrencyBusy(false);
+            setResults([]);
+            setVenueStatuses([]);
+            setSelectedIndices(new Set());
             setPollStatus("STARTING");
             setPollItemCount(0);
 
-            let finalActorId = actorId;
-            let finalInput: any;
+            const isProfile = term.startsWith("@");
+            const cleanTerm = term.replace(/^[@#]/, "");
+            addToHistory(term);
 
-            if (activeTab === "tags") {
-                if (!instagramTag) throw new Error("Please enter an Instagram tag or handle.");
-                
-                const isProfile = instagramTag.startsWith('@');
-                const cleanTerm = instagramTag.replace(/^[@#]/, '');
-                
-                // Save to history
-                addToHistory(instagramTag);
-
-                if (isProfile) {
-                    finalActorId = "apify/instagram-scraper";
-                    finalInput = {
-                        directUrls: [`https://www.instagram.com/${cleanTerm}/`],
-                        resultsLimit: expectedResults || 50,
-                        addParentData: true
-                    };
-                } else {
-                    finalActorId = "apify/instagram-hashtag-scraper";
-                    finalInput = {
-                        hashtags: [cleanTerm],
-                        maxPostsPerHashtag: expectedResults || 100
-                    };
-                }
-            } else {
-                try {
-                    finalInput = JSON.parse(inputJson);
-                } catch (e) {
-                    throw new Error("Invalid JSON input format. Please check syntax.");
-                }
-            }
-
+            const actorId = isProfile ? "apify/instagram-scraper" : "apify/instagram-hashtag-scraper";
+            const input = isProfile
+                ? { directUrls: [`https://www.instagram.com/${cleanTerm}/`], resultsLimit: expectedResults || 50, addParentData: true }
+                : { hashtags: [cleanTerm], maxPostsPerHashtag: expectedResults || 100 };
             const res = await fetch("/api/discover", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    actorId: finalActorId, 
-                    input: finalInput 
-                }),
+                body: JSON.stringify({ actorId, input }),
             });
 
             if (!res.ok) {
-                const textBody = await res.text();
+                const text = await res.text();
                 let data: { detail?: string; error?: string } | null = null;
                 try {
-                    data = JSON.parse(textBody);
+                    data = JSON.parse(text);
                 } catch {
-                    throw new Error(`Server returned non-JSON error (${res.status}): ${textBody.substring(0, 500)}`);
+                    throw new Error(`Server returned non-JSON error (${res.status}): ${text.substring(0, 500)}`);
                 }
-                if (res.status === 429) {
-                    setConcurrencyBusy(true);
-                    setLoading(false);
-                    setError(data?.error || data?.detail || "Too many searches running. Wait for one to finish.");
-                    return;
-                }
-                throw new Error(data?.detail || data?.error || "Failed to start discovery run.");
+                if (res.status === 429) setConcurrencyBusy(true);
+                throw new Error(data?.error || data?.detail || "Failed to start discovery run.");
             }
 
             const text = await res.text();
-            let data;
+            let data: { runId: string; datasetId: string };
             try {
                 data = JSON.parse(text);
-            } catch (e) {
+            } catch {
                 throw new Error(`Server returned status 200 but invalid JSON: ${text.substring(0, 500)}`);
             }
-            const { runId, datasetId } = data;
-
             setPolling(true);
-            pollStatusLoop(runId, datasetId);
+            void pollStatusLoop(data.runId, data.datasetId);
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Instagram search failed.");
+            setPolling(false);
+        } finally {
             setLoading(false);
         }
     };
@@ -292,99 +331,107 @@ export default function DiscoverPage() {
     };
 
     const handleImport = async () => {
-        if (selectedIndices.size === 0) return;
+        if (selectedIndices.size === 0 || importing) return;
+
+        const selectedItems = Array.from(selectedIndices)
+            .map((index) => ({ index, item: results[index] }))
+            .filter(({ item }) => item !== undefined);
+        if (selectedItems.length === 0) {
+            setError("No valid result rows are selected.");
+            return;
+        }
+
         try {
             setImporting(true);
             setImportProgress(0);
             setError(null);
+            setImportSummary(null);
 
-            const selectedItems = Array.from(selectedIndices).map((idx) => results[idx]);
-            console.log(`Starting import for ${selectedItems.length} items...`);
+            const failedIndices: number[] = [];
+            const issues: ImportIssue[] = [];
+            let completed = 0;
+            let saved = 0;
+            const concurrencyLimit = 5;
 
-            let count = 0;
-            const CONCURRENCY_LIMIT = 5;
+            for (let i = 0; i < selectedItems.length; i += concurrencyLimit) {
+                const batch = selectedItems.slice(i, i + concurrencyLimit);
+                const outcomes = await Promise.all(batch.map(async ({ index, item }): Promise<{ index: number; artist: string; reason: string | null }> => {
+                    let artistName = "Selected item";
+                    try {
+                        const rawName = [item.artist, item.artistName, item.band, item.musician, item.ownerUsername, item.owner?.username, item.owner?.full_name, item.username, item.fullName, item.title, item.name]
+                            .find((value): value is string => typeof value === "string" && value.trim().length > 0);
+                        if (!rawName) return { index, artist: artistName, reason: "No artist name was found in this result." };
 
-            for (let i = 0; i < selectedItems.length; i += CONCURRENCY_LIMIT) {
-                const batch = selectedItems.slice(i, i + CONCURRENCY_LIMIT);
-                
-                await Promise.all(batch.map(async (item) => {
-                    const rawName = item.artist || item.artistName || item.band || item.musician || item.ownerUsername || item.owner?.username || item.owner?.full_name || item.username || item.fullName || item.title || item.name;
-                    if (!rawName) {
-                        console.log("Skipping item with no artist name:", item);
-                        return;
-                    }
+                        artistName = cleanArtistName(rawName);
+                        if (!artistName) return { index, artist: rawName, reason: "The artist name could not be cleaned for import." };
 
-                    const artistName = cleanArtistName(rawName);
-                    if (!artistName) {
-                        console.log("Skipping item with empty cleaned name:", rawName);
-                        return;
-                    }
-
-                    console.log(`Importing artist: ${artistName}`);
-
-                    const handle = item.ownerUsername || item.owner?.username || item.username || item.handle || item.instagramHandle;
-                    const postUrl = item.shortCode ? `https://www.instagram.com/p/${item.shortCode}` : (item.url || item.instagramUrl || item.link || undefined);
-                    const profileUrl = handle ? `https://www.instagram.com/${handle.replace('@', '')}` : undefined;
-                    
-                    // Parse followers as integer to avoid Prisma errors
-                    const rawFollowers = item.followersCount || item.ownerFollowersCount || item.owner?.followersCount;
-                    const followerCount = rawFollowers ? parseInt(String(rawFollowers).replace(/[^0-9]/g, '')) : undefined;
-
-                    const payload = {
-                        isDiscoveryImport: true,
-                        artist: {
-                            name: artistName,
-                            instagramHandle: handle || undefined,
-                            instagramProfileUrl: profileUrl,
-                            instagramProfileImageUrl: item.ownerProfilePicUrl || item.owner?.profile_pic_url || item.profilePicUrl || item.avatarUrl || item.ownerProfileImageUrl || undefined,
-                            bio: item.biography || item.owner?.biography || item.bio || item.description || item.caption || undefined,
-                            followerCount: isNaN(Number(followerCount)) ? undefined : followerCount,
-                        },
-                        lead: {
-                            status: "NEW",
-                        },
-                        instagramPosts: postUrl ? [
-                            {
+                        const handle = item.ownerUsername || item.owner?.username || item.username || item.handle || item.instagramHandle;
+                        const postUrl = item.shortCode ? `https://www.instagram.com/p/${item.shortCode}` : (item.url || item.instagramUrl || item.link || undefined);
+                        const profileUrl = handle ? `https://www.instagram.com/${handle.replace('@', '')}` : undefined;
+                        const rawFollowers = item.followersCount || item.ownerFollowersCount || item.owner?.followersCount;
+                        const followerCount = rawFollowers ? parseInt(String(rawFollowers).replace(/[^0-9]/g, '')) : undefined;
+                        const payload = {
+                            isDiscoveryImport: true,
+                            artist: {
+                                name: artistName,
+                                instagramHandle: handle || undefined,
+                                instagramProfileUrl: profileUrl,
+                                instagramProfileImageUrl: item.ownerProfilePicUrl || item.owner?.profile_pic_url || item.profilePicUrl || item.avatarUrl || item.ownerProfileImageUrl || undefined,
+                                bio: item.biography || item.owner?.biography || item.bio || (item.eventTitle ? undefined : item.description || item.caption || undefined),
+                                followerCount: isNaN(Number(followerCount)) ? undefined : followerCount,
+                            },
+                            lead: { status: "NEW" as const },
+                            instagramPosts: postUrl ? [{
                                 instagramPostId: item.id || item.shortCode || undefined,
                                 caption: item.caption || undefined,
                                 imageUrl: item.displayUrl || item.imageUrl || undefined,
                                 postedAt: item.timestamp || item.postedAt || undefined,
-                                url: postUrl
-                            }
-                        ] : undefined,
-                        activities: item.eventTitle ? [
-                            {
-                                type: "NOTE",
-                                note: [
-                                    item.eventTitle,
-                                    item.venueName,
-                                    item.eventDate
-                                ].filter(Boolean).join(" · ")
-                            }
-                        ] : undefined
-                    };
+                                url: postUrl,
+                            }] : undefined,
+                            activities: item.eventTitle ? [{
+                                type: "NOTE" as const,
+                                note: [item.eventTitle, item.venueName, formatEventDate(item.eventDate, item.eventDateOnly), item.eventUrl].filter(Boolean).join(" · "),
+                            }] : undefined,
+                        };
 
-                    console.log(`Payload for ${artistName}:`, JSON.stringify(payload, null, 2));
+                        const response = await fetch("/api/ingest", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload),
+                        });
+                        const responseText = await response.text();
+                        let responseData: { success?: boolean; error?: string; detail?: string } | null = null;
+                        try {
+                            responseData = JSON.parse(responseText);
+                        } catch {}
 
-                    const ingestRes = await fetch("/api/ingest", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload),
-                    });
-
-                    if (!ingestRes.ok) {
-                        const errorText = await ingestRes.text();
-                        console.error(`Failed to ingest ${artistName}:`, errorText);
+                        if (!response.ok || responseData?.success !== true) {
+                            const reason = responseData?.error || responseData?.detail || responseText.slice(0, 300) || `Import failed (HTTP ${response.status}).`;
+                            return { index, artist: artistName, reason };
+                        }
+                        return { index, artist: artistName, reason: null };
+                    } catch (error) {
+                        return { index, artist: artistName, reason: error instanceof Error ? error.message : "The import request failed." };
                     }
-
-                    count++;
-                    setImportProgress(count);
                 }));
+
+                for (const outcome of outcomes) {
+                    completed += 1;
+                    if (outcome.reason) {
+                        failedIndices.push(outcome.index);
+                        issues.push({ artist: outcome.artist, reason: outcome.reason });
+                    } else {
+                        saved += 1;
+                    }
+                }
+                setImportProgress(completed);
             }
 
-            router.push("/");
-        } catch (err: any) {
-            setError(err.message);
+            setSelectedIndices(new Set(failedIndices));
+            setImportSummary({ selected: selectedItems.length, saved, issues });
+        } catch (error) {
+            setError(error instanceof Error ? error.message : "Import failed unexpectedly.");
+        } finally {
             setImporting(false);
         }
     };
@@ -398,6 +445,35 @@ export default function DiscoverPage() {
                     {error && (
                         <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium">
                             {error}
+                        </div>
+                    )}                    {importSummary && (
+                        <div
+                            role="status"
+                            aria-live="polite"
+                            className={`rounded-2xl border p-4 text-sm ${importSummary.issues.length ? "border-amber-400/30 bg-amber-400/10 text-amber-100" : "border-accent/30 bg-accent/10 text-accent"}`}
+                        >
+                            <p className="font-semibold">
+                                {importSummary.issues.length === 0
+                                    ? `Saved all ${importSummary.saved} selected artists.`
+                                    : `Saved ${importSummary.saved} of ${importSummary.selected} selected artists. ${importSummary.issues.length} failed.`}
+                            </p>
+                            {importSummary.issues.length > 0 && (
+                                <>
+                                    <p className="mt-2 text-xs text-amber-100/70">Failed artists remain selected so you can retry them.</p>
+                                    <ul className="mt-3 space-y-2">
+                                        {importSummary.issues.map((issue, index) => (
+                                            <li key={`${issue.artist}-${index}`} className="text-xs">
+                                                <span className="font-semibold">{issue.artist}:</span> {issue.reason}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
+                            {importSummary.saved > 0 && (
+                                <Link href="/" className="mt-3 inline-block text-xs font-bold uppercase tracking-widest underline underline-offset-4">
+                                    Review saved leads
+                                </Link>
+                            )}
                         </div>
                     )}
                     <div className="flex flex-wrap items-end justify-between gap-12 border-b border-white/5 pb-12">
@@ -467,63 +543,48 @@ export default function DiscoverPage() {
                                 </div>
 
                                 <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
-                                    <div className="space-y-8">
-                                        <div className="space-y-4">
-                                            <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Data Source</label>
-                                            <div className="relative group/select">
-                                                <select
-                                                    value={actorId}
-                                                    onChange={(e) => {
-                                                        const newActorId = e.target.value;
-                                                        setActorId(newActorId);
-                                                        const venue = ACTOR_VENUES.find(v => v.id === newActorId);
-                                                        if (venue) {
-                                                            setInputJson(JSON.stringify({ url: venue.url }, null, 2));
-                                                        }
-                                                    }}
-                                                    className="w-full rounded-2xl border border-white/10 bg-white/2 p-4 pr-12 text-[13px] font-bold tracking-tight focus:border-accent focus:outline-none text-white/80 appearance-none transition-all cursor-pointer hover:bg-white/5 shadow-inner"
-                                                >
-                                                    {ACTOR_VENUES.map(actor => (
-                                                        <option key={actor.id} value={actor.id} className="bg-[#0c0c0c] text-white">
-                                                            {actor.id.split('/').pop()?.replace('-scraper', '').split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                                                        </option>
-                                                    ))}
-                                                     <option value="custom" className="bg-[#0c0c0c] text-white">-- Custom Data Source --</option>
-                                                </select>
-                                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-white/20 group-hover/select:text-accent transition-colors">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                                                </div>
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">MVP Venues</label>
+                                            <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
+                                                <button type="button" onClick={() => setSelectedVenueIds(new Set(MVP_VENUES.map((venue) => venue.id)))} className="text-accent/70 hover:text-accent">Select all</button>
+                                                <button type="button" onClick={() => setSelectedVenueIds(new Set())} className="text-white/30 hover:text-white/60">Clear</button>
                                             </div>
-                                            {actorId === "custom" && (
-                                                <input
-                                                    type="text"
-                                                    placeholder="Enter Custom Source ID..."
-                                                    className="mt-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-sm font-bold tracking-tight text-white focus:border-accent focus:outline-none transition-all placeholder:text-white/10"
-                                                    onChange={(e) => setActorId(e.target.value)}
-                                                />
-                                            )}
                                         </div>
-                                        <div className="pt-4">
-                                            <button
-                                                onClick={handleDiscover}
-                                                disabled={loading || concurrencyBusy}
-                                                className="w-full rounded-2xl font-bold uppercase tracking-[0.2em] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 px-8 py-8 text-sm bg-accent text-black neon-glow hover:bg-accent/90 hover:scale-[1.02] border-2 border-accent"
-                                            >
-                                                {loading ? "Searching..." : "Begin Artist Search"}
-                                            </button>
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                            {MVP_VENUES.map((venue) => (
+                                                <label key={venue.id} className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors ${selectedVenueIds.has(venue.id) ? "border-accent/40 bg-accent/5" : "border-white/10 bg-black/20 hover:bg-white/5"}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedVenueIds.has(venue.id)}
+                                                        onChange={() => {
+                                                            const next = new Set(selectedVenueIds);
+                                                            if (next.has(venue.id)) next.delete(venue.id);
+                                                            else next.add(venue.id);
+                                                            setSelectedVenueIds(next);
+                                                        }}
+                                                        className="h-4 w-4 rounded border-white/10 bg-black/40 text-accent focus:ring-accent/20"
+                                                    />
+                                                    <span className="text-sm font-semibold text-white/80">{venue.name}</span>
+                                                </label>
+                                            ))}
                                         </div>
+                                        <button
+                                            onClick={handleCalendarDiscover}
+                                            disabled={loading || selectedVenueIds.size === 0}
+                                            className="w-full rounded-2xl border-2 border-accent bg-accent px-8 py-7 text-sm font-bold uppercase tracking-[0.2em] text-black neon-glow transition-all duration-300 hover:scale-[1.02] hover:bg-accent/90 active:scale-[0.98] disabled:opacity-50"
+                                        >
+                                            {loading ? "Searching..." : `Begin Artist Search · ${selectedVenueIds.size} venues`}
+                                        </button>
                                     </div>
-                                    <div className="space-y-4">
-                                        <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Search Parameters (JSON)</label>
-                                        <div className="relative group/textarea">
-                                            <div className="absolute -inset-0.5 bg-accent/5 rounded-[24px] blur-sm opacity-0 group-hover/textarea:opacity-100 transition-opacity" />
-                                            <textarea
-                                                value={inputJson}
-                                                onChange={(e) => setInputJson(e.target.value)}
-                                                className="relative h-[200px] w-full rounded-[24px] border border-white/10 bg-black/40 p-6 text-[12px] font-sans font-medium text-white/70 focus:text-accent focus:border-accent focus:outline-none resize-none custom-scrollbar transition-all"
-                                                placeholder='{ "url": "..." }'
-                                            />
-                                        </div>
+                                    <div className="space-y-4 rounded-[24px] border border-white/5 bg-black/20 p-6">
+                                        <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/40">Run behavior</h3>
+                                        <ul className="space-y-4 text-sm text-white/60">
+                                            <li>Searches the next 30 days from Do512 Family&apos;s public venue calendars.</li>
+                                            <li>All selected venues run in parallel, with a 30-second limit per venue.</li>
+                                            <li>Event pages are checked for lineup details; each identified artist appears separately.</li>
+                                            <li>A failed venue is reported without discarding the other venues’ results.</li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -607,10 +668,37 @@ export default function DiscoverPage() {
                             </div>
                             <div className="flex items-center justify-between mt-6">
                                  <p className="text-[9px] text-white/30 font-bold tracking-[0.2em] uppercase">
-                                     Analyzing profiles and event data...
+                                     {activeTab === "venues" ? "Running venue calendars and reading event lineups..." : "Analyzing profiles and event data..."}
                                  </p>
                             </div>
                         </GlassCard>
+                    )}
+
+                    {!polling && venueStatuses.length > 0 && (
+                        <section className="space-y-4 rounded-[32px] border border-white/5 bg-white/2 p-6">
+                            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-white/60">Venue scraper status</h2>
+                                <span className="text-xs font-bold text-accent">{venueStatuses.filter((venue) => venue.status !== "failed").length}/{venueStatuses.length} completed</span>
+                            </div>
+                            <div className="grid gap-3 md:grid-cols-2">
+                                {venueStatuses.map((venue) => (
+                                    <div key={venue.venueId} className="rounded-2xl border border-white/5 bg-black/20 p-4">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div>
+                                                <div className="font-semibold text-white/80">{venue.venueName}</div>
+                                                <div className="mt-1 text-xs text-white/40">{venue.artistCount} artist results · {venue.eventCount} events · {venue.eventPagesRead} details read · {(venue.durationMs / 1000).toFixed(1)}s</div>
+                                            </div>
+                                            <span className={`shrink-0 rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest ${venue.status === "failed" ? "bg-red-500/10 text-red-300" : venue.status === "partial" ? "bg-amber-400/10 text-amber-200" : "bg-accent/10 text-accent"}`}>
+                                                {venue.status}
+                                            </span>
+                                        </div>
+                                        {venue.error && <p className="mt-3 text-xs text-red-200/80">{venue.error}</p>}
+                                        {venue.warnings.map((warning) => <p key={warning} className="mt-2 text-xs text-amber-100/70">{warning}</p>)}
+                                        {venue.sourceUrl && <a href={venue.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-block text-[10px] font-bold uppercase tracking-widest text-accent/60 hover:text-accent">Open calendar</a>}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
                     )}
 
                     {!polling && results.length > 0 && (
@@ -676,7 +764,6 @@ export default function DiscoverPage() {
                                                 const isUnknown = !artistName;
                                                 const displayName = artistName || (item.shortCode ? `Post ${item.shortCode}` : "Unknown Artist");
                                                 const handle = item.ownerUsername || item.username || item.handle || item.instagramHandle || "No Handle";
-                                                const bioSnipppet = (item.biography || item.bio || item.description || item.caption || "").substring(0, 100);
                                                 const url = item.shortCode ? `https://www.instagram.com/p/${item.shortCode}` : (item.url || item.eventUrl || item.eventURL || item.link || "-");
 
                                                 return (
@@ -697,6 +784,9 @@ export default function DiscoverPage() {
                                                         <td className="px-8 py-6">
                                                              <div className="space-y-1">
                                                                  <div className="font-bold text-white/90 text-[14px] tracking-tight group-hover:text-accent transition-colors">{displayName}</div>
+                                                                 {(item.eventTitle || item.venueName || item.eventDate) && (
+                                                                     <div className="text-[10px] text-white/40">{[item.eventTitle, item.venueName, formatEventDate(item.eventDate, item.eventDateOnly)].filter(Boolean).join(" · ")}</div>
+                                                                 )}
                                                                  {handle !== "No Handle" && (
                                                                      <div className="text-[9px] font-bold font-sans text-white/20 uppercase tracking-[0.2em]">@{handle.replace('@', '')}</div>
                                                                  )}
