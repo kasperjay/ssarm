@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { ApifyClient } from "apify-client";
+import { extractTaggedProfiles } from "@/lib/instagram-discovery";
 
 export async function POST(request: Request) {
     try {
@@ -60,26 +61,9 @@ export async function POST(request: Request) {
             }
         }
 
-        // Deduplicate results by ownerUsername (IG handle) or by cleaned artist name
-        const seenKeys = new Set<string>();
-        const dedupedItems = items.filter((item: Record<string, unknown>) => {
-          const handle = (item.ownerUsername || item.username || item.handle || item.instagramHandle || "") as string;
-          const rawName = (item.artist || item.artistName || item.band || item.musician || item.fullName || item.title || item.name || "") as string;
-          // For IG results: dedupe by handle (most reliable identifier)
-          if (handle && handle !== "None" && handle !== "undefined") {
-            const cleanHandle = handle.replace(/^@/, "").toLowerCase();
-            if (seenKeys.has("handle:" + cleanHandle)) return false;
-            seenKeys.add("handle:" + cleanHandle);
-            return true;
-          }
-          // For calendar results: dedupe by cleaned name
-          if (rawName) {
-            const cleanName = rawName.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
-            if (seenKeys.has("name:" + cleanName)) return false;
-            seenKeys.add("name:" + cleanName);
-          }
-          return true;
-        });
+        // Expand Instagram posts into all tagged profiles, co-authors, mentions, and authors
+        // (calendar items are preserved untouched with event-level deduplication)
+        const dedupedItems = extractTaggedProfiles(items);
 
         return NextResponse.json({
             status,

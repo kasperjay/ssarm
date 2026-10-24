@@ -6,6 +6,7 @@ import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { cleanArtistName } from "@/lib/utils";
 import { ACTIVE_VENUES, VENUES } from "@/lib/scrapers/config";
+import { extractTaggedProfiles, InstagramSourceType } from "@/lib/instagram-discovery";
 
 type VenueRunStatus = {
     venueId: string;
@@ -57,6 +58,9 @@ type DiscoveryItem = {
     eventDateOnly?: boolean;
     eventUrl?: string;
     eventURL?: string;
+    sourceType?: InstagramSourceType;
+    taggedCount?: number;
+    postOwner?: string;
     [key: string]: unknown;
 };
 type ApiErrorResponse = { error?: string; detail?: string };
@@ -208,8 +212,8 @@ export default function DiscoverPage() {
 
             const actorId = isProfile ? "apify/instagram-scraper" : "apify/instagram-hashtag-scraper";
             const input = isProfile
-                ? { directUrls: [`https://www.instagram.com/${cleanTerm}/`], resultsLimit: expectedResults || 50, addParentData: true }
-                : { hashtags: [cleanTerm], maxPostsPerHashtag: expectedResults || 100 };
+                ? { directUrls: [`https://www.instagram.com/${cleanTerm}/`], resultsLimit: expectedResults || 100, resultsType: "posts", addParentData: true }
+                : { hashtags: [cleanTerm], maxPostsPerHashtag: expectedResults || 100, resultsType: "posts" };
             const res = await fetch("/api/discover", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -295,7 +299,7 @@ export default function DiscoverPage() {
                 setLoading(false);
                 setConcurrencyBusy(false);
                 if (data.status === "SUCCEEDED") {
-                    const flattened = (data.items || []).flatMap((item) => {
+                    const rawList = (data.items || []).flatMap((item) => {
                         if (!isRecord(item)) return [];
                         const nestedKeys = Object.keys(item).filter((key) => !Number.isNaN(Number(key)));
                         if (nestedKeys.length > 0 && !item.artist && !item.fullName && !item.name) {
@@ -303,6 +307,7 @@ export default function DiscoverPage() {
                         }
                         return [item as DiscoveryItem];
                     });
+                    const flattened = extractTaggedProfiles(rawList) as DiscoveryItem[];
                     setResults(flattened);
                     setSelectedIndices(new Set());
                 } else {
@@ -459,7 +464,10 @@ export default function DiscoverPage() {
                             activities: item.eventTitle ? [{
                                 type: "NOTE" as const,
                                 note: [item.eventTitle, item.venueName, formatEventDate(item.eventDate, item.eventDateOnly), item.eventUrl].filter(Boolean).join(" · "),
-                            }] : undefined,
+                            }] : (item.sourceType && item.postOwner ? [{
+                                type: "NOTE" as const,
+                                note: `Discovered as ${item.sourceType === "tagged" ? "tagged artist" : item.sourceType === "coauthor" ? "co-author" : item.sourceType === "mention" ? "mentioned artist" : "post author"} on Instagram post by @${item.postOwner}${postUrl ? ` (${postUrl})` : ""}`,
+                            }] : undefined),
                         };
 
                         const response = await fetch("/api/ingest", {
