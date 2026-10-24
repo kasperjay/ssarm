@@ -4,7 +4,9 @@ const {
   normalizeSiftItem,
   evaluateItemHeuristic,
   siftItems,
-} = require("./sift-core.ts");
+  checkProfileMusicSignals,
+  extractVenueCaptionContext,
+} = require("./sift-core.js");
 
 test("normalizeSiftItem: extracts full context including eventTitle, venueName, handle, and sourceType", () => {
   const item = {
@@ -61,17 +63,141 @@ test("evaluateItemHeuristic: separates and rejects non-artist events, trivia, dr
   }
 });
 
-test("evaluateItemHeuristic: filters out non-musician Instagram profiles (photographers, media, venues)", () => {
+test("extractVenueCaptionContext: detects venue photo/sound/flyer credit disqualifications", () => {
+  const photoCaption1 = "Great show last night at @hotelpub! 📸: @austinphotog";
+  const credit1 = extractVenueCaptionContext(photoCaption1, "austinphotog");
+  assert.equal(credit1.isCreditDisqualified, true);
+  assert.equal(credit1.creditReason, "venue_photo_credit");
+
+  const photoCaption2 = "Photos by @lenscrafter from Saturday's show.";
+  const credit2 = extractVenueCaptionContext(photoCaption2, "lenscrafter");
+  assert.equal(credit2.isCreditDisqualified, true);
+  assert.equal(credit2.creditReason, "venue_photo_credit");
+
+  const soundCaption = "Live at Mohawk. Sound by @frontofhouseguy";
+  const credit3 = extractVenueCaptionContext(soundCaption, "frontofhouseguy");
+  assert.equal(credit3.isCreditDisqualified, true);
+  assert.equal(credit3.creditReason, "venue_sound_credit");
+
+  const flyerCaption = "Show flyer by @posterartisan";
+  const credit4 = extractVenueCaptionContext(flyerCaption, "posterartisan");
+  assert.equal(credit4.isCreditDisqualified, true);
+  assert.equal(credit4.creditReason, "venue_art_credit");
+});
+
+test("extractVenueCaptionContext: recognizes live lineup performer indicators", () => {
+  const lineupCaption = "Tonight at Mohawk! Performing live: @fontband w/ @borzoi. Doors at 8pm";
+  const perf1 = extractVenueCaptionContext(lineupCaption, "fontband");
+  assert.equal(perf1.isLineupPerformer, true);
+  assert.equal(perf1.isCreditDisqualified, false);
+
+  const perf2 = extractVenueCaptionContext(lineupCaption, "borzoi");
+  assert.equal(perf2.isLineupPerformer, true);
+  assert.equal(perf2.isCreditDisqualified, false);
+});
+
+test("checkProfileMusicSignals: identifies rich music profile signals", () => {
+  // Bio music role + genre + release
+  const res1 = checkProfileMusicSignals({
+    handle: "fontband",
+    bio: "Post-punk quartet from Austin TX. Debut LP out now on Spotify & Bandcamp.",
+    categoryName: "Musician/band",
+    externalUrl: "https://open.spotify.com/artist/12345",
+  });
+  assert.equal(res1.isArtist, true);
+  assert.ok(res1.signals.length >= 3);
+  assert.equal(res1.disqualifiers.length, 0);
+
+  // Streaming platform URL without explicit bio role
+  const res2 = checkProfileMusicSignals({
+    handle: "beingdead",
+    bio: "austin tx",
+    externalUrl: "https://beingdead.bandcamp.com",
+  });
+  assert.equal(res2.isArtist, true);
+  assert.ok(res2.signals.some((s) => s.startsWith("music_link")));
+});
+
+test("checkProfileMusicSignals: disqualifies photographers, videographers, venues, and media", () => {
+  const photoProfile = checkProfileMusicSignals({
+    handle: "atxconcertphotog",
+    bio: "Music & event photographer based in Austin. Available for hire / DMs open for camera work.",
+    categoryName: "Photographer",
+    externalUrl: "https://myportfolio.com",
+  });
+  assert.equal(photoProfile.isArtist, false);
+  assert.ok(photoProfile.disqualifiers.length > 0);
+
+  const breweryProfile = checkProfileMusicSignals({
+    handle: "eastsidebrewing",
+    bio: "Craft beer and pub food in East Austin. Open daily 12-10.",
+    categoryName: "Brewery",
+  });
+  assert.equal(breweryProfile.isArtist, false);
+});
+
+test("evaluateItemHeuristic: keeps non-traditional band names when music profile signals exist", () => {
+  // Acts with common or dictionary words that naive LLMs mistakenly reject
+  const unconventionalBands = [
+    {
+      ownerUsername: "font",
+      fullName: "Font",
+      biography: "Post-punk 5-piece from Austin, TX. Debut album 'Strange Burden' out now.",
+      externalUrl: "https://fontband.bandcamp.com",
+      categoryName: "Musician/band",
+    },
+    {
+      ownerUsername: "beingdead",
+      fullName: "Being Dead",
+      biography: "Band. Tour dates and vinyl available at link below.",
+      externalUrl: "https://linktr.ee/beingdead",
+      categoryName: "Musician/band",
+    },
+    {
+      ownerUsername: "borzoi_tx",
+      fullName: "Borzoi",
+      biography: "Austin noise rock trio. Stream our new EP.",
+      externalUrl: "https://open.spotify.com/artist/xyz",
+    },
+    {
+      ownerUsername: "waterdamage_atx",
+      fullName: "Water Damage",
+      biography: "Minimal drone rock ensemble. 12k records.",
+      externalUrl: "https://waterdamage.bandcamp.com",
+    },
+  ];
+
+  for (const it of unconventionalBands) {
+    const norm = normalizeSiftItem(it, 0);
+    const ev = evaluateItemHeuristic(norm);
+    assert.equal(ev.isArtist, true, `Expected non-traditional act "${it.fullName}" to be preserved as artist`);
+  }
+});
+
+test("evaluateItemHeuristic: rejects non-musician Instagram profiles (photographers, media, venues, photo credits)", () => {
   const igItems = [
     {
       ownerUsername: "atxphotographer",
       fullName: "Austin Concert Photography",
-      caption: "Had an amazing time shooting @diespitz last night!",
+      biography: "Freelance music photographer & visual media.",
+      caption: "Had an amazing time shooting @diespitz last night! 📸: @atxphotographer",
     },
     {
       ownerUsername: "austinchronicle",
       fullName: "The Austin Chronicle",
+      biography: "Austin's independent news and culture weekly.",
       caption: "Read our review of the weekend shows.",
+    },
+    {
+      ownerUsername: "randomsoundguy",
+      fullName: "Austin Audio Engineer",
+      biography: "Live sound engineer for Austin clubs. Sound console wizard.",
+      caption: "Great night at Mohawk. Sound by @randomsoundguy",
+    },
+    {
+      ownerUsername: "buzzmillcoffee",
+      fullName: "The Buzz Mill",
+      biography: "24-hour coffee bar, craft beer, and community space.",
     },
   ];
 

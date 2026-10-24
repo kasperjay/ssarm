@@ -16,6 +16,10 @@ export interface ExtractedInstagramProfile {
   biography?: string;
   bio?: string;
   followersCount?: number;
+  externalUrl?: string;
+  website?: string;
+  categoryName?: string;
+  businessCategoryName?: string;
   caption?: string;
   shortCode?: string;
   url?: string;

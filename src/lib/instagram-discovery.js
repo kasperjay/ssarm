@@ -95,9 +95,13 @@ function extractTaggedProfiles(rawItems) {
         profilePicUrl: profile.profilePicUrl,
         ownerProfilePicUrl: profile.profilePicUrl,
         avatarUrl: profile.profilePicUrl,
-        biography: profile.biography,
-        bio: profile.biography,
+        biography: profile.biography || profile.bio,
+        bio: profile.biography || profile.bio,
         followersCount: profile.followersCount,
+        externalUrl: profile.externalUrl || profile.website || profile.externalURL,
+        website: profile.externalUrl || profile.website || profile.externalURL,
+        categoryName: profile.categoryName || profile.businessCategoryName,
+        businessCategoryName: profile.businessCategoryName || profile.categoryName,
         caption: profile.caption,
         shortCode: profile.shortCode,
         url: profile.url || (profile.shortCode ? `https://www.instagram.com/p/${profile.shortCode}/` : `https://www.instagram.com/${key}/`),
@@ -136,9 +140,21 @@ function extractTaggedProfiles(rawItems) {
     }
 
     // Keep biography if missing
-    if (profile.biography && !existing.biography) {
-      existing.biography = profile.biography;
-      existing.bio = profile.biography;
+    if ((profile.biography || profile.bio) && !existing.biography) {
+      existing.biography = profile.biography || profile.bio;
+      existing.bio = profile.biography || profile.bio;
+    }
+
+    // Keep external URL if missing
+    if ((profile.externalUrl || profile.website) && !existing.externalUrl) {
+      existing.externalUrl = profile.externalUrl || profile.website;
+      existing.website = profile.externalUrl || profile.website;
+    }
+
+    // Keep category if missing
+    if ((profile.categoryName || profile.businessCategoryName) && !existing.categoryName) {
+      existing.categoryName = profile.categoryName || profile.businessCategoryName;
+      existing.businessCategoryName = profile.businessCategoryName || profile.categoryName;
     }
 
     // Keep followers if missing

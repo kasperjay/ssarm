@@ -13,6 +13,8 @@ export type InstagramProfile = {
   businessEmail?: string | null;
   externalUrl?: string | null;
   profileImageUrl?: string | null;
+  categoryName?: string | null;
+  businessCategoryName?: string | null;
 };
 
 const getString = (value: unknown) =>
@@ -217,9 +219,96 @@ export const fetchInstagramProfile = async (
         getString(profile.website) ??
         getString(profile.websiteUrl),
       profileImageUrl,
+      categoryName: getString(profile.categoryName) ?? getString(profile.businessCategoryName),
+      businessCategoryName: getString(profile.businessCategoryName) ?? getString(profile.categoryName),
     };
   } catch (error) {
     console.error("fetchInstagramProfile error", error);
     return null;
   }
+};
+
+// In-memory cache for batch profile lookups to avoid redundant Apify calls
+const PROFILE_CACHE = new Map<string, { profile: InstagramProfile; cachedAt: number }>();
+const CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
+
+export const fetchInstagramProfilesBatch = async (
+  usernames: string[],
+  limit = 25
+): Promise<Map<string, InstagramProfile>> => {
+  const result = new Map<string, InstagramProfile>();
+  if (!Array.isArray(usernames) || usernames.length === 0) return result;
+
+  const now = Date.now();
+  const cleanedList = Array.from(
+    new Set(
+      usernames
+        .map((u) => (typeof u === "string" ? u.replace(/^@/, "").trim().toLowerCase() : ""))
+        .filter((u) => u.length >= 2 && u.length <= 30 && !/^(?:none|undefined|null)$/i.test(u))
+    )
+  );
+
+  const missing: string[] = [];
+  for (const u of cleanedList) {
+    const cached = PROFILE_CACHE.get(u);
+    if (cached && now - cached.cachedAt < CACHE_TTL_MS) {
+      result.set(u, cached.profile);
+    } else {
+      missing.push(u);
+    }
+  }
+
+  if (missing.length === 0) return result;
+
+  const token = process.env.APIFY_TOKEN;
+  if (!token) return result;
+
+  const actorId = process.env.APIFY_IG_ACTOR_ID || "apify/instagram-profile-scraper";
+  const batchToFetch = missing.slice(0, limit);
+
+  try {
+    const rawItems = await callApifyActor(
+      actorId,
+      {
+        usernames: batchToFetch,
+        resultsLimit: batchToFetch.length,
+        searchType: "user",
+      },
+      token
+    );
+
+    const items = Array.isArray(rawItems) ? rawItems : [];
+    for (const item of items) {
+      if (!item || typeof item !== "object") continue;
+      const rec = item as Record<string, unknown>;
+      const rawUser = getString(rec.username) || getString(rec.ownerUsername);
+      if (!rawUser) continue;
+      const key = rawUser.toLowerCase();
+
+      const profile: InstagramProfile = {
+        fullName: getString(rec.fullName),
+        bio: getString(rec.biography) ?? getString(rec.bio),
+        followersCount: getNumber(rec.followersCount),
+        businessEmail: getString(rec.businessEmail) ?? getString(rec.email),
+        externalUrl:
+          getString(rec.externalUrl) ??
+          getString(rec.externalURL) ??
+          getString(rec.website) ??
+          getString(rec.websiteUrl),
+        categoryName: getString(rec.categoryName) ?? getString(rec.businessCategoryName),
+        businessCategoryName: getString(rec.businessCategoryName) ?? getString(rec.categoryName),
+        profileImageUrl:
+          getString(rec.profilePicUrl) ??
+          getString(rec.profilePicUrlHd) ??
+          getString(rec.avatarUrl),
+      };
+
+      PROFILE_CACHE.set(key, { profile, cachedAt: now });
+      result.set(key, profile);
+    }
+  } catch (error) {
+    console.warn("[IG] Batch profile fetch failed:", error);
+  }
+
+  return result;
 };
