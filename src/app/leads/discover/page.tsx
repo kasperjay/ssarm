@@ -5,7 +5,7 @@ import Link from "next/link";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { cleanArtistName } from "@/lib/utils";
-import { MVP_VENUES } from "@/lib/scrapers/config";
+import { ACTIVE_VENUES, VENUES } from "@/lib/scrapers/config";
 
 type VenueRunStatus = {
     venueId: string;
@@ -21,6 +21,57 @@ type VenueRunStatus = {
 };
 type ImportIssue = { artist: string; reason: string };
 type ImportSummary = { selected: number; saved: number; issues: ImportIssue[] };
+type DiscoveryItem = {
+    artist?: string;
+    artistName?: string;
+    band?: string;
+    musician?: string;
+    ownerUsername?: string;
+    owner?: { username?: string; full_name?: string; followersCount?: number | string; biography?: string; profile_pic_url?: string };
+    username?: string;
+    fullName?: string;
+    title?: string;
+    name?: string;
+    shortCode?: string;
+    url?: string;
+    instagramUrl?: string;
+    link?: string;
+    followersCount?: number | string;
+    ownerFollowersCount?: number | string;
+    ownerProfilePicUrl?: string;
+    ownerProfileImageUrl?: string;
+    profilePicUrl?: string;
+    avatarUrl?: string;
+    biography?: string;
+    bio?: string;
+    description?: string;
+    caption?: string;
+    displayUrl?: string;
+    imageUrl?: string;
+    timestamp?: string;
+    postedAt?: string;
+    id?: string;
+    eventTitle?: string;
+    venueName?: string;
+    eventDate?: string;
+    eventDateOnly?: boolean;
+    eventUrl?: string;
+    eventURL?: string;
+    [key: string]: unknown;
+};
+type ApiErrorResponse = { error?: string; detail?: string };
+type CalendarSearchResponse = ApiErrorResponse & { status?: string; items?: DiscoveryItem[]; venues?: VenueRunStatus[] };
+type DiscoveryStartResponse = { runId: string; datasetId: string };
+type DiscoveryStatusResponse = { status: string; itemCount?: number; items?: Record<string, unknown>[] };
+type SiftResponse = { results?: boolean[]; mode?: string };
+
+function getErrorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error ? error.message : fallback;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 
 function formatEventDate(value?: string, dateOnly = false): string {
@@ -43,8 +94,8 @@ export default function DiscoverPage() {
     const [polling, setPolling] = useState(false);
     const [pollStatus, setPollStatus] = useState<string | null>(null);
     const [pollItemCount, setPollItemCount] = useState(0);
-    const [expectedResults, setExpectedResults] = useState(100);
-    const [results, setResults] = useState<any[]>([]);
+    const expectedResults = 100;
+    const [results, setResults] = useState<DiscoveryItem[]>([]);
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
     const [importing, setImporting] = useState(false);
     const [importProgress, setImportProgress] = useState(0);
@@ -52,10 +103,9 @@ export default function DiscoverPage() {
     const [sifting, setSifting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [searchHistory, setSearchHistory] = useState<string[]>([]);
-    const [showHistory, setShowHistory] = useState(false);
     const [siftMode, setSiftMode] = useState<"ai" | "fallback" | null>(null);
     const [concurrencyBusy, setConcurrencyBusy] = useState(false);
-    const [selectedVenueIds, setSelectedVenueIds] = useState<Set<string>>(() => new Set(MVP_VENUES.map((venue) => venue.id)));
+    const [selectedVenueIds, setSelectedVenueIds] = useState<Set<string>>(() => new Set(ACTIVE_VENUES.map((venue) => venue.id)));
     const [venueStatuses, setVenueStatuses] = useState<VenueRunStatus[]>([]);
 
     useEffect(() => {
@@ -104,23 +154,27 @@ export default function DiscoverPage() {
                 signal: controller.signal,
             });
             const text = await res.text();
-            let data: any;
+            let parsed: unknown;
             try {
-                data = JSON.parse(text);
+                parsed = JSON.parse(text);
             } catch {
                 throw new Error(`Calendar search returned a non-JSON response (${res.status}): ${text.substring(0, 500)}`);
             }
-            if (!res.ok) throw new Error(data?.detail || data?.error || "Failed to search venue calendars.");
+            if (!isRecord(parsed)) throw new Error("Calendar search returned an invalid response.");
+            const data = parsed as CalendarSearchResponse;
+            if (!res.ok) throw new Error(data.detail || data.error || "Failed to search venue calendars.");
 
-            const foundItems = Array.isArray(data.items) ? data.items : [];
+            const foundItems = Array.isArray(data.items) ? data.items.filter(isRecord) as DiscoveryItem[] : [];
             setResults(foundItems);
             setVenueStatuses(Array.isArray(data.venues) ? data.venues : []);
             setSelectedIndices(new Set());
             setPollItemCount(foundItems.length);
             setPollStatus(data.status === "partial" ? "Complete · some venues need attention" : "Complete");
             if (data.status === "failed") setError("All selected venue calendars failed. See the venue status details below.");
-        } catch (err: any) {
-            setError(err.name === "AbortError" ? "Calendar search timed out after 35 seconds. Try fewer venues or run it again." : err.message || "Calendar search failed.");
+        } catch (error) {
+            setError(error instanceof Error && error.name === "AbortError"
+                ? "Calendar search timed out after 35 seconds. Try fewer venues or run it again."
+                : getErrorMessage(error, "Calendar search failed."));
         } finally {
             if (timeoutId !== undefined) window.clearTimeout(timeoutId);
             setPolling(false);
@@ -175,16 +229,20 @@ export default function DiscoverPage() {
             }
 
             const text = await res.text();
-            let data: { runId: string; datasetId: string };
+            let parsed: unknown;
             try {
-                data = JSON.parse(text);
+                parsed = JSON.parse(text);
             } catch {
                 throw new Error(`Server returned status 200 but invalid JSON: ${text.substring(0, 500)}`);
             }
+            if (!isRecord(parsed) || typeof parsed.runId !== "string" || typeof parsed.datasetId !== "string") {
+                throw new Error("Discovery returned an invalid run response.");
+            }
+            const data = parsed as DiscoveryStartResponse;
             setPolling(true);
             void pollStatusLoop(data.runId, data.datasetId);
-        } catch (err: any) {
-            setError(err.message || "Instagram search failed.");
+        } catch (error) {
+            setError(getErrorMessage(error, "Instagram search failed."));
             setPolling(false);
         } finally {
             setLoading(false);
@@ -211,12 +269,16 @@ export default function DiscoverPage() {
             }
 
             const textBody = await res.text();
-            let data;
+            let parsed: unknown;
             try {
-                data = JSON.parse(textBody);
-            } catch (e) {
+                parsed = JSON.parse(textBody);
+            } catch {
                 throw new Error(`Status check returned status 200 but invalid JSON: ${textBody.substring(0, 500)}`);
             }
+            if (!isRecord(parsed) || typeof parsed.status !== "string") {
+                throw new Error("Status check returned an invalid response.");
+            }
+            const data = parsed as DiscoveryStatusResponse;
             const statusMap: Record<string, string> = {
                 "SUCCEEDED": "Complete",
                 "RUNNING": "Processing",
@@ -233,12 +295,13 @@ export default function DiscoverPage() {
                 setLoading(false);
                 setConcurrencyBusy(false);
                 if (data.status === "SUCCEEDED") {
-                    const flattened = (data.items || []).flatMap((rawItem: any) => {
-                        const nestedKeys = Object.keys(rawItem).filter(k => !isNaN(Number(k)));
-                        if (nestedKeys.length > 0 && !rawItem.artist && !rawItem.fullName && !rawItem.name) {
-                            return nestedKeys.map(k => ({ ...rawItem, ...rawItem[k] }));
+                    const flattened = (data.items || []).flatMap((item) => {
+                        if (!isRecord(item)) return [];
+                        const nestedKeys = Object.keys(item).filter((key) => !Number.isNaN(Number(key)));
+                        if (nestedKeys.length > 0 && !item.artist && !item.fullName && !item.name) {
+                            return nestedKeys.flatMap((key) => isRecord(item[key]) ? [{ ...item, ...item[key] } as DiscoveryItem] : []);
                         }
-                        return [rawItem];
+                        return [item as DiscoveryItem];
                     });
                     setResults(flattened);
                     setSelectedIndices(new Set());
@@ -250,8 +313,8 @@ export default function DiscoverPage() {
                     pollStatusLoop(runId, datasetId);
                 }, 3000);
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch (error) {
+            setError(getErrorMessage(error, "Status check failed."));
             setPolling(false);
             setLoading(false);
         }
@@ -296,15 +359,15 @@ export default function DiscoverPage() {
 
             if (!res.ok) {
                 const textBody = await res.text();
+                let data: ApiErrorResponse | null = null;
                 try {
-                    const data = JSON.parse(textBody);
-                    throw new Error(data.detail || data.error || "Failed to sift results.");
-                } catch {
-                    throw new Error(`Failed to sift results (${res.status}).`);
-                }
+                    const parsed: unknown = JSON.parse(textBody);
+                    if (isRecord(parsed)) data = parsed as ApiErrorResponse;
+                } catch {}
+                throw new Error(data?.detail || data?.error || `Failed to sift results (${res.status}).`);
             }
 
-            const data = await res.json();
+            const data = await res.json() as SiftResponse;
             const { results: aiResults, mode } = data;
             if (mode === "ai" || mode === "fallback") {
                 setSiftMode(mode);
@@ -319,12 +382,10 @@ export default function DiscoverPage() {
                 });
                 setSelectedIndices(newSelection);
             }
-        } catch (err: any) {
-            if (err?.name === "AbortError") {
-                setError("Smart selection timed out. Try again or reduce result count.");
-            } else {
-                setError(err.message);
-            }
+        } catch (error) {
+            setError(error instanceof Error && error.name === "AbortError"
+                ? "Smart selection timed out. Try again or reduce result count."
+                : getErrorMessage(error, "Smart selection failed."));
         } finally {
             setSifting(false);
         }
@@ -367,11 +428,14 @@ export default function DiscoverPage() {
 
                         const handle = item.ownerUsername || item.owner?.username || item.username || item.handle || item.instagramHandle;
                         const postUrl = item.shortCode ? `https://www.instagram.com/p/${item.shortCode}` : (item.url || item.instagramUrl || item.link || undefined);
-                        const profileUrl = handle ? `https://www.instagram.com/${handle.replace('@', '')}` : undefined;
+                        const profileUrl = handle ? `https://www.instagram.com/${String(handle).replace('@', '')}` : undefined;
                         const rawFollowers = item.followersCount || item.ownerFollowersCount || item.owner?.followersCount;
                         const followerCount = rawFollowers ? parseInt(String(rawFollowers).replace(/[^0-9]/g, '')) : undefined;
+                        const isVenueCalendarItem = Boolean(item.eventTitle);
                         const payload = {
                             isDiscoveryImport: true,
+                            skipApifyDiscovery: isVenueCalendarItem,
+                            skipInstagramFetch: isVenueCalendarItem,
                             artist: {
                                 name: artistName,
                                 instagramHandle: handle || undefined,
@@ -379,6 +443,10 @@ export default function DiscoverPage() {
                                 instagramProfileImageUrl: item.ownerProfilePicUrl || item.owner?.profile_pic_url || item.profilePicUrl || item.avatarUrl || item.ownerProfileImageUrl || undefined,
                                 bio: item.biography || item.owner?.biography || item.bio || (item.eventTitle ? undefined : item.description || item.caption || undefined),
                                 followerCount: isNaN(Number(followerCount)) ? undefined : followerCount,
+                                location: undefined,
+                                city: undefined,
+                                state: undefined,
+                                country: undefined,
                             },
                             lead: { status: "NEW" as const },
                             instagramPosts: postUrl ? [{
@@ -545,14 +613,20 @@ export default function DiscoverPage() {
                                 <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
                                     <div className="space-y-6">
                                         <div className="flex items-center justify-between">
-                                            <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">MVP Venues</label>
+                                            <label className="block text-xs uppercase font-bold tracking-[0.3em] text-white/30 ml-1">Active Venues</label>
                                             <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
-                                                <button type="button" onClick={() => setSelectedVenueIds(new Set(MVP_VENUES.map((venue) => venue.id)))} className="text-accent/70 hover:text-accent">Select all</button>
+                                                <button type="button" onClick={() => setSelectedVenueIds(new Set(ACTIVE_VENUES.map((venue) => venue.id)))} className="text-accent/70 hover:text-accent">Select all</button>
                                                 <button type="button" onClick={() => setSelectedVenueIds(new Set())} className="text-white/30 hover:text-white/60">Clear</button>
                                             </div>
                                         </div>
                                         <div className="grid gap-3 sm:grid-cols-2">
-                                            {MVP_VENUES.map((venue) => (
+                                            {VENUES.map((venue) => venue.source === "closed" ? (
+                                                <div key={venue.id} aria-label={`${venue.name}, closed`} className="flex items-center gap-3 rounded-2xl border border-white/5 bg-black/10 p-4 opacity-45">
+                                                    <span className="h-4 w-4 rounded border border-white/10" aria-hidden="true" />
+                                                    <span className="text-sm font-semibold text-white/60">{venue.name}</span>
+                                                    <span className="ml-auto text-[9px] font-bold uppercase tracking-widest text-white/40">Closed</span>
+                                                </div>
+                                            ) : (
                                                 <label key={venue.id} className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors ${selectedVenueIds.has(venue.id) ? "border-accent/40 bg-accent/5" : "border-white/10 bg-black/20 hover:bg-white/5"}`}>
                                                     <input
                                                         type="checkbox"
@@ -580,7 +654,7 @@ export default function DiscoverPage() {
                                     <div className="space-y-4 rounded-[24px] border border-white/5 bg-black/20 p-6">
                                         <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/40">Run behavior</h3>
                                         <ul className="space-y-4 text-sm text-white/60">
-                                            <li>Searches the next 30 days from Do512 Family&apos;s public venue calendars.</li>
+                                            <li>Searches active public venue calendars for the next 30 days.</li>
                                             <li>All selected venues run in parallel, with a 30-second limit per venue.</li>
                                             <li>Event pages are checked for lineup details; each identified artist appears separately.</li>
                                             <li>A failed venue is reported without discarding the other venues’ results.</li>
@@ -759,7 +833,7 @@ export default function DiscoverPage() {
                                         </thead>
                                         <tbody className="divide-y divide-white/2 space-y-2">
                                             {results.map((item, i) => {
-                                                const rawName = item.artist || item.artistName || item.band || item.musician || item.ownerUsername || item.username || item.fullName || item.title || item.name;
+                                                const rawName = String(item.artist || item.artistName || item.band || item.musician || item.ownerUsername || item.username || item.fullName || item.title || item.name || "");
                                                 const artistName = cleanArtistName(rawName);
                                                 const isUnknown = !artistName;
                                                 const displayName = artistName || (item.shortCode ? `Post ${item.shortCode}` : "Unknown Artist");
@@ -788,7 +862,7 @@ export default function DiscoverPage() {
                                                                      <div className="text-[10px] text-white/40">{[item.eventTitle, item.venueName, formatEventDate(item.eventDate, item.eventDateOnly)].filter(Boolean).join(" · ")}</div>
                                                                  )}
                                                                  {handle !== "No Handle" && (
-                                                                     <div className="text-[9px] font-bold font-sans text-white/20 uppercase tracking-[0.2em]">@{handle.replace('@', '')}</div>
+                                                                     <div className="text-[9px] font-bold font-sans text-white/20 uppercase tracking-[0.2em]">@{String(handle).replace('@', '')}</div>
                                                                  )}
                                                              </div>
                                                          </td>

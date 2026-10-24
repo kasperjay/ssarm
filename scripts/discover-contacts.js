@@ -256,7 +256,10 @@ async function main() {
     include: { artist: true },
     take: limit,
     orderBy: { updatedAt: "desc" },
-    ...(onlyMissing ? { where: { artist: { emails: { equals: [] } } } } : {}),
+    where: {
+      status: { not: "PAUSED" },
+      ...(onlyMissing ? { artist: { emails: { equals: [] } } } : {}),
+    },
   };
 
   const leads = await prisma.lead.findMany(query);

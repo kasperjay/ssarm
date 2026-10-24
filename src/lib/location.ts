@@ -13,8 +13,18 @@
  * Stage 7: Homepage scrape   — meta tags + "based in" text
  */
 
+import {
+  parseLocationString,
+  extractLocationFromText,
+  isAustinVenue,
+  isGarbageLocation,
+} from "./location-parser";
+
 export type EnrichmentResult = {
   location: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
   genre: string | null;
   externalBio: string | null;
   externalBioSource: "lastfm" | "discogs" | null;
@@ -44,28 +54,8 @@ const clean = (s: string) =>
 
 const validLocation = (s: string | null | undefined): string | null => {
   if (!s) return null;
-  const c = clean(s);
-  if (c.length < 2 || c.length > 80) return null;
-
-  // Reject overly generic or metaphorical values
-  const blacklist = [
-    "worldwide", "global", "internet", "earth", "world", "everywhere", 
-    "universe", "planet", "galaxy", "metaverse", "digital",
-    "concert hall", "halls of", "big stage", "small screen", "the road",
-    "studio", "bedroom", "basement", "garage", "dream", "nowhere"
-  ];
-
-  const lower = c.toLowerCase();
-  
-  // Check blacklist
-  if (blacklist.some(word => lower.includes(word))) return null;
-
-  // Most real locations are short (City) or structured (City, State)
-  // If it's more than 4 words and has no comma or digits, it's likely a sentence fragment
-  const words = c.split(/\s+/);
-  if (words.length > 4 && !c.includes(",") && !/\d/.test(c)) return null;
-
-  return c;
+  const parsed = parseLocationString(s);
+  return parsed ? parsed.formatted : null;
 };
 
 const validGenre = (s: string | null | undefined): string | null => {
@@ -84,38 +74,25 @@ const stripHtml = (html: string) =>
 const fromRawFields = (raw: Record<string, unknown>): string | null => {
   const keys = [
     "locationName", "city",
-    "hometown", "hometown_location", "place", "region",
+    "hometown", "hometown_location", "place", "region", "location",
   ];
   for (const k of keys) {
     const v = raw[k];
     if (typeof v === "string") {
-      const loc = validLocation(v);
-      if (loc) return loc;
+      const parsed = parseLocationString(v);
+      if (parsed) return parsed.formatted;
     }
   }
+
   return null;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Stage 2 — IG Bio regex
+// Stage 2 — IG Bio regex & extraction
 // ─────────────────────────────────────────────────────────────────────────────
-const BIO_PATTERNS: RegExp[] = [
-  /📍\s*([^\n,|•–·]{2,50})/u,
-  /🏠\s*([^\n,|•–·]{2,50})/u,
-  /\b(?:based\s+(?:in|out\s+of)|located\s+in|hailing\s+from|originally\s+from|from|out\s+of|hometown[:\s]+)\s+([A-Za-z][^\n,|•–·]{2,50})/i,
-  /(?:^|[\n|•·–])\s*([A-Z][a-z]{2,20},?\s+[A-Z]{2})\b/m,
-  /\b([A-Z][a-z]{2,20}(?:\s+[A-Z][a-z]+)?,\s+[A-Z]{2})\b/,
-];
-
-const fromBio = (bio: string): string | null => {
-  for (const re of BIO_PATTERNS) {
-    const m = bio.match(re);
-    if (m?.[1]) {
-      const loc = validLocation(m[1]);
-      if (loc) return loc;
-    }
-  }
-  return null;
+const fromBio = (bio: string, name?: string): string | null => {
+  const extracted = extractLocationFromText(bio, { artistName: name });
+  return extracted ? extracted.formatted : null;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -150,7 +127,17 @@ const fromMusicBrainz = async (
     const top = data.artists?.[0];
     if (!top || (top.score ?? 0) < 70) return { location: null, genre: null };
 
-    const location = validLocation(top.area?.name ?? top["begin-area"]?.name ?? null);
+    const beginArea = top["begin-area"]?.name;
+    const area = top.area?.name;
+    let mbCandidate: string | null = null;
+    if (beginArea && area && beginArea !== area) {
+      mbCandidate = `${beginArea}, ${area}`;
+    } else {
+      mbCandidate = beginArea ?? area ?? null;
+    }
+    const parsedMb = mbCandidate ? parseLocationString(mbCandidate) : null;
+    const location = parsedMb ? parsedMb.formatted : validLocation(mbCandidate);
+
     const tags = (top.tags ?? []).sort((a, b) => b.count - a.count);
     const genre = validGenre(tags[0]?.name ?? null);
     return { location, genre };
@@ -198,7 +185,7 @@ const fromLastFm = async (
     const bioText = stripHtml(artist.bio?.summary ?? artist.bio?.content ?? "");
     // Remove Last.fm's boilerplate footer link
     const cleanBio = bioText.replace(/Read more on Last\.fm.*$/i, "").trim();
-    const location = cleanBio ? fromBio(cleanBio) : null;
+    const location = cleanBio ? fromBio(cleanBio, name) : null;
 
     const bio = cleanBio.length > 20 ? cleanBio.substring(0, 1200) : null;
     return { location, genre, bio };
@@ -261,7 +248,7 @@ const fromDiscogs = async (
       // Remove Discogs markup [a=...], [l=...], etc.
       .replace(/\[([a-z]|url)=[^\]]+\]/gi, "")
       .replace(/</g, "").trim();
-    const location = profileText ? fromBio(profileText) : null;
+    const location = profileText ? fromBio(profileText, name) : null;
     const bio = profileText.length > 20 ? profileText.substring(0, 1200) : null;
 
     return { location, genre, bio };
@@ -335,6 +322,19 @@ export const resolveArtistEnrichment = async (
   let externalBio: string | null = null;
   let externalBioSource: EnrichmentResult["externalBioSource"] = null;
 
+  const formatResult = (loc: string | null, g: string | null): EnrichmentResult => {
+    const parsed = loc ? parseLocationString(loc) : null;
+    return {
+      location: parsed ? parsed.formatted : loc,
+      city: parsed?.city ?? null,
+      state: parsed?.state ?? null,
+      country: parsed?.country ?? null,
+      genre: g,
+      externalBio,
+      externalBioSource,
+    };
+  };
+
   // Stage 1 — Raw scraper fields
   if (rawData) {
     location = fromRawFields(rawData);
@@ -343,12 +343,12 @@ export const resolveArtistEnrichment = async (
 
   // Stage 2 — IG bio regex
   if (!location && bio) {
-    location = fromBio(bio);
+    location = fromBio(bio, name);
     if (location) console.log(`[enrich] Stage 2 (bio) → location: "${location}"`);
   }
 
   // Short-circuit: if location AND genre both set, done early
-  if (location && genre) return { location, genre, externalBio, externalBioSource };
+  if (location && genre) return formatResult(location, genre);
 
   // Stage 3 — MusicBrainz (rate limit: 1 req/sec)
   await new Promise((r) => setTimeout(r, 1100));
@@ -362,7 +362,7 @@ export const resolveArtistEnrichment = async (
     console.log(`[enrich] Stage 3 (MusicBrainz) → genre: "${genre}"`);
   }
 
-  if (location && genre) return { location, genre, externalBio, externalBioSource };
+  if (location && genre) return formatResult(location, genre);
 
   // Stage 4 — Last.fm
   const lastFmKey = process.env.LASTFM_API_KEY;
@@ -382,7 +382,7 @@ export const resolveArtistEnrichment = async (
     }
   }
 
-  if (location && genre) return { location, genre, externalBio, externalBioSource };
+  if (location && genre) return formatResult(location, genre);
 
   // Stage 5 — Discogs
   const discogsToken = process.env.DISCOGS_TOKEN;
@@ -403,7 +403,7 @@ export const resolveArtistEnrichment = async (
     }
   }
 
-  if (location) return { location, genre, externalBio, externalBioSource };
+  if (location) return formatResult(location, genre);
 
   // Stages 6 & 7 — Google → Homepage scrape
   if (!skipGoogle) {
@@ -426,7 +426,7 @@ export const resolveArtistEnrichment = async (
     console.log(`[enrich] All stages exhausted for "${name}" — no enrichment found.`);
   }
 
-  return { location, genre, externalBio, externalBioSource };
+  return formatResult(location, genre);
 };
 
 // Legacy export for backwards compat with any direct location-only callers

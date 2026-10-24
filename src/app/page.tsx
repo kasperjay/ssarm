@@ -133,7 +133,7 @@ export default async function Home(props: {
                 style={{ 
                   height: `${30 + (Math.sin(i * 0.5) * 40 + 40)}%`,
                   animationDelay: `${i * 0.15}s`,
-                  animationDuration: `${1.5 + Math.random()}s`
+                  animationDuration: `${1.5 + ((i * 37) % 10) / 10}s`
                 }} 
               />
             ))}
@@ -169,7 +169,7 @@ export default async function Home(props: {
             </GlassCard>
           </Link>
 
-          <Link href="/leads/drafts" className="block">
+          <Link href="/leads" className="block">
             <GlassCard className="relative h-[240px] p-0! overflow-hidden group hover:scale-[1.02] transition-all duration-500">
                <div className="absolute inset-0 bg-linear-to-b from-accent-secondary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                <div className="p-8 h-full flex flex-col justify-between relative z-10">
@@ -177,7 +177,7 @@ export default async function Home(props: {
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-white">Artist / Contact Management</h3>
+                  <h3 className="text-xl font-bold text-white">Lead Management</h3>
                   <p className="text-sm text-white/40 leading-relaxed font-medium">Filter and sort all generated leads.</p>
                 </div>
               </div>
@@ -235,7 +235,7 @@ export default async function Home(props: {
                         <Link href={`/leads/${lead.id}`} className="text-lg font-bold text-white truncate hover:text-accent transition-colors block leading-tight mb-1">
                           {lead.name}
                         </Link>
-                        <p className="text-xs uppercase tracking-widest text-white/30 font-bold">{lead.location} // {lead.genre}</p>
+                        <p className="text-xs uppercase tracking-widest text-white/30 font-bold">{lead.location}{" // "}{lead.genre}</p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <StatusPill status={lead.status} />

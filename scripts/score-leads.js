@@ -2,12 +2,8 @@
 
 const fs = require("fs");
 const path = require("path");
-const { PrismaClient } = require("../prisma/generated-client");
-const { PrismaPg } = require("@prisma/adapter-pg");
-const { Pool } = require("pg");
-const { calculateLeadScoreFromData } = require("../src/lib/scoring-core");
-const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
 
+// Load .env FIRST before any modules that instantiate DB pools
 const envPath = path.join(process.cwd(), ".env");
 if (fs.existsSync(envPath)) {
   const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
@@ -24,23 +20,43 @@ if (fs.existsSync(envPath)) {
   }
 }
 
+const { calculateLeadScoreFromData } = require("../src/lib/scoring-core");
+const { isAustinVenue } = require("../src/lib/location-parser");
+const { scanLeadForProductionNeeds, isClearPreserved } = require("../src/lib/production-need-scanner");
+const { isNonLocalWithPastGigOnly } = require("../src/lib/show-parser");
+const { withAgentRun, prisma, pool } = require("../src/lib/agent-runner");
+
 const getArg = (name) => {
   const index = process.argv.indexOf(name);
   if (index === -1) return null;
-  return process.argv[index + 1] ?? null;
+  const val = process.argv[index + 1];
+  return val && !val.startsWith("--") ? val : null;
 };
 
 const hasFlag = (name) => process.argv.includes(name);
 
 async function calculateLeadScore(lead) {
-  const releaseCount = await prisma.release.count({
-    where: { artistId: lead.artist.id },
-  });
-
-  const analyses = await prisma.trackAnalysis.findMany({
-    where: { release: { artistId: lead.artist.id } },
-    select: { moods: true, themes: true, rating: true },
-  });
+  const [releaseCount, analyses, instagramPosts, releases] = await Promise.all([
+    prisma.release.count({
+      where: { artistId: lead.artist.id },
+    }),
+    prisma.trackAnalysis.findMany({
+      where: { release: { artistId: lead.artist.id } },
+      select: { moods: true, themes: true, rating: true },
+    }),
+    prisma.instagramPost.findMany({
+      where: { artistId: lead.artist.id },
+      orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
+      take: 30,
+      select: { caption: true },
+    }),
+    prisma.release.findMany({
+      where: { artistId: lead.artist.id },
+      orderBy: [{ releaseDate: "desc" }, { createdAt: "desc" }],
+      take: 10,
+      select: { title: true, releaseDate: true },
+    }),
+  ]);
 
   const trackAnalysisStats = analyses.length > 0 ? {
     uniqueMoods: [...new Set(analyses.flatMap(a => a.moods))].length,
@@ -49,11 +65,40 @@ async function calculateLeadScore(lead) {
     hasAnalysis: true,
   } : undefined;
 
-  return calculateLeadScoreFromData(lead.artist, releaseCount, trackAnalysisStats);
+  const isPastGigOnly = isNonLocalWithPastGigOnly(lead);
+  const hasAustinActivity = !isPastGigOnly && (lead.activities || []).some((a) => isAustinVenue(a.note));
+  const artistWithTie = {
+    ...lead.artist,
+    hasAustinVenueTie: hasAustinActivity,
+  };
+
+  const scanResult = scanLeadForProductionNeeds({
+    bio: lead.artist.bio,
+    captions: instagramPosts.map((p) => p.caption).filter(Boolean),
+    releases,
+  });
+  const needLevel = scanResult.level;
+  const needEvidence = scanResult.evidence;
+  const needApprovedAt = scanResult.level !== "NONE" ? new Date() : null;
+
+  const scoreData = calculateLeadScoreFromData(artistWithTie, releaseCount, trackAnalysisStats, {
+    level: needLevel,
+    evidence: needEvidence,
+    approvedAt: needApprovedAt,
+  });
+
+  return {
+    ...scoreData,
+    productionNeed: {
+      level: needLevel,
+      evidence: needEvidence,
+      approvedAt: needApprovedAt,
+    },
+  };
 }
 
 async function getLeadsToScore(options) {
-  const { all, limit = 100, filterStatus } = options;
+  const { all, limit, filterStatus } = options;
   const where = {};
 
   if (!all) where.score = null;
@@ -62,11 +107,16 @@ async function getLeadsToScore(options) {
     where.status = {
       in: filterStatus.split(",").map((status) => status.trim().toUpperCase()),
     };
+  } else {
+    where.status = { not: "PAUSED" };
   }
 
   return prisma.lead.findMany({
     where,
-    include: { artist: true },
+    include: {
+      artist: true,
+      activities: { select: { note: true } },
+    },
     take: limit,
     orderBy: { createdAt: "desc" },
   });
@@ -94,14 +144,32 @@ async function scoreLeads(leads, dryRun = false) {
         newRationale: scoreData.scoreRationale,
       });
 
+      const isPastGigOnly = isNonLocalWithPastGigOnly(lead);
+      const shouldPause = isPastGigOnly && (lead.status === "NEW" || lead.status === "QUALIFIED");
+      const shouldAutoQualify = !isPastGigOnly && scoreData.isQualified && lead.status === "NEW";
+      const nextStatus = shouldPause ? "PAUSED" : shouldAutoQualify ? "QUALIFIED" : lead.status;
+
       if (!dryRun) {
         await prisma.lead.update({
           where: { id: lead.id },
           data: {
             score: scoreData.totalScore,
             scoreRationale: scoreData.scoreRationale,
+            status: nextStatus,
+            productionNeedLevel: scoreData.productionNeed.level,
+            productionNeedEvidence: scoreData.productionNeed.evidence,
+            productionNeedApprovedAt: scoreData.productionNeed.approvedAt,
           },
         });
+        if (shouldPause) {
+          await prisma.activity.create({
+            data: {
+              leadId: lead.id,
+              type: "NOTE",
+              note: "[AUTO-PAUSE] Non-local artist whose Austin gigs have already been played. Removed from lead queue.",
+            },
+          });
+        }
         results.updated++;
       }
 
@@ -120,13 +188,14 @@ async function main() {
   const dryRun = hasFlag("--dry-run");
   const limitArg = getArg("--limit");
   const filterStatus = getArg("--filter-status");
-  const limit = limitArg ? parseInt(limitArg, 10) : 100;
+  const limitParsed = limitArg ? parseInt(limitArg, 10) : null;
+  const limit = limitParsed && !isNaN(limitParsed) && limitParsed > 0 ? limitParsed : (allFlag ? undefined : 100);
 
   console.log("Lead Scoring Engine");
   console.log(
     `Mode: ${dryRun ? "DRY RUN" : "LIVE"}`,
     allFlag ? "| All leads" : "| Unscored only",
-    `| Limit: ${limit}`
+    limit ? `| Limit: ${limit}` : "| No limit (all)"
   );
 
   if (filterStatus) console.log(`Filter: status in [${filterStatus}]`);

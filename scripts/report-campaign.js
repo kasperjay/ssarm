@@ -36,6 +36,7 @@ function calculateFunnelMetrics(leads) {
   const followUp = leads.filter((l) => l.status === "FOLLOW_UP").length;
   const converted = leads.filter((l) => l.status === "WON").length;
   const lost = leads.filter((l) => l.status === "LOST").length;
+  const paused = leads.filter((l) => l.status === "PAUSED").length;
 
   return {
     total,
@@ -44,6 +45,7 @@ function calculateFunnelMetrics(leads) {
     followUp,
     converted,
     lost,
+    paused,
     conversionRate: total > 0 ? ((converted / total) * 100).toFixed(1) : "0.0",
     qualificationRate: total > 0 ? ((qualified / total) * 100).toFixed(1) : "0.0",
   };

@@ -1,15 +1,281 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { Prisma, LeadStatus, ProductionNeedLevel } from "local-prisma-client";
 import { prisma } from "@/lib/prisma";
-import { formatRelativeDate, formatLocation, clampScore } from "@/lib/utils";
 import { GlassCard } from "@/components/GlassCard";
-import { StatusPill } from "@/components/StatusPill";
 import { NeonButton } from "@/components/NeonButton";
-import { Navbar } from "@/components/Navbar";
+import { StatusPill } from "@/components/StatusPill";
+import { formatRelativeDate, formatLocation, clampScore } from "@/lib/utils";
+import { updateLeadStatus } from "./[id]/actions";
+import { AUSTIN_AREA_CITIES } from "@/lib/location-parser";
+import { isNonLocalWithPastGigOnly } from "@/lib/show-parser";
 
-export default async function LeadsPage() {
-  const leadRows = await prisma.lead.findMany({
+const STATUS_OPTIONS = [
+  "ALL",
+  "NEW",
+  "QUALIFIED",
+  "CONTACTED",
+  "FOLLOW_UP",
+  "WON",
+  "LOST",
+  "PAUSED",
+] as const;
+
+const SCORE_OPTIONS = [
+  "ALL",
+  "80_PLUS",
+  "60_PLUS",
+  "60_79",
+  "40_59",
+  "UNDER_40",
+  "UNSCORED",
+] as const;
+
+const LOCATION_OPTIONS = [
+  "ALL",
+  "AUSTIN",
+  "TEXAS",
+  "TEXAS_NON_AUSTIN",
+  "OUT_OF_STATE",
+  "UNKNOWN",
+] as const;
+
+const NEED_OPTIONS = [
+  "ALL",
+  "PROBABLE",
+  "CLEAR",
+  "POSSIBLE",
+  "ANY_NEED",
+  "NONE",
+] as const;
+
+const CONTACT_OPTIONS = [
+  "ALL",
+  "WITH_CONTACT",
+  "NO_CONTACT",
+] as const;
+
+const SORT_OPTIONS = [
+  "score_desc",
+  "score_asc",
+  "updated_desc",
+  "updated_asc",
+  "name_asc",
+  "name_desc",
+  "created_desc",
+  "created_asc",
+] as const;
+
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function asSingle(value: string | string[] | undefined, fallback: string): string {
+  if (Array.isArray(value)) return value[0] ?? fallback;
+  return value ?? fallback;
+}
+
+export default async function LeadsPage(props: PageProps) {
+  const params = await props.searchParams;
+
+  const status = asSingle(params.status, "QUALIFIED").toUpperCase();
+  const score = asSingle(params.score, "ALL").toUpperCase();
+  const location = asSingle(params.location, "ALL").toUpperCase();
+  const need = asSingle(params.need, "ALL").toUpperCase();
+  const contact = asSingle(params.contact, "WITH_CONTACT").toUpperCase();
+  const sort = asSingle(params.sort, "score_desc").toLowerCase();
+  const q = asSingle(params.q, "").trim();
+  const loc = asSingle(params.loc, "").trim();
+  const minScoreRaw = asSingle(params.minScore, "").trim();
+  const maxScoreRaw = asSingle(params.maxScore, "").trim();
+
+  const safeStatus = STATUS_OPTIONS.includes(status as (typeof STATUS_OPTIONS)[number]) ? status : "QUALIFIED";
+  const safeScore = SCORE_OPTIONS.includes(score as (typeof SCORE_OPTIONS)[number]) ? score : "ALL";
+  const safeLocation = LOCATION_OPTIONS.includes(location as (typeof LOCATION_OPTIONS)[number]) ? location : "ALL";
+  const safeNeed = NEED_OPTIONS.includes(need as (typeof NEED_OPTIONS)[number]) ? need : "ALL";
+  const safeContact = CONTACT_OPTIONS.includes(contact as (typeof CONTACT_OPTIONS)[number]) ? contact : "WITH_CONTACT";
+  const safeSort = SORT_OPTIONS.includes(sort as (typeof SORT_OPTIONS)[number]) ? sort : "score_desc";
+
+  const where: Prisma.LeadWhereInput = {};
+
+  // Status Filter: Always remove PAUSED unless explicitly filtered for
+  if (safeStatus !== "ALL") {
+    where.status = safeStatus as LeadStatus;
+  } else {
+    where.status = { not: "PAUSED" };
+  }
+
+  // Score Range Filter
+  if (minScoreRaw || maxScoreRaw) {
+    const min = minScoreRaw ? parseFloat(minScoreRaw) : undefined;
+    const max = maxScoreRaw ? parseFloat(maxScoreRaw) : undefined;
+    where.score = {
+      ...(min !== undefined && !isNaN(min) ? { gte: min } : {}),
+      ...(max !== undefined && !isNaN(max) ? { lte: max } : {}),
+    };
+  } else if (safeScore === "80_PLUS") {
+    where.score = { gte: 80 };
+  } else if (safeScore === "60_PLUS") {
+    where.score = { gte: 60 };
+  } else if (safeScore === "60_79") {
+    where.score = { gte: 60, lte: 79.99 };
+  } else if (safeScore === "40_59") {
+    where.score = { gte: 40, lte: 59.99 };
+  } else if (safeScore === "UNDER_40") {
+    where.score = { lt: 40 };
+  } else if (safeScore === "UNSCORED") {
+    where.score = null;
+  }
+
+  // Production Need Filter
+  if (safeNeed === "PROBABLE" || safeNeed === "CLEAR") {
+    where.productionNeedLevel = { in: ["PROBABLE", "CLEAR"] };
+  } else if (safeNeed === "POSSIBLE") {
+    where.productionNeedLevel = "POSSIBLE";
+  } else if (safeNeed === "ANY_NEED") {
+    where.productionNeedLevel = { in: ["PROBABLE", "CLEAR", "POSSIBLE"] };
+  } else if (safeNeed === "NONE") {
+    where.productionNeedLevel = "NONE";
+  }
+
+  // Artist-level conditions (combined safely via AND)
+  const artistAndConditions: Prisma.ArtistWhereInput[] = [];
+
+  // Contact Readiness
+  if (safeContact === "WITH_CONTACT") {
+    artistAndConditions.push({
+      OR: [
+        { emails: { isEmpty: false } },
+        { instagramHandle: { not: null } },
+        { officialSiteUrl: { not: null } },
+      ],
+    });
+  } else if (safeContact === "NO_CONTACT") {
+    artistAndConditions.push({
+      AND: [
+        { emails: { isEmpty: true } },
+        { instagramHandle: null },
+        { officialSiteUrl: null },
+      ],
+    });
+  }
+
+  // Location Preset Filters
+  const austinVariations = Array.from(
+    new Set([
+      ...AUSTIN_AREA_CITIES,
+      ...AUSTIN_AREA_CITIES.map((c) => c.charAt(0).toUpperCase() + c.slice(1)),
+      "Austin",
+      "ATX",
+      "Austin, TX",
+      "Austin, Texas",
+    ])
+  );
+
+  if (safeLocation === "AUSTIN") {
+    artistAndConditions.push({
+      OR: [
+        { city: { in: austinVariations } },
+        { location: { contains: "austin", mode: "insensitive" } },
+        { location: { contains: "atx", mode: "insensitive" } },
+        { location: { contains: "round rock", mode: "insensitive" } },
+        { location: { contains: "san marcos", mode: "insensitive" } },
+        { location: { contains: "cedar park", mode: "insensitive" } },
+        { location: { contains: "georgetown", mode: "insensitive" } },
+        { location: { contains: "pflugerville", mode: "insensitive" } },
+        { location: { contains: "buda", mode: "insensitive" } },
+        { location: { contains: "kyle", mode: "insensitive" } },
+      ],
+    });
+  } else if (safeLocation === "TEXAS") {
+    artistAndConditions.push({
+      OR: [
+        { state: { in: ["TX", "Texas", "tx", "texas"] } },
+        { location: { contains: "TX", mode: "insensitive" } },
+        { location: { contains: "Texas", mode: "insensitive" } },
+      ],
+    });
+  } else if (safeLocation === "TEXAS_NON_AUSTIN") {
+    artistAndConditions.push({
+      OR: [
+        { state: { in: ["TX", "Texas", "tx", "texas"] } },
+        { location: { contains: "TX", mode: "insensitive" } },
+        { location: { contains: "Texas", mode: "insensitive" } },
+      ],
+      NOT: [
+        { city: { in: austinVariations } },
+        { location: { contains: "austin", mode: "insensitive" } },
+      ],
+    });
+  } else if (safeLocation === "OUT_OF_STATE") {
+    artistAndConditions.push({
+      OR: [
+        { state: { not: null, notIn: ["TX", "Texas", "tx", "texas", ""] } },
+        { country: { not: null, notIn: ["USA", "US", "United States", ""] } },
+      ],
+      NOT: [
+        { state: { in: ["TX", "Texas", "tx", "texas"] } },
+        { location: { contains: "austin", mode: "insensitive" } },
+        { location: { contains: "texas", mode: "insensitive" } },
+      ],
+    });
+  } else if (safeLocation === "UNKNOWN") {
+    artistAndConditions.push({
+      AND: [
+        { OR: [{ city: null }, { city: "" }] },
+        { OR: [{ state: null }, { state: "" }] },
+        { OR: [{ location: null }, { location: "" }] },
+      ],
+    });
+  }
+
+  // Location Free Text Search
+  if (loc) {
+    artistAndConditions.push({
+      OR: [
+        { city: { contains: loc, mode: "insensitive" } },
+        { state: { contains: loc, mode: "insensitive" } },
+        { country: { contains: loc, mode: "insensitive" } },
+        { location: { contains: loc, mode: "insensitive" } },
+      ],
+    });
+  }
+
+  if (artistAndConditions.length > 0) {
+    where.artist = { AND: artistAndConditions };
+  }
+
+  // General Text Search (q)
+  if (q) {
+    where.OR = [
+      { artist: { name: { contains: q, mode: "insensitive" } } },
+      { artist: { genre: { contains: q, mode: "insensitive" } } },
+      { artist: { bio: { contains: q, mode: "insensitive" } } },
+      { scoreRationale: { contains: q, mode: "insensitive" } },
+    ];
+  }
+
+  // Sort Order
+  const orderBy =
+    safeSort === "score_asc"
+      ? [{ score: "asc" as const }, { updatedAt: "desc" as const }]
+      : safeSort === "updated_desc"
+        ? [{ updatedAt: "desc" as const }]
+        : safeSort === "updated_asc"
+          ? [{ updatedAt: "asc" as const }]
+          : safeSort === "name_asc"
+            ? [{ artist: { name: "asc" as const } }]
+            : safeSort === "name_desc"
+              ? [{ artist: { name: "desc" as const } }]
+              : safeSort === "created_asc"
+                ? [{ createdAt: "asc" as const }]
+                : safeSort === "created_desc"
+                  ? [{ createdAt: "desc" as const }]
+                  : [{ score: "desc" as const }, { updatedAt: "desc" as const }];
+
+  const rawLeads = await prisma.lead.findMany({
+    where,
     include: {
       artist: {
         include: {
@@ -19,77 +285,97 @@ export default async function LeadsPage() {
           },
         },
       },
-    },
-    where: {
-      status: {
-        not: "CONTACTED",
+      activities: {
+        orderBy: { occurredAt: "desc" },
+        take: 20,
       },
     },
-    orderBy: [{ score: "desc" }, { updatedAt: "desc" }],
+    orderBy,
   });
 
-  const leads = leadRows.map((lead) => {
-    const latestRelease = lead.artist.releases[0];
-    const score = clampScore(lead.score);
-    return {
-      id: lead.id,
-      name: lead.artist.name,
-      location: formatLocation(
-        lead.artist.location,
-        lead.artist.city,
-        lead.artist.state,
-        lead.artist.country
-      ),
-      genre: lead.artist.genre ?? "Unknown",
-      status: lead.status,
-      score,
-      summary: lead.scoreRationale ?? "Analysis pending...",
-      lastRelease: latestRelease
-        ? `${formatRelativeDate(latestRelease.releaseDate ?? latestRelease.createdAt)} - "${latestRelease.title}"`
-        : "No recent activity",
+  // Non-local artists whose gigs in Austin have already been played are removed from the lead queue
+  const leads = rawLeads.filter((lead) => safeStatus === "PAUSED" || !isNonLocalWithPastGigOnly(lead));
+
+  // Calculate active filter count and chips for UI feedback
+  const activeChips: string[] = [];
+  if (q) activeChips.push(`"${q}"`);
+  if (safeStatus !== "ALL") activeChips.push(`Status: ${safeStatus}`);
+  if (safeScore !== "ALL") {
+    const scoreMap: Record<string, string> = {
+      "80_PLUS": "Score 80+",
+      "60_PLUS": "Score 60+",
+      "60_79": "Score 60–79",
+      "40_59": "Score 40–59",
+      UNDER_40: "Score <40",
+      UNSCORED: "Unscored",
     };
-  });
+    activeChips.push(scoreMap[safeScore] || safeScore);
+  }
+  if (safeLocation !== "ALL") {
+    const locMap: Record<string, string> = {
+      AUSTIN: "Austin Metro",
+      TEXAS: "All Texas",
+      TEXAS_NON_AUSTIN: "Texas (Non-Austin)",
+      OUT_OF_STATE: "Out of State",
+      UNKNOWN: "Unknown Location",
+    };
+    activeChips.push(locMap[safeLocation] || safeLocation);
+  }
+  if (loc) activeChips.push(`Loc: "${loc}"`);
+  if (safeNeed !== "ALL") {
+    const needMap: Record<string, string> = {
+      PROBABLE: "Probable Need (+12)",
+      CLEAR: "Probable Need (+12)",
+      POSSIBLE: "Possible Need (+8)",
+      ANY_NEED: "Any Production Need",
+      NONE: "No Need",
+    };
+    activeChips.push(needMap[safeNeed] || safeNeed);
+  }
+  if (safeContact !== "ALL") {
+    activeChips.push(safeContact === "WITH_CONTACT" ? "Has Contacts" : "Missing Contacts");
+  }
 
   return (
-    <div className="relative min-h-screen bg-background pt-32 pb-20 selection:bg-accent/30 selection:text-white">
-      <Navbar />
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-16 px-6">
-        
+    <div className="relative min-h-screen bg-transparent">
+      <div className="mx-auto max-w-7xl space-y-10 px-6 py-20">
         {/* Header Section */}
-        <header className="flex flex-col gap-10">
-          <div className="flex flex-wrap items-end justify-between gap-12 border-b border-white/5 pb-12">
-            <div className="space-y-6">
-              <Link 
-                href="/" 
+        <header className="flex flex-col gap-8 relative">
+          <div className="absolute -top-24 -right-24 h-96 w-96 bg-accent-warm/10 blur-[120px] rounded-full pointer-events-none" />
+
+          <div className="flex flex-wrap items-end justify-between gap-8 pb-10 border-b border-white/5 relative z-10">
+            <div className="space-y-4">
+              <Link
+                href="/"
                 className="inline-flex items-center gap-2 group text-xs font-bold uppercase tracking-[0.3em] text-white/30 hover:text-accent transition-all"
               >
-                <span className="transition-transform group-hover:-translate-x-1">←</span>                 <span>Dashboard</span>
+                <span className="transition-transform group-hover:-translate-x-1 text-lg leading-none">←</span>
+                Dashboard
               </Link>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <span className="h-px w-8 bg-accent/40" />
-                  <p className="text-xs uppercase tracking-[0.3em] text-accent/60 font-bold">
-                    Lead Directory
-                  </p>
-                </div>
-                <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight premium-gradient-text pr-4">
-                  Inbox
-                </h1>
+              <div className="flex items-center gap-3">
+                <span className="h-px w-8 bg-accent/40" />
+                <p className="text-xs uppercase tracking-[0.3em] text-accent/60 font-bold">
+                  Lead Directory & Intelligence
+                </p>
               </div>
+              <h1 className="font-display text-5xl font-bold tracking-tighter md:text-6xl lg:text-7xl">
+                Lead <span className="premium-gradient-text italic">Management</span>
+              </h1>
+              <p className="text-white/40 text-sm max-w-2xl font-medium leading-relaxed">
+                Central view of leads with multi-tier smart scoring, Austin proximity, verified production need, and contact readiness.
+              </p>
             </div>
 
-            <div className="flex items-center gap-8 pb-2">
-              <GlassCard className="px-6! py-4! flex items-center gap-6 bg-white/2 border-white/5 shadow-xl">
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-white/30 uppercase tracking-[0.2em]">Total Leads</span>
-                  <span className="text-3xl font-bold tracking-tighter text-white">{leads.length}</span>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-col items-end gap-2 bg-white/2 backdrop-blur-sm border border-white/5 p-6 rounded-[32px]">
+                <span className="text-xs font-bold text-white/30 uppercase tracking-[0.2em]">Lead Records</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-sans font-extrabold text-accent">{leads.length}</span>
+                  <span className="text-xs font-bold text-white/10 uppercase tracking-widest">
+                    {activeChips.length > 0 ? "Filtered" : "Active"}
+                  </span>
                 </div>
-                <div className="h-10 w-px bg-white/5" />
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-accent neon-glow" />
-                  <span className="text-[9px] font-bold text-accent/60 uppercase tracking-widest">Auto-Sync</span>
-                </div>
-              </GlassCard>
+              </div>
 
               <Link href="/leads/discover">
                 <NeonButton variant="outline" size="md">
@@ -100,76 +386,359 @@ export default async function LeadsPage() {
           </div>
         </header>
 
-        <main>
-          <div className="flex flex-col gap-6">
-            {leads.length === 0 ? (
-              <GlassCard className="text-center py-32 bg-white/2 border-white/5 border-dashed">
-                <p className="text-white/30 uppercase tracking-[0.2em] font-bold text-xs">
-                  No leads found in this view
-                </p>
-              </GlassCard>
-            ) : (
-              <div className="grid gap-8 pb-12">
-                {leads.map((lead) => (
+        {/* Multi-Dimensional Filter Suite */}
+        <section className="relative z-10">
+          <GlassCard className="p-6! border-white/5 bg-white/2 space-y-6">
+            <form method="GET" action="/leads" className="space-y-4">
+              {/* Row 1: Core Triage Filters */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Search */}
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/30">Keyword / Bio</span>
+                  <input
+                    name="q"
+                    defaultValue={q}
+                    placeholder="Artist, bio, sound..."
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  />
+                </label>
+
+                {/* Score Range Filter */}
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent/70">Score Range</span>
+                  <select
+                    name="score"
+                    defaultValue={safeScore}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="ALL">All Scores (0 – 100)</option>
+                    <option value="80_PLUS">80+ · Top Priority (Tier 1)</option>
+                    <option value="60_PLUS">60+ · All Qualified Targets</option>
+                    <option value="60_79">60 – 79 · Standard Qualified</option>
+                    <option value="40_59">40 – 59 · Emerging / Moderate</option>
+                    <option value="UNDER_40">&lt; 40 · Low Priority</option>
+                    <option value="UNSCORED">Unscored Leads</option>
+                  </select>
+                </label>
+
+                {/* Location Filter */}
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent/70">Location Region</span>
+                  <select
+                    name="location"
+                    defaultValue={safeLocation}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="ALL">All Locations</option>
+                    <option value="AUSTIN">Austin &amp; Local Metro</option>
+                    <option value="TEXAS">All Texas (Austin + State)</option>
+                    <option value="TEXAS_NON_AUSTIN">Texas (Outside Austin)</option>
+                    <option value="OUT_OF_STATE">Out of State / Non-TX</option>
+                    <option value="UNKNOWN">Unknown / Missing Location</option>
+                  </select>
+                </label>
+
+                {/* Status */}
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/30">Lead Status</span>
+                  <select
+                    name="status"
+                    defaultValue={safeStatus}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="ALL">All Active Statuses</option>
+                    <option value="NEW">New</option>
+                    <option value="QUALIFIED">Qualified</option>
+                    <option value="CONTACTED">Contacted</option>
+                    <option value="FOLLOW_UP">Follow Up</option>
+                    <option value="WON">Won (Converted)</option>
+                    <option value="LOST">Lost (Closed)</option>
+                    <option value="PAUSED">Paused / Ignore</option>
+                  </select>
+                </label>
+              </div>
+
+              {/* Row 2: Precision & Signal Filters */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                {/* Specific Location Search */}
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/30">City / State Search</span>
+                  <input
+                    name="loc"
+                    defaultValue={loc}
+                    placeholder="e.g. San Marcos, Houston, Denver..."
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  />
+                </label>
+
+                {/* Production Need */}
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/30">Production Need</span>
+                  <select
+                    name="need"
+                    defaultValue={safeNeed}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="ALL">All Production Needs</option>
+                    <option value="PROBABLE">★ Probable Need (Studio / Mix / Track)</option>
+                    <option value="POSSIBLE">Possible Need (Releases / Drops)</option>
+                    <option value="ANY_NEED">Any Need (Probable + Possible)</option>
+                    <option value="NONE">No Detected Need</option>
+                  </select>
+                </label>
+
+                {/* Contact Signals */}
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/30">Contact Signals</span>
+                  <select
+                    name="contact"
+                    defaultValue={safeContact}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="ALL">All Contact Readiness</option>
+                    <option value="WITH_CONTACT">Has Contact Signals (Ready)</option>
+                    <option value="NO_CONTACT">Missing Contact Signals</option>
+                  </select>
+                </label>
+
+                {/* Sort */}
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/30">Sort Order</span>
+                  <select
+                    name="sort"
+                    defaultValue={safeSort}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="score_desc">Smart Score (High → Low)</option>
+                    <option value="score_asc">Smart Score (Low → High)</option>
+                    <option value="updated_desc">Last Updated (Newest)</option>
+                    <option value="updated_asc">Last Updated (Oldest)</option>
+                    <option value="name_asc">Artist Name (A → Z)</option>
+                    <option value="name_desc">Artist Name (Z → A)</option>
+                    <option value="created_desc">Created (Newest)</option>
+                    <option value="created_asc">Created (Oldest)</option>
+                  </select>
+                </label>
+              </div>
+
+              {/* Action Buttons & Filter Summary */}
+              <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/5">
+                <div className="flex flex-wrap items-center gap-2">
+                  {activeChips.length > 0 ? (
+                    <>
+                      <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/30 mr-1">
+                        Active ({activeChips.length}):
+                      </span>
+                      {activeChips.map((chip, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 rounded-full bg-accent/10 border border-accent/25 text-accent text-xs font-bold"
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </>
+                  ) : (
+                    <span className="text-xs text-white/20 font-medium">
+                      Showing all active leads sorted by Smart Score. Use filters above to isolate specific cohorts.
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4 ml-auto">
+                  {activeChips.length > 0 && (
+                    <Link
+                      href="/leads"
+                      className="text-xs font-bold uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors whitespace-nowrap"
+                    >
+                      Reset All
+                    </Link>
+                  )}
+                  <NeonButton variant="purple" size="md" className="text-xs! tracking-[0.2em]! font-bold! px-8!">
+                    Apply Filters
+                  </NeonButton>
+                </div>
+              </div>
+            </form>
+          </GlassCard>
+        </section>
+
+        {/* Lead List */}
+        <main className="space-y-6 relative z-10">
+          {leads.length === 0 ? (
+            <GlassCard className="py-20 text-center p-12!">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/30 max-w-sm mx-auto leading-relaxed">
+                No leads match this filter combination.
+              </p>
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <Link href="/leads">
+                  <NeonButton variant="purple" size="md" className="text-xs! tracking-[0.2em]! font-bold!">
+                    Clear Filters
+                  </NeonButton>
+                </Link>
+                <Link href="/leads/discover">
+                  <NeonButton variant="outline" size="md" className="text-xs! tracking-[0.2em]! font-bold!">
+                    + New Search
+                  </NeonButton>
+                </Link>
+              </div>
+            </GlassCard>
+          ) : (
+            <div className="grid gap-6">
+              {leads.map((lead) => {
+                const score = clampScore(lead.score);
+                const hasEmail = (lead.artist.emails?.length ?? 0) > 0;
+                const hasIg = Boolean(lead.artist.instagramHandle);
+                const hasSite = Boolean(lead.artist.officialSiteUrl);
+                const hasContactSignals = hasEmail || hasIg || hasSite;
+                const latestRelease = lead.artist.releases[0];
+                const locationText = formatLocation(
+                  lead.artist.location,
+                  lead.artist.city,
+                  lead.artist.state,
+                  lead.artist.country
+                ) || "Location Unknown";
+
+                const isAustinArtist =
+                  lead.artist.city?.toLowerCase() === "austin" ||
+                  (lead.artist.location && /austin|atx/i.test(lead.artist.location));
+
+                return (
                   <GlassCard
                     key={lead.id}
-                    className="group relative border-white/5 hover:border-white/10 transition-all hover:translate-x-1 active:scale-[0.995] shadow-2xl overflow-hidden"
+                    className="group p-8! transition-all hover:bg-white/4 border-white/5 hover:border-accent/30 shadow-2xl"
                   >
-                    {/* Background Detail */}
-                    <div className="absolute top-0 right-0 h-32 w-32 bg-accent/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                    
-                    <div className="flex flex-wrap items-center justify-between gap-8 mb-10">
-                      <div className="space-y-3">
+                    {/* Header Row */}
+                    <div className="flex flex-wrap items-start justify-between gap-6 mb-6 border-b border-white/5 pb-6">
+                      <div className="space-y-2">
                         <h3 className="text-3xl font-bold tracking-tighter">
                           <Link
                             href={`/leads/${lead.id}`}
-                            className="hover:text-accent transition-colors premium-gradient-text"
+                            className="premium-gradient-text hover:brightness-125 transition-all decoration-accent/20 underline underline-offset-8 decoration-1"
                           >
-                            {lead.name}
+                            {lead.artist.name}
                           </Link>
                         </h3>
-                        <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/30">
-                           {lead.location && <>{lead.location} <span className="mx-4 text-white/10">•</span></>} {lead.genre}
+                        <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.2em]">
+                          <span className={isAustinArtist ? "text-accent" : "text-white/40"}>
+                            {locationText}
+                          </span>
+                          <span className="h-1 w-1 rounded-full bg-white/10" />
+                          <span className="text-white/30">{lead.artist.genre || "Genre Unknown"}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        {(lead.productionNeedLevel === "PROBABLE" || lead.productionNeedLevel === "CLEAR") && (
+                          <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+                            ★ Probable Need
+                          </span>
+                        )}
+                        {lead.productionNeedLevel === "POSSIBLE" && (
+                          <span className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold uppercase tracking-[0.2em]">
+                            Possible Need
+                          </span>
+                        )}
+
+                        <StatusPill status={lead.status} />
+
+                        <div
+                          className={`px-4 py-2 rounded-xl border text-xs font-bold uppercase tracking-[0.2em] ${
+                            score >= 80
+                              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                              : score >= 60
+                              ? "bg-accent/10 border-accent/30 text-accent"
+                              : score >= 40
+                              ? "bg-accent-secondary/10 border-accent-secondary/30 text-accent-secondary"
+                              : "bg-white/5 border-white/10 text-white/50"
+                          }`}
+                        >
+                          Score {score}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Rationale Quote */}
+                    {lead.scoreRationale && (
+                      <p className="text-sm text-white/60 leading-relaxed border-l border-white/10 pl-6 py-1 italic font-medium mb-6">
+                        &ldquo;{lead.scoreRationale}&rdquo;
+                      </p>
+                    )}
+
+                    {/* Signal Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="rounded-2xl bg-white/3 border border-white/8 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35 mb-2">Contact Signals</p>
+                        <p className={`text-xs font-bold uppercase tracking-[0.2em] ${hasContactSignals ? "text-accent" : "text-white/35"}`}>
+                          {hasContactSignals ? "Ready" : "Missing"}
+                        </p>
+                        <p className="text-xs text-white/45 mt-2 leading-relaxed">
+                          {hasEmail ? `${lead.artist.emails.length} email${lead.artist.emails.length > 1 ? "s" : ""}` : "No email"}
+                          {hasIg ? " • IG" : ""}
+                          {hasSite ? " • Site" : ""}
                         </p>
                       </div>
-                      <div className="flex items-center gap-8">
-                        <StatusPill status={lead.status} />
-                        <div className="flex flex-col items-end min-w-[80px]">
-                          <span className="text-2xl font-bold premium-gradient-text">
-                            {lead.score}
-                          </span>
-                          <span className="text-xs font-bold uppercase tracking-widest text-white/20">Lead Score</span>
-                        </div>
+
+                      <div className="rounded-2xl bg-white/3 border border-white/8 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35 mb-2">Latest Release</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60 truncate" title={latestRelease?.title}>
+                          {latestRelease ? `"${latestRelease.title}"` : "No releases"}
+                        </p>
+                        <p className="text-xs text-white/45 mt-2">
+                          {latestRelease ? formatRelativeDate(latestRelease.releaseDate ?? latestRelease.createdAt) : "—"}
+                        </p>
                       </div>
                     </div>
 
-                  <div className="space-y-8">
-                    <p className="text-sm text-white/60 leading-relaxed max-w-3xl border-l border-white/10 pl-6 py-1 italic font-medium">
-                      &quot;{lead.summary}&quot;
-                    </p>
-
-                    <div className="flex flex-wrap items-center justify-between gap-8 pt-6 border-t border-white/5">
-                      <div className="flex items-center gap-3 text-xs font-bold text-white/30 uppercase tracking-[0.2em]">
-                        <span className="h-1.5 w-1.5 bg-accent-secondary neon-glow-amber rounded-full" />
-                        {lead.lastRelease}
+                    {/* Footer Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-white/5">
+                      <div className="text-xs text-white/40 font-bold uppercase tracking-[0.2em]">
+                        Updated {formatRelativeDate(lead.updatedAt)}
                       </div>
-                      <div className="flex w-64 items-center gap-4">
-                        <div className="h-1.5 flex-1 rounded-full bg-white/5 overflow-hidden border border-white/5 relative">
-                          <div
-                            className="h-full bg-accent neon-glow transition-all duration-1000 relative z-10"
-                            style={{ width: `${lead.score}%` }}
-                          />
-                          <div className="absolute inset-0 bg-accent/20 blur-md" style={{ width: `${lead.score}%` }} />
-                        </div>
-                        <span className="text-xs font-bold text-accent tracking-tighter">{lead.score}%</span>
+                      <div className="flex items-center gap-3">
+                        {lead.status !== "PAUSED" ? (
+                          <form
+                            action={async () => {
+                              "use server";
+                              await updateLeadStatus({ leadId: lead.id, status: "PAUSED" });
+                            }}
+                          >
+                            <button
+                              type="submit"
+                              title="Pause / Ignore this lead (hides from all active views)"
+                              className="text-xs font-bold uppercase tracking-[0.2em] text-white/30 hover:text-rose-400 transition-colors px-3 py-2 rounded-xl hover:bg-rose-500/10 cursor-pointer"
+                            >
+                              Pause
+                            </button>
+                          </form>
+                        ) : (
+                          <form
+                            action={async () => {
+                              "use server";
+                              await updateLeadStatus({ leadId: lead.id, status: "NEW" });
+                            }}
+                          >
+                            <button
+                              type="submit"
+                              title="Restore lead to active pipeline"
+                              className="text-xs font-bold uppercase tracking-[0.2em] text-accent/70 hover:text-accent transition-colors px-3 py-2 rounded-xl hover:bg-accent/10 cursor-pointer"
+                            >
+                              Restore
+                            </button>
+                          </form>
+                        )}
+                        <Link href={`/leads/${lead.id}`}>
+                          <NeonButton variant="purple" size="md" className="text-xs! tracking-[0.2em]! font-bold! px-8!">
+                            Open Lead →
+                          </NeonButton>
+                        </Link>
                       </div>
                     </div>
-                  </div>
-                </GlassCard>
-                ))}
-              </div>
-            )}
-          </div>
+                  </GlassCard>
+                );
+              })}
+            </div>
+          )}
         </main>
       </div>
     </div>

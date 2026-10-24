@@ -13,7 +13,7 @@ An internal CRM and automation platform for managing artist leads, outreach, and
 | **ORM** | Prisma 7 with `@prisma/adapter-pg` |
 | **Styling** | Tailwind CSS 4 |
 | **Automation** | Node.js CLI agent scripts |
-| **Discovery** | Direct-hosted Do512 venue-calendar scrapers for the six-venue MVP; Apify remains for Instagram / Spotify |
+| **Discovery** | Self-hosted calendar scrapers for 16 active Austin venues (15 Do512 listings and The Cut's official calendar); venue searches and imports bypass Apify, while Instagram discovery remains Apify-backed |
 | **Email** | Nodemailer (SMTP) |
 
 ---
@@ -77,7 +77,7 @@ Create a `.env` file at the project root with the following:
 # Database
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/spectral
 
-# Apify (for Instagram discovery and other Apify-backed scrapers; venue calendar searches do not use it)
+# Apify (for Instagram discovery and other Apify-backed scrapers; venue calendar searches and imports do not use it)
 APIFY_TOKEN=your_apify_token
 
 # Instagram DM Webhook
@@ -176,7 +176,7 @@ The scoring core has a test suite using Node's native test runner:
 npm run test
 ```
 
-`npm test` covers all scoring components, the 100-point cap, and qualification threshold. `npm run test:scrapers` checks the six-venue MVP list, separate lineup artists, 30-day filtering, event-page enrichment, and title fallback when a detail page fails.
+`npm test` covers all scoring components, the 100-point cap, and qualification threshold. `npm run test:scrapers` checks all 16 active venue adapters, excludes closed venues, validates both Do512 hosts and The Cut's calendar, and exercises lineup splitting, 30-day filtering, event-detail enrichment, retries, timeouts, and Apify-free venue imports.
 
 ---
 
@@ -187,10 +187,10 @@ npm run test
 | `/` | Dashboard |
 | `/leads` | Lead pipeline |
 | `/leads/[id]` | Lead detail view with scoring, drafts, and activity |
-| `/leads/discover` | Search Instagram via Apify or search the next 30 days of six direct-hosted Austin venue calendars. Venue searches run in parallel, read event pages for lineups, and return artists separately. |
+| `/leads/discover` | Search Instagram via Apify or search the next 30 days of 16 active Austin venue calendars. Venue searches run in parallel, read event pages for lineups, return individual artist/event rows, and import without Apify discovery or Instagram profile scraping. Empire Control Room & Garage is excluded because it has closed. |
 | `/projects` | Client project workspace |
 | `/portal/[token]` | Client-facing portal (no auth required) |
-| `/operations` | Operations queue — due follow-ups & high-score uncontacted leads |
+| `/operations` | Operations queue — ranked New Outreach and Follow-ups tabs with explainable priority |
 
 ---
 
@@ -218,3 +218,9 @@ Activity                        (user-facing lead audit trail)
 - Destructive scripts (`detect-duplicates`, `standardize-genres`) **default to dry-run**. Pass `--live` to apply changes.
 - Every substantive data change leaves either a lead-level `Activity` record or an `AgentRun` record.
 - Shared business logic lives in `src/lib/` — scripts are thin wrappers.
+
+### Priority action queue
+
+`/operations` separates reachable first-contact opportunities from existing follow-ups. New Outreach includes only `NEW` and `QUALIFIED` leads that have not been contacted and have an email or Instagram handle. Follow-ups require both `nextActionAt` and a `FollowUpActionType` (`EMAIL`, `DM`, `CALL`, `RESEARCH`, or `OTHER`); incomplete records remain visible as cleanup items.
+
+Priority starts with the existing lead score and adds only approved, evidenced production need: `POSSIBLE` adds 8 points and `CLEAR` adds 25 points. Approved evidence expires after 45 days. Each queue row shows its top reasons and an expandable score breakdown; hard exclusions are eligibility rules rather than negative score points.

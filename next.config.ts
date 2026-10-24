@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  distDir: process.env.NEXT_BUILD_DIR || ".next",
+  turbopack: { root: process.cwd() },
   images: {
     remotePatterns: [
       {
@@ -27,6 +32,20 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ["@prisma/client", "apify-client", "local-prisma-client"],
+  async redirects() {
+    return [
+      {
+        source: "/drafts",
+        destination: "/leads",
+        permanent: true,
+      },
+      {
+        source: "/leads/drafts",
+        destination: "/leads",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

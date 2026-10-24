@@ -16,6 +16,7 @@ export function StatusPill({ status, className = '' }: StatusPillProps) {
             case 'CONTACTED': return 'text-white border-white/20 bg-white/5';
             case 'WON': return 'text-emerald-400 border-emerald-400/20 bg-emerald-400/5';
             case 'LOST': return 'text-error border-error/20 bg-error/5';
+            case 'PAUSED': return 'text-white/40 border-white/10 bg-white/5';
             case 'ARCHIVED': return 'text-muted border-white/10 bg-white/5';
             default: return 'text-foreground border-white/10 bg-white/5';
         }
@@ -29,6 +30,7 @@ export function StatusPill({ status, className = '' }: StatusPillProps) {
             case 'CONTACTED': return 'Contacted';
             case 'WON': return 'Converted';
             case 'LOST': return 'Closed';
+            case 'PAUSED': return 'Paused / Ignore';
             default: return status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
         }
     };

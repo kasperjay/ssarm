@@ -155,6 +155,12 @@ exports.Prisma.LeadScalarFieldEnum = {
   scoreRationale: 'scoreRationale',
   lastContactedAt: 'lastContactedAt',
   nextActionAt: 'nextActionAt',
+  followUpActionType: 'followUpActionType',
+  productionNeedLevel: 'productionNeedLevel',
+  productionNeedEvidence: 'productionNeedEvidence',
+  productionNeedEvidenceNote: 'productionNeedEvidenceNote',
+  productionNeedApprovedAt: 'productionNeedApprovedAt',
+  productionNeedSource: 'productionNeedSource',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -305,6 +311,31 @@ exports.Prisma.MergeProposalScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.OutreachCampaignScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  type: 'type',
+  channel: 'channel',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  targetCount: 'targetCount',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OutreachAttemptScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  leadId: 'leadId',
+  channel: 'channel',
+  sentAt: 'sentAt',
+  respondedAt: 'respondedAt',
+  responseType: 'responseType',
+  notes: 'notes',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -340,7 +371,23 @@ exports.LeadStatus = exports.$Enums.LeadStatus = {
   CONTACTED: 'CONTACTED',
   FOLLOW_UP: 'FOLLOW_UP',
   WON: 'WON',
-  LOST: 'LOST'
+  LOST: 'LOST',
+  PAUSED: 'PAUSED'
+};
+
+exports.FollowUpActionType = exports.$Enums.FollowUpActionType = {
+  EMAIL: 'EMAIL',
+  DM: 'DM',
+  CALL: 'CALL',
+  RESEARCH: 'RESEARCH',
+  OTHER: 'OTHER'
+};
+
+exports.ProductionNeedLevel = exports.$Enums.ProductionNeedLevel = {
+  NONE: 'NONE',
+  POSSIBLE: 'POSSIBLE',
+  PROBABLE: 'PROBABLE',
+  CLEAR: 'CLEAR'
 };
 
 exports.ActivityType = exports.$Enums.ActivityType = {
@@ -362,6 +409,29 @@ exports.FileType = exports.$Enums.FileType = {
   DELIVERABLE: 'DELIVERABLE'
 };
 
+exports.CampaignType = exports.$Enums.CampaignType = {
+  NEW_RELEASES: 'NEW_RELEASES',
+  VENUE_BOOKING: 'VENUE_BOOKING',
+  COLLABORATION: 'COLLABORATION',
+  REENGAGEMENT: 'REENGAGEMENT',
+  RECRUITMENT: 'RECRUITMENT'
+};
+
+exports.OutreachChannel = exports.$Enums.OutreachChannel = {
+  EMAIL: 'EMAIL',
+  INSTAGRAM_DM: 'INSTAGRAM_DM',
+  PHONE: 'PHONE',
+  IN_PERSON: 'IN_PERSON',
+  OTHER: 'OTHER'
+};
+
+exports.ResponseType = exports.$Enums.ResponseType = {
+  YES: 'YES',
+  NO: 'NO',
+  FOLLOW_UP: 'FOLLOW_UP',
+  NO_RESPONSE: 'NO_RESPONSE'
+};
+
 exports.Prisma.ModelName = {
   Artist: 'Artist',
   Lead: 'Lead',
@@ -376,7 +446,9 @@ exports.Prisma.ModelName = {
   ProjectInvoice: 'ProjectInvoice',
   AgentRun: 'AgentRun',
   ContactInfo: 'ContactInfo',
-  MergeProposal: 'MergeProposal'
+  MergeProposal: 'MergeProposal',
+  OutreachCampaign: 'OutreachCampaign',
+  OutreachAttempt: 'OutreachAttempt'
 };
 
 /**

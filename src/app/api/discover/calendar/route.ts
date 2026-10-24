@@ -1,5 +1,6 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
-import { getVenueScraper, isMVPVenueId, MVP_VENUES, type MVPVenueId } from "@/lib/scrapers";
+import { ACTIVE_VENUES, getVenue, getVenueScraper, isVenueActive, isVenueId, type VenueId } from "@/lib/scrapers";
 
 export const runtime = "nodejs";
 
@@ -16,16 +17,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Request body must be valid JSON." }, { status: 400 });
   }
 
-  const requestedIds = body.venueIds === undefined ? MVP_VENUES.map((venue) => venue.id) : body.venueIds;
+  const requestedIds = body.venueIds === undefined ? ACTIVE_VENUES.map((venue) => venue.id) : body.venueIds;
   if (
     !Array.isArray(requestedIds) ||
-    requestedIds.length > MVP_VENUES.length ||
-    requestedIds.some((id) => typeof id !== "string" || !isMVPVenueId(id))
+    requestedIds.length > ACTIVE_VENUES.length ||
+    requestedIds.some((id) => typeof id !== "string" || !isVenueId(id) || !isVenueActive(id))
   ) {
-    return NextResponse.json({ error: "venueIds must contain only the six supported MVP venue IDs." }, { status: 400 });
+    return NextResponse.json({ error: "venueIds must contain only supported active venue IDs." }, { status: 400 });
   }
 
-  const venueIds = [...new Set(requestedIds)] as MVPVenueId[];
+  const venueIds = [...new Set(requestedIds)] as VenueId[];
   if (!venueIds.length) {
     return NextResponse.json({ error: "Select at least one venue." }, { status: 400 });
   }
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
     const windowStart = new Date();
     const windowEnd = new Date(windowStart.getTime() + 30 * 86_400_000);
     const venueResults = await Promise.all(venueIds.map(async (venueId) => {
-      const venue = MVP_VENUES.find((item) => item.id === venueId)!;
+      const venue = getVenue(venueId);
       const startedAt = Date.now();
       try {
         const result = await getVenueScraper(venueId)(windowStart);
@@ -86,7 +87,11 @@ export async function POST(request: Request) {
       windowStart: windowStart.toISOString(),
       windowEnd: windowEnd.toISOString(),
       items,
-      venues: venueResults.map(({ items: _items, ...result }) => result),
+      venues: venueResults.map((venueResult) => {
+        const { items, ...summary } = venueResult;
+        void items;
+        return summary;
+      }),
     });
   } catch (error) {
     console.error("/api/discover/calendar error", error);

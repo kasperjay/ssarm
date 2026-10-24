@@ -20,6 +20,22 @@ enum LeadStatus {
   FOLLOW_UP
   WON
   LOST
+  PAUSED
+}
+
+enum ProductionNeedLevel {
+  NONE
+  POSSIBLE
+  PROBABLE
+  CLEAR
+}
+
+enum FollowUpActionType {
+  EMAIL
+  DM
+  CALL
+  RESEARCH
+  OTHER
 }
 
 enum ActivityType {
@@ -77,19 +93,26 @@ model Artist {
 }
 
 model Lead {
-  id              String     @id @default(cuid())
-  artistId        String
-  status          LeadStatus @default(NEW)
-  score           Float?
-  scoreRationale  String?
-  lastContactedAt DateTime?
-  nextActionAt    DateTime?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  id                         String              @id @default(cuid())
+  artistId                   String
+  status                     LeadStatus          @default(NEW)
+  score                      Float?
+  scoreRationale             String?
+  lastContactedAt            DateTime?
+  nextActionAt               DateTime?
+  followUpActionType         FollowUpActionType?
+  productionNeedLevel        ProductionNeedLevel @default(NONE)
+  productionNeedEvidence     Json?
+  productionNeedEvidenceNote String?
+  productionNeedApprovedAt   DateTime?
+  productionNeedSource       Json?
+  createdAt                  DateTime            @default(now())
+  updatedAt                  DateTime            @updatedAt
 
-  artist     Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  messages   MessageDraft[]
-  activities Activity[]
+  artist           Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  messages         MessageDraft[]
+  activities       Activity[]
+  outreachAttempts OutreachAttempt[]
 }
 
 model Release {
@@ -269,4 +292,58 @@ model MergeProposal {
 
   primaryArtist   Artist @relation("PrimaryMergeProposals", fields: [primaryArtistId], references: [id], onDelete: Cascade)
   duplicateArtist Artist @relation("DuplicateMergeProposals", fields: [duplicateArtistId], references: [id], onDelete: Cascade)
+}
+
+// KPI Tracking Models
+enum OutreachChannel {
+  EMAIL
+  INSTAGRAM_DM
+  PHONE
+  IN_PERSON
+  OTHER
+}
+
+enum CampaignType {
+  NEW_RELEASES
+  VENUE_BOOKING
+  COLLABORATION
+  REENGAGEMENT
+  RECRUITMENT
+}
+
+model OutreachCampaign {
+  id          String          @id @default(cuid())
+  name        String
+  type        CampaignType
+  channel     OutreachChannel
+  startDate   DateTime
+  endDate     DateTime?
+  targetCount Int             @default(0)
+  status      String          @default("ACTIVE") // ACTIVE, COMPLETED, PAUSED
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  attempts OutreachAttempt[]
+}
+
+model OutreachAttempt {
+  id           String          @id @default(cuid())
+  campaignId   String
+  leadId       String
+  channel      OutreachChannel
+  sentAt       DateTime
+  respondedAt  DateTime?
+  responseType ResponseType? // YES, NO, FOLLOW_UP, NO_RESPONSE
+  notes        String?
+  createdAt    DateTime        @default(now())
+
+  campaign OutreachCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  lead     Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+enum ResponseType {
+  YES
+  NO
+  FOLLOW_UP
+  NO_RESPONSE
 }

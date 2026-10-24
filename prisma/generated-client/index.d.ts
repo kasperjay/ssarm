@@ -83,6 +83,16 @@ export type ContactInfo = $Result.DefaultSelection<Prisma.$ContactInfoPayload>
  * 
  */
 export type MergeProposal = $Result.DefaultSelection<Prisma.$MergeProposalPayload>
+/**
+ * Model OutreachCampaign
+ * 
+ */
+export type OutreachCampaign = $Result.DefaultSelection<Prisma.$OutreachCampaignPayload>
+/**
+ * Model OutreachAttempt
+ * 
+ */
+export type OutreachAttempt = $Result.DefaultSelection<Prisma.$OutreachAttemptPayload>
 
 /**
  * Enums
@@ -94,10 +104,32 @@ export namespace $Enums {
   CONTACTED: 'CONTACTED',
   FOLLOW_UP: 'FOLLOW_UP',
   WON: 'WON',
-  LOST: 'LOST'
+  LOST: 'LOST',
+  PAUSED: 'PAUSED'
 };
 
 export type LeadStatus = (typeof LeadStatus)[keyof typeof LeadStatus]
+
+
+export const ProductionNeedLevel: {
+  NONE: 'NONE',
+  POSSIBLE: 'POSSIBLE',
+  PROBABLE: 'PROBABLE',
+  CLEAR: 'CLEAR'
+};
+
+export type ProductionNeedLevel = (typeof ProductionNeedLevel)[keyof typeof ProductionNeedLevel]
+
+
+export const FollowUpActionType: {
+  EMAIL: 'EMAIL',
+  DM: 'DM',
+  CALL: 'CALL',
+  RESEARCH: 'RESEARCH',
+  OTHER: 'OTHER'
+};
+
+export type FollowUpActionType = (typeof FollowUpActionType)[keyof typeof FollowUpActionType]
 
 
 export const ActivityType: {
@@ -127,11 +159,51 @@ export const FileType: {
 
 export type FileType = (typeof FileType)[keyof typeof FileType]
 
+
+export const OutreachChannel: {
+  EMAIL: 'EMAIL',
+  INSTAGRAM_DM: 'INSTAGRAM_DM',
+  PHONE: 'PHONE',
+  IN_PERSON: 'IN_PERSON',
+  OTHER: 'OTHER'
+};
+
+export type OutreachChannel = (typeof OutreachChannel)[keyof typeof OutreachChannel]
+
+
+export const CampaignType: {
+  NEW_RELEASES: 'NEW_RELEASES',
+  VENUE_BOOKING: 'VENUE_BOOKING',
+  COLLABORATION: 'COLLABORATION',
+  REENGAGEMENT: 'REENGAGEMENT',
+  RECRUITMENT: 'RECRUITMENT'
+};
+
+export type CampaignType = (typeof CampaignType)[keyof typeof CampaignType]
+
+
+export const ResponseType: {
+  YES: 'YES',
+  NO: 'NO',
+  FOLLOW_UP: 'FOLLOW_UP',
+  NO_RESPONSE: 'NO_RESPONSE'
+};
+
+export type ResponseType = (typeof ResponseType)[keyof typeof ResponseType]
+
 }
 
 export type LeadStatus = $Enums.LeadStatus
 
 export const LeadStatus: typeof $Enums.LeadStatus
+
+export type ProductionNeedLevel = $Enums.ProductionNeedLevel
+
+export const ProductionNeedLevel: typeof $Enums.ProductionNeedLevel
+
+export type FollowUpActionType = $Enums.FollowUpActionType
+
+export const FollowUpActionType: typeof $Enums.FollowUpActionType
 
 export type ActivityType = $Enums.ActivityType
 
@@ -144,6 +216,18 @@ export const ProjectStatus: typeof $Enums.ProjectStatus
 export type FileType = $Enums.FileType
 
 export const FileType: typeof $Enums.FileType
+
+export type OutreachChannel = $Enums.OutreachChannel
+
+export const OutreachChannel: typeof $Enums.OutreachChannel
+
+export type CampaignType = $Enums.CampaignType
+
+export const CampaignType: typeof $Enums.CampaignType
+
+export type ResponseType = $Enums.ResponseType
+
+export const ResponseType: typeof $Enums.ResponseType
 
 /**
  * ##  Prisma Client ʲˢ
@@ -405,6 +489,26 @@ export class PrismaClient<
     * ```
     */
   get mergeProposal(): Prisma.MergeProposalDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.outreachCampaign`: Exposes CRUD operations for the **OutreachCampaign** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OutreachCampaigns
+    * const outreachCampaigns = await prisma.outreachCampaign.findMany()
+    * ```
+    */
+  get outreachCampaign(): Prisma.OutreachCampaignDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.outreachAttempt`: Exposes CRUD operations for the **OutreachAttempt** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OutreachAttempts
+    * const outreachAttempts = await prisma.outreachAttempt.findMany()
+    * ```
+    */
+  get outreachAttempt(): Prisma.OutreachAttemptDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -852,7 +956,9 @@ export namespace Prisma {
     ProjectInvoice: 'ProjectInvoice',
     AgentRun: 'AgentRun',
     ContactInfo: 'ContactInfo',
-    MergeProposal: 'MergeProposal'
+    MergeProposal: 'MergeProposal',
+    OutreachCampaign: 'OutreachCampaign',
+    OutreachAttempt: 'OutreachAttempt'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -868,7 +974,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "artist" | "lead" | "release" | "trackAnalysis" | "instagramPost" | "messageDraft" | "activity" | "project" | "projectFile" | "projectFeedback" | "projectInvoice" | "agentRun" | "contactInfo" | "mergeProposal"
+      modelProps: "artist" | "lead" | "release" | "trackAnalysis" | "instagramPost" | "messageDraft" | "activity" | "project" | "projectFile" | "projectFeedback" | "projectInvoice" | "agentRun" | "contactInfo" | "mergeProposal" | "outreachCampaign" | "outreachAttempt"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1908,6 +2014,154 @@ export namespace Prisma {
           }
         }
       }
+      OutreachCampaign: {
+        payload: Prisma.$OutreachCampaignPayload<ExtArgs>
+        fields: Prisma.OutreachCampaignFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OutreachCampaignFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OutreachCampaignFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>
+          }
+          findFirst: {
+            args: Prisma.OutreachCampaignFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OutreachCampaignFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>
+          }
+          findMany: {
+            args: Prisma.OutreachCampaignFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>[]
+          }
+          create: {
+            args: Prisma.OutreachCampaignCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>
+          }
+          createMany: {
+            args: Prisma.OutreachCampaignCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OutreachCampaignCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>[]
+          }
+          delete: {
+            args: Prisma.OutreachCampaignDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>
+          }
+          update: {
+            args: Prisma.OutreachCampaignUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>
+          }
+          deleteMany: {
+            args: Prisma.OutreachCampaignDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OutreachCampaignUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.OutreachCampaignUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>[]
+          }
+          upsert: {
+            args: Prisma.OutreachCampaignUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachCampaignPayload>
+          }
+          aggregate: {
+            args: Prisma.OutreachCampaignAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOutreachCampaign>
+          }
+          groupBy: {
+            args: Prisma.OutreachCampaignGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OutreachCampaignGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OutreachCampaignCountArgs<ExtArgs>
+            result: $Utils.Optional<OutreachCampaignCountAggregateOutputType> | number
+          }
+        }
+      }
+      OutreachAttempt: {
+        payload: Prisma.$OutreachAttemptPayload<ExtArgs>
+        fields: Prisma.OutreachAttemptFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OutreachAttemptFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OutreachAttemptFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>
+          }
+          findFirst: {
+            args: Prisma.OutreachAttemptFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OutreachAttemptFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>
+          }
+          findMany: {
+            args: Prisma.OutreachAttemptFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>[]
+          }
+          create: {
+            args: Prisma.OutreachAttemptCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>
+          }
+          createMany: {
+            args: Prisma.OutreachAttemptCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OutreachAttemptCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>[]
+          }
+          delete: {
+            args: Prisma.OutreachAttemptDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>
+          }
+          update: {
+            args: Prisma.OutreachAttemptUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>
+          }
+          deleteMany: {
+            args: Prisma.OutreachAttemptDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OutreachAttemptUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.OutreachAttemptUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>[]
+          }
+          upsert: {
+            args: Prisma.OutreachAttemptUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OutreachAttemptPayload>
+          }
+          aggregate: {
+            args: Prisma.OutreachAttemptAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOutreachAttempt>
+          }
+          groupBy: {
+            args: Prisma.OutreachAttemptGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OutreachAttemptGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OutreachAttemptCountArgs<ExtArgs>
+            result: $Utils.Optional<OutreachAttemptCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2030,6 +2284,8 @@ export namespace Prisma {
     agentRun?: AgentRunOmit
     contactInfo?: ContactInfoOmit
     mergeProposal?: MergeProposalOmit
+    outreachCampaign?: OutreachCampaignOmit
+    outreachAttempt?: OutreachAttemptOmit
   }
 
   /* Types for Logging */
@@ -2197,11 +2453,13 @@ export namespace Prisma {
   export type LeadCountOutputType = {
     messages: number
     activities: number
+    outreachAttempts: number
   }
 
   export type LeadCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     messages?: boolean | LeadCountOutputTypeCountMessagesArgs
     activities?: boolean | LeadCountOutputTypeCountActivitiesArgs
+    outreachAttempts?: boolean | LeadCountOutputTypeCountOutreachAttemptsArgs
   }
 
   // Custom InputTypes
@@ -2227,6 +2485,13 @@ export namespace Prisma {
    */
   export type LeadCountOutputTypeCountActivitiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ActivityWhereInput
+  }
+
+  /**
+   * LeadCountOutputType without action
+   */
+  export type LeadCountOutputTypeCountOutreachAttemptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OutreachAttemptWhereInput
   }
 
 
@@ -2298,6 +2563,37 @@ export namespace Prisma {
    */
   export type ProjectFileCountOutputTypeCountFeedbacksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProjectFeedbackWhereInput
+  }
+
+
+  /**
+   * Count Type OutreachCampaignCountOutputType
+   */
+
+  export type OutreachCampaignCountOutputType = {
+    attempts: number
+  }
+
+  export type OutreachCampaignCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    attempts?: boolean | OutreachCampaignCountOutputTypeCountAttemptsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * OutreachCampaignCountOutputType without action
+   */
+  export type OutreachCampaignCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaignCountOutputType
+     */
+    select?: OutreachCampaignCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * OutreachCampaignCountOutputType without action
+   */
+  export type OutreachCampaignCountOutputTypeCountAttemptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OutreachAttemptWhereInput
   }
 
 
@@ -3844,6 +4140,10 @@ export namespace Prisma {
     scoreRationale: string | null
     lastContactedAt: Date | null
     nextActionAt: Date | null
+    followUpActionType: $Enums.FollowUpActionType | null
+    productionNeedLevel: $Enums.ProductionNeedLevel | null
+    productionNeedEvidenceNote: string | null
+    productionNeedApprovedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -3856,6 +4156,10 @@ export namespace Prisma {
     scoreRationale: string | null
     lastContactedAt: Date | null
     nextActionAt: Date | null
+    followUpActionType: $Enums.FollowUpActionType | null
+    productionNeedLevel: $Enums.ProductionNeedLevel | null
+    productionNeedEvidenceNote: string | null
+    productionNeedApprovedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -3868,6 +4172,12 @@ export namespace Prisma {
     scoreRationale: number
     lastContactedAt: number
     nextActionAt: number
+    followUpActionType: number
+    productionNeedLevel: number
+    productionNeedEvidence: number
+    productionNeedEvidenceNote: number
+    productionNeedApprovedAt: number
+    productionNeedSource: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -3890,6 +4200,10 @@ export namespace Prisma {
     scoreRationale?: true
     lastContactedAt?: true
     nextActionAt?: true
+    followUpActionType?: true
+    productionNeedLevel?: true
+    productionNeedEvidenceNote?: true
+    productionNeedApprovedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -3902,6 +4216,10 @@ export namespace Prisma {
     scoreRationale?: true
     lastContactedAt?: true
     nextActionAt?: true
+    followUpActionType?: true
+    productionNeedLevel?: true
+    productionNeedEvidenceNote?: true
+    productionNeedApprovedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -3914,6 +4232,12 @@ export namespace Prisma {
     scoreRationale?: true
     lastContactedAt?: true
     nextActionAt?: true
+    followUpActionType?: true
+    productionNeedLevel?: true
+    productionNeedEvidence?: true
+    productionNeedEvidenceNote?: true
+    productionNeedApprovedAt?: true
+    productionNeedSource?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -4013,6 +4337,12 @@ export namespace Prisma {
     scoreRationale: string | null
     lastContactedAt: Date | null
     nextActionAt: Date | null
+    followUpActionType: $Enums.FollowUpActionType | null
+    productionNeedLevel: $Enums.ProductionNeedLevel
+    productionNeedEvidence: JsonValue | null
+    productionNeedEvidenceNote: string | null
+    productionNeedApprovedAt: Date | null
+    productionNeedSource: JsonValue | null
     createdAt: Date
     updatedAt: Date
     _count: LeadCountAggregateOutputType | null
@@ -4044,11 +4374,18 @@ export namespace Prisma {
     scoreRationale?: boolean
     lastContactedAt?: boolean
     nextActionAt?: boolean
+    followUpActionType?: boolean
+    productionNeedLevel?: boolean
+    productionNeedEvidence?: boolean
+    productionNeedEvidenceNote?: boolean
+    productionNeedApprovedAt?: boolean
+    productionNeedSource?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     artist?: boolean | ArtistDefaultArgs<ExtArgs>
     messages?: boolean | Lead$messagesArgs<ExtArgs>
     activities?: boolean | Lead$activitiesArgs<ExtArgs>
+    outreachAttempts?: boolean | Lead$outreachAttemptsArgs<ExtArgs>
     _count?: boolean | LeadCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["lead"]>
 
@@ -4060,6 +4397,12 @@ export namespace Prisma {
     scoreRationale?: boolean
     lastContactedAt?: boolean
     nextActionAt?: boolean
+    followUpActionType?: boolean
+    productionNeedLevel?: boolean
+    productionNeedEvidence?: boolean
+    productionNeedEvidenceNote?: boolean
+    productionNeedApprovedAt?: boolean
+    productionNeedSource?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     artist?: boolean | ArtistDefaultArgs<ExtArgs>
@@ -4073,6 +4416,12 @@ export namespace Prisma {
     scoreRationale?: boolean
     lastContactedAt?: boolean
     nextActionAt?: boolean
+    followUpActionType?: boolean
+    productionNeedLevel?: boolean
+    productionNeedEvidence?: boolean
+    productionNeedEvidenceNote?: boolean
+    productionNeedApprovedAt?: boolean
+    productionNeedSource?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     artist?: boolean | ArtistDefaultArgs<ExtArgs>
@@ -4086,15 +4435,22 @@ export namespace Prisma {
     scoreRationale?: boolean
     lastContactedAt?: boolean
     nextActionAt?: boolean
+    followUpActionType?: boolean
+    productionNeedLevel?: boolean
+    productionNeedEvidence?: boolean
+    productionNeedEvidenceNote?: boolean
+    productionNeedApprovedAt?: boolean
+    productionNeedSource?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type LeadOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "artistId" | "status" | "score" | "scoreRationale" | "lastContactedAt" | "nextActionAt" | "createdAt" | "updatedAt", ExtArgs["result"]["lead"]>
+  export type LeadOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "artistId" | "status" | "score" | "scoreRationale" | "lastContactedAt" | "nextActionAt" | "followUpActionType" | "productionNeedLevel" | "productionNeedEvidence" | "productionNeedEvidenceNote" | "productionNeedApprovedAt" | "productionNeedSource" | "createdAt" | "updatedAt", ExtArgs["result"]["lead"]>
   export type LeadInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     artist?: boolean | ArtistDefaultArgs<ExtArgs>
     messages?: boolean | Lead$messagesArgs<ExtArgs>
     activities?: boolean | Lead$activitiesArgs<ExtArgs>
+    outreachAttempts?: boolean | Lead$outreachAttemptsArgs<ExtArgs>
     _count?: boolean | LeadCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LeadIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4110,6 +4466,7 @@ export namespace Prisma {
       artist: Prisma.$ArtistPayload<ExtArgs>
       messages: Prisma.$MessageDraftPayload<ExtArgs>[]
       activities: Prisma.$ActivityPayload<ExtArgs>[]
+      outreachAttempts: Prisma.$OutreachAttemptPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4119,6 +4476,12 @@ export namespace Prisma {
       scoreRationale: string | null
       lastContactedAt: Date | null
       nextActionAt: Date | null
+      followUpActionType: $Enums.FollowUpActionType | null
+      productionNeedLevel: $Enums.ProductionNeedLevel
+      productionNeedEvidence: Prisma.JsonValue | null
+      productionNeedEvidenceNote: string | null
+      productionNeedApprovedAt: Date | null
+      productionNeedSource: Prisma.JsonValue | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["lead"]>
@@ -4518,6 +4881,7 @@ export namespace Prisma {
     artist<T extends ArtistDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ArtistDefaultArgs<ExtArgs>>): Prisma__ArtistClient<$Result.GetResult<Prisma.$ArtistPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     messages<T extends Lead$messagesArgs<ExtArgs> = {}>(args?: Subset<T, Lead$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessageDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     activities<T extends Lead$activitiesArgs<ExtArgs> = {}>(args?: Subset<T, Lead$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    outreachAttempts<T extends Lead$outreachAttemptsArgs<ExtArgs> = {}>(args?: Subset<T, Lead$outreachAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4554,6 +4918,12 @@ export namespace Prisma {
     readonly scoreRationale: FieldRef<"Lead", 'String'>
     readonly lastContactedAt: FieldRef<"Lead", 'DateTime'>
     readonly nextActionAt: FieldRef<"Lead", 'DateTime'>
+    readonly followUpActionType: FieldRef<"Lead", 'FollowUpActionType'>
+    readonly productionNeedLevel: FieldRef<"Lead", 'ProductionNeedLevel'>
+    readonly productionNeedEvidence: FieldRef<"Lead", 'Json'>
+    readonly productionNeedEvidenceNote: FieldRef<"Lead", 'String'>
+    readonly productionNeedApprovedAt: FieldRef<"Lead", 'DateTime'>
+    readonly productionNeedSource: FieldRef<"Lead", 'Json'>
     readonly createdAt: FieldRef<"Lead", 'DateTime'>
     readonly updatedAt: FieldRef<"Lead", 'DateTime'>
   }
@@ -4997,6 +5367,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ActivityScalarFieldEnum | ActivityScalarFieldEnum[]
+  }
+
+  /**
+   * Lead.outreachAttempts
+   */
+  export type Lead$outreachAttemptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    where?: OutreachAttemptWhereInput
+    orderBy?: OutreachAttemptOrderByWithRelationInput | OutreachAttemptOrderByWithRelationInput[]
+    cursor?: OutreachAttemptWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OutreachAttemptScalarFieldEnum | OutreachAttemptScalarFieldEnum[]
   }
 
   /**
@@ -18659,6 +19053,2293 @@ export namespace Prisma {
 
 
   /**
+   * Model OutreachCampaign
+   */
+
+  export type AggregateOutreachCampaign = {
+    _count: OutreachCampaignCountAggregateOutputType | null
+    _avg: OutreachCampaignAvgAggregateOutputType | null
+    _sum: OutreachCampaignSumAggregateOutputType | null
+    _min: OutreachCampaignMinAggregateOutputType | null
+    _max: OutreachCampaignMaxAggregateOutputType | null
+  }
+
+  export type OutreachCampaignAvgAggregateOutputType = {
+    targetCount: number | null
+  }
+
+  export type OutreachCampaignSumAggregateOutputType = {
+    targetCount: number | null
+  }
+
+  export type OutreachCampaignMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    type: $Enums.CampaignType | null
+    channel: $Enums.OutreachChannel | null
+    startDate: Date | null
+    endDate: Date | null
+    targetCount: number | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type OutreachCampaignMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    type: $Enums.CampaignType | null
+    channel: $Enums.OutreachChannel | null
+    startDate: Date | null
+    endDate: Date | null
+    targetCount: number | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type OutreachCampaignCountAggregateOutputType = {
+    id: number
+    name: number
+    type: number
+    channel: number
+    startDate: number
+    endDate: number
+    targetCount: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type OutreachCampaignAvgAggregateInputType = {
+    targetCount?: true
+  }
+
+  export type OutreachCampaignSumAggregateInputType = {
+    targetCount?: true
+  }
+
+  export type OutreachCampaignMinAggregateInputType = {
+    id?: true
+    name?: true
+    type?: true
+    channel?: true
+    startDate?: true
+    endDate?: true
+    targetCount?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type OutreachCampaignMaxAggregateInputType = {
+    id?: true
+    name?: true
+    type?: true
+    channel?: true
+    startDate?: true
+    endDate?: true
+    targetCount?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type OutreachCampaignCountAggregateInputType = {
+    id?: true
+    name?: true
+    type?: true
+    channel?: true
+    startDate?: true
+    endDate?: true
+    targetCount?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type OutreachCampaignAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OutreachCampaign to aggregate.
+     */
+    where?: OutreachCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OutreachCampaigns to fetch.
+     */
+    orderBy?: OutreachCampaignOrderByWithRelationInput | OutreachCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OutreachCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OutreachCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OutreachCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OutreachCampaigns
+    **/
+    _count?: true | OutreachCampaignCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: OutreachCampaignAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: OutreachCampaignSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OutreachCampaignMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OutreachCampaignMaxAggregateInputType
+  }
+
+  export type GetOutreachCampaignAggregateType<T extends OutreachCampaignAggregateArgs> = {
+        [P in keyof T & keyof AggregateOutreachCampaign]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOutreachCampaign[P]>
+      : GetScalarType<T[P], AggregateOutreachCampaign[P]>
+  }
+
+
+
+
+  export type OutreachCampaignGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OutreachCampaignWhereInput
+    orderBy?: OutreachCampaignOrderByWithAggregationInput | OutreachCampaignOrderByWithAggregationInput[]
+    by: OutreachCampaignScalarFieldEnum[] | OutreachCampaignScalarFieldEnum
+    having?: OutreachCampaignScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OutreachCampaignCountAggregateInputType | true
+    _avg?: OutreachCampaignAvgAggregateInputType
+    _sum?: OutreachCampaignSumAggregateInputType
+    _min?: OutreachCampaignMinAggregateInputType
+    _max?: OutreachCampaignMaxAggregateInputType
+  }
+
+  export type OutreachCampaignGroupByOutputType = {
+    id: string
+    name: string
+    type: $Enums.CampaignType
+    channel: $Enums.OutreachChannel
+    startDate: Date
+    endDate: Date | null
+    targetCount: number
+    status: string
+    createdAt: Date
+    updatedAt: Date
+    _count: OutreachCampaignCountAggregateOutputType | null
+    _avg: OutreachCampaignAvgAggregateOutputType | null
+    _sum: OutreachCampaignSumAggregateOutputType | null
+    _min: OutreachCampaignMinAggregateOutputType | null
+    _max: OutreachCampaignMaxAggregateOutputType | null
+  }
+
+  type GetOutreachCampaignGroupByPayload<T extends OutreachCampaignGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OutreachCampaignGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OutreachCampaignGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OutreachCampaignGroupByOutputType[P]>
+            : GetScalarType<T[P], OutreachCampaignGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OutreachCampaignSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    type?: boolean
+    channel?: boolean
+    startDate?: boolean
+    endDate?: boolean
+    targetCount?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    attempts?: boolean | OutreachCampaign$attemptsArgs<ExtArgs>
+    _count?: boolean | OutreachCampaignCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["outreachCampaign"]>
+
+  export type OutreachCampaignSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    type?: boolean
+    channel?: boolean
+    startDate?: boolean
+    endDate?: boolean
+    targetCount?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["outreachCampaign"]>
+
+  export type OutreachCampaignSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    type?: boolean
+    channel?: boolean
+    startDate?: boolean
+    endDate?: boolean
+    targetCount?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["outreachCampaign"]>
+
+  export type OutreachCampaignSelectScalar = {
+    id?: boolean
+    name?: boolean
+    type?: boolean
+    channel?: boolean
+    startDate?: boolean
+    endDate?: boolean
+    targetCount?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type OutreachCampaignOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "type" | "channel" | "startDate" | "endDate" | "targetCount" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["outreachCampaign"]>
+  export type OutreachCampaignInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    attempts?: boolean | OutreachCampaign$attemptsArgs<ExtArgs>
+    _count?: boolean | OutreachCampaignCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type OutreachCampaignIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type OutreachCampaignIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $OutreachCampaignPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OutreachCampaign"
+    objects: {
+      attempts: Prisma.$OutreachAttemptPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      type: $Enums.CampaignType
+      channel: $Enums.OutreachChannel
+      startDate: Date
+      endDate: Date | null
+      targetCount: number
+      status: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["outreachCampaign"]>
+    composites: {}
+  }
+
+  type OutreachCampaignGetPayload<S extends boolean | null | undefined | OutreachCampaignDefaultArgs> = $Result.GetResult<Prisma.$OutreachCampaignPayload, S>
+
+  type OutreachCampaignCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<OutreachCampaignFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: OutreachCampaignCountAggregateInputType | true
+    }
+
+  export interface OutreachCampaignDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OutreachCampaign'], meta: { name: 'OutreachCampaign' } }
+    /**
+     * Find zero or one OutreachCampaign that matches the filter.
+     * @param {OutreachCampaignFindUniqueArgs} args - Arguments to find a OutreachCampaign
+     * @example
+     * // Get one OutreachCampaign
+     * const outreachCampaign = await prisma.outreachCampaign.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OutreachCampaignFindUniqueArgs>(args: SelectSubset<T, OutreachCampaignFindUniqueArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one OutreachCampaign that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {OutreachCampaignFindUniqueOrThrowArgs} args - Arguments to find a OutreachCampaign
+     * @example
+     * // Get one OutreachCampaign
+     * const outreachCampaign = await prisma.outreachCampaign.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OutreachCampaignFindUniqueOrThrowArgs>(args: SelectSubset<T, OutreachCampaignFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OutreachCampaign that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachCampaignFindFirstArgs} args - Arguments to find a OutreachCampaign
+     * @example
+     * // Get one OutreachCampaign
+     * const outreachCampaign = await prisma.outreachCampaign.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OutreachCampaignFindFirstArgs>(args?: SelectSubset<T, OutreachCampaignFindFirstArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OutreachCampaign that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachCampaignFindFirstOrThrowArgs} args - Arguments to find a OutreachCampaign
+     * @example
+     * // Get one OutreachCampaign
+     * const outreachCampaign = await prisma.outreachCampaign.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OutreachCampaignFindFirstOrThrowArgs>(args?: SelectSubset<T, OutreachCampaignFindFirstOrThrowArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more OutreachCampaigns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachCampaignFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OutreachCampaigns
+     * const outreachCampaigns = await prisma.outreachCampaign.findMany()
+     * 
+     * // Get first 10 OutreachCampaigns
+     * const outreachCampaigns = await prisma.outreachCampaign.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const outreachCampaignWithIdOnly = await prisma.outreachCampaign.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends OutreachCampaignFindManyArgs>(args?: SelectSubset<T, OutreachCampaignFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a OutreachCampaign.
+     * @param {OutreachCampaignCreateArgs} args - Arguments to create a OutreachCampaign.
+     * @example
+     * // Create one OutreachCampaign
+     * const OutreachCampaign = await prisma.outreachCampaign.create({
+     *   data: {
+     *     // ... data to create a OutreachCampaign
+     *   }
+     * })
+     * 
+     */
+    create<T extends OutreachCampaignCreateArgs>(args: SelectSubset<T, OutreachCampaignCreateArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many OutreachCampaigns.
+     * @param {OutreachCampaignCreateManyArgs} args - Arguments to create many OutreachCampaigns.
+     * @example
+     * // Create many OutreachCampaigns
+     * const outreachCampaign = await prisma.outreachCampaign.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OutreachCampaignCreateManyArgs>(args?: SelectSubset<T, OutreachCampaignCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OutreachCampaigns and returns the data saved in the database.
+     * @param {OutreachCampaignCreateManyAndReturnArgs} args - Arguments to create many OutreachCampaigns.
+     * @example
+     * // Create many OutreachCampaigns
+     * const outreachCampaign = await prisma.outreachCampaign.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OutreachCampaigns and only return the `id`
+     * const outreachCampaignWithIdOnly = await prisma.outreachCampaign.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OutreachCampaignCreateManyAndReturnArgs>(args?: SelectSubset<T, OutreachCampaignCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a OutreachCampaign.
+     * @param {OutreachCampaignDeleteArgs} args - Arguments to delete one OutreachCampaign.
+     * @example
+     * // Delete one OutreachCampaign
+     * const OutreachCampaign = await prisma.outreachCampaign.delete({
+     *   where: {
+     *     // ... filter to delete one OutreachCampaign
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OutreachCampaignDeleteArgs>(args: SelectSubset<T, OutreachCampaignDeleteArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one OutreachCampaign.
+     * @param {OutreachCampaignUpdateArgs} args - Arguments to update one OutreachCampaign.
+     * @example
+     * // Update one OutreachCampaign
+     * const outreachCampaign = await prisma.outreachCampaign.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OutreachCampaignUpdateArgs>(args: SelectSubset<T, OutreachCampaignUpdateArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more OutreachCampaigns.
+     * @param {OutreachCampaignDeleteManyArgs} args - Arguments to filter OutreachCampaigns to delete.
+     * @example
+     * // Delete a few OutreachCampaigns
+     * const { count } = await prisma.outreachCampaign.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OutreachCampaignDeleteManyArgs>(args?: SelectSubset<T, OutreachCampaignDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OutreachCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachCampaignUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OutreachCampaigns
+     * const outreachCampaign = await prisma.outreachCampaign.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OutreachCampaignUpdateManyArgs>(args: SelectSubset<T, OutreachCampaignUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OutreachCampaigns and returns the data updated in the database.
+     * @param {OutreachCampaignUpdateManyAndReturnArgs} args - Arguments to update many OutreachCampaigns.
+     * @example
+     * // Update many OutreachCampaigns
+     * const outreachCampaign = await prisma.outreachCampaign.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more OutreachCampaigns and only return the `id`
+     * const outreachCampaignWithIdOnly = await prisma.outreachCampaign.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends OutreachCampaignUpdateManyAndReturnArgs>(args: SelectSubset<T, OutreachCampaignUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one OutreachCampaign.
+     * @param {OutreachCampaignUpsertArgs} args - Arguments to update or create a OutreachCampaign.
+     * @example
+     * // Update or create a OutreachCampaign
+     * const outreachCampaign = await prisma.outreachCampaign.upsert({
+     *   create: {
+     *     // ... data to create a OutreachCampaign
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OutreachCampaign we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OutreachCampaignUpsertArgs>(args: SelectSubset<T, OutreachCampaignUpsertArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of OutreachCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachCampaignCountArgs} args - Arguments to filter OutreachCampaigns to count.
+     * @example
+     * // Count the number of OutreachCampaigns
+     * const count = await prisma.outreachCampaign.count({
+     *   where: {
+     *     // ... the filter for the OutreachCampaigns we want to count
+     *   }
+     * })
+    **/
+    count<T extends OutreachCampaignCountArgs>(
+      args?: Subset<T, OutreachCampaignCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OutreachCampaignCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OutreachCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachCampaignAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OutreachCampaignAggregateArgs>(args: Subset<T, OutreachCampaignAggregateArgs>): Prisma.PrismaPromise<GetOutreachCampaignAggregateType<T>>
+
+    /**
+     * Group by OutreachCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachCampaignGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OutreachCampaignGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OutreachCampaignGroupByArgs['orderBy'] }
+        : { orderBy?: OutreachCampaignGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OutreachCampaignGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOutreachCampaignGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OutreachCampaign model
+   */
+  readonly fields: OutreachCampaignFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OutreachCampaign.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OutreachCampaignClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    attempts<T extends OutreachCampaign$attemptsArgs<ExtArgs> = {}>(args?: Subset<T, OutreachCampaign$attemptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OutreachCampaign model
+   */
+  interface OutreachCampaignFieldRefs {
+    readonly id: FieldRef<"OutreachCampaign", 'String'>
+    readonly name: FieldRef<"OutreachCampaign", 'String'>
+    readonly type: FieldRef<"OutreachCampaign", 'CampaignType'>
+    readonly channel: FieldRef<"OutreachCampaign", 'OutreachChannel'>
+    readonly startDate: FieldRef<"OutreachCampaign", 'DateTime'>
+    readonly endDate: FieldRef<"OutreachCampaign", 'DateTime'>
+    readonly targetCount: FieldRef<"OutreachCampaign", 'Int'>
+    readonly status: FieldRef<"OutreachCampaign", 'String'>
+    readonly createdAt: FieldRef<"OutreachCampaign", 'DateTime'>
+    readonly updatedAt: FieldRef<"OutreachCampaign", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OutreachCampaign findUnique
+   */
+  export type OutreachCampaignFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachCampaign to fetch.
+     */
+    where: OutreachCampaignWhereUniqueInput
+  }
+
+  /**
+   * OutreachCampaign findUniqueOrThrow
+   */
+  export type OutreachCampaignFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachCampaign to fetch.
+     */
+    where: OutreachCampaignWhereUniqueInput
+  }
+
+  /**
+   * OutreachCampaign findFirst
+   */
+  export type OutreachCampaignFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachCampaign to fetch.
+     */
+    where?: OutreachCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OutreachCampaigns to fetch.
+     */
+    orderBy?: OutreachCampaignOrderByWithRelationInput | OutreachCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OutreachCampaigns.
+     */
+    cursor?: OutreachCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OutreachCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OutreachCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OutreachCampaigns.
+     */
+    distinct?: OutreachCampaignScalarFieldEnum | OutreachCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * OutreachCampaign findFirstOrThrow
+   */
+  export type OutreachCampaignFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachCampaign to fetch.
+     */
+    where?: OutreachCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OutreachCampaigns to fetch.
+     */
+    orderBy?: OutreachCampaignOrderByWithRelationInput | OutreachCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OutreachCampaigns.
+     */
+    cursor?: OutreachCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OutreachCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OutreachCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OutreachCampaigns.
+     */
+    distinct?: OutreachCampaignScalarFieldEnum | OutreachCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * OutreachCampaign findMany
+   */
+  export type OutreachCampaignFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachCampaigns to fetch.
+     */
+    where?: OutreachCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OutreachCampaigns to fetch.
+     */
+    orderBy?: OutreachCampaignOrderByWithRelationInput | OutreachCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OutreachCampaigns.
+     */
+    cursor?: OutreachCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OutreachCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OutreachCampaigns.
+     */
+    skip?: number
+    distinct?: OutreachCampaignScalarFieldEnum | OutreachCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * OutreachCampaign create
+   */
+  export type OutreachCampaignCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * The data needed to create a OutreachCampaign.
+     */
+    data: XOR<OutreachCampaignCreateInput, OutreachCampaignUncheckedCreateInput>
+  }
+
+  /**
+   * OutreachCampaign createMany
+   */
+  export type OutreachCampaignCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OutreachCampaigns.
+     */
+    data: OutreachCampaignCreateManyInput | OutreachCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OutreachCampaign createManyAndReturn
+   */
+  export type OutreachCampaignCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * The data used to create many OutreachCampaigns.
+     */
+    data: OutreachCampaignCreateManyInput | OutreachCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OutreachCampaign update
+   */
+  export type OutreachCampaignUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * The data needed to update a OutreachCampaign.
+     */
+    data: XOR<OutreachCampaignUpdateInput, OutreachCampaignUncheckedUpdateInput>
+    /**
+     * Choose, which OutreachCampaign to update.
+     */
+    where: OutreachCampaignWhereUniqueInput
+  }
+
+  /**
+   * OutreachCampaign updateMany
+   */
+  export type OutreachCampaignUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OutreachCampaigns.
+     */
+    data: XOR<OutreachCampaignUpdateManyMutationInput, OutreachCampaignUncheckedUpdateManyInput>
+    /**
+     * Filter which OutreachCampaigns to update
+     */
+    where?: OutreachCampaignWhereInput
+    /**
+     * Limit how many OutreachCampaigns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * OutreachCampaign updateManyAndReturn
+   */
+  export type OutreachCampaignUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * The data used to update OutreachCampaigns.
+     */
+    data: XOR<OutreachCampaignUpdateManyMutationInput, OutreachCampaignUncheckedUpdateManyInput>
+    /**
+     * Filter which OutreachCampaigns to update
+     */
+    where?: OutreachCampaignWhereInput
+    /**
+     * Limit how many OutreachCampaigns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * OutreachCampaign upsert
+   */
+  export type OutreachCampaignUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * The filter to search for the OutreachCampaign to update in case it exists.
+     */
+    where: OutreachCampaignWhereUniqueInput
+    /**
+     * In case the OutreachCampaign found by the `where` argument doesn't exist, create a new OutreachCampaign with this data.
+     */
+    create: XOR<OutreachCampaignCreateInput, OutreachCampaignUncheckedCreateInput>
+    /**
+     * In case the OutreachCampaign was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OutreachCampaignUpdateInput, OutreachCampaignUncheckedUpdateInput>
+  }
+
+  /**
+   * OutreachCampaign delete
+   */
+  export type OutreachCampaignDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+    /**
+     * Filter which OutreachCampaign to delete.
+     */
+    where: OutreachCampaignWhereUniqueInput
+  }
+
+  /**
+   * OutreachCampaign deleteMany
+   */
+  export type OutreachCampaignDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OutreachCampaigns to delete
+     */
+    where?: OutreachCampaignWhereInput
+    /**
+     * Limit how many OutreachCampaigns to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * OutreachCampaign.attempts
+   */
+  export type OutreachCampaign$attemptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    where?: OutreachAttemptWhereInput
+    orderBy?: OutreachAttemptOrderByWithRelationInput | OutreachAttemptOrderByWithRelationInput[]
+    cursor?: OutreachAttemptWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OutreachAttemptScalarFieldEnum | OutreachAttemptScalarFieldEnum[]
+  }
+
+  /**
+   * OutreachCampaign without action
+   */
+  export type OutreachCampaignDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachCampaign
+     */
+    select?: OutreachCampaignSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachCampaign
+     */
+    omit?: OutreachCampaignOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachCampaignInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model OutreachAttempt
+   */
+
+  export type AggregateOutreachAttempt = {
+    _count: OutreachAttemptCountAggregateOutputType | null
+    _min: OutreachAttemptMinAggregateOutputType | null
+    _max: OutreachAttemptMaxAggregateOutputType | null
+  }
+
+  export type OutreachAttemptMinAggregateOutputType = {
+    id: string | null
+    campaignId: string | null
+    leadId: string | null
+    channel: $Enums.OutreachChannel | null
+    sentAt: Date | null
+    respondedAt: Date | null
+    responseType: $Enums.ResponseType | null
+    notes: string | null
+    createdAt: Date | null
+  }
+
+  export type OutreachAttemptMaxAggregateOutputType = {
+    id: string | null
+    campaignId: string | null
+    leadId: string | null
+    channel: $Enums.OutreachChannel | null
+    sentAt: Date | null
+    respondedAt: Date | null
+    responseType: $Enums.ResponseType | null
+    notes: string | null
+    createdAt: Date | null
+  }
+
+  export type OutreachAttemptCountAggregateOutputType = {
+    id: number
+    campaignId: number
+    leadId: number
+    channel: number
+    sentAt: number
+    respondedAt: number
+    responseType: number
+    notes: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type OutreachAttemptMinAggregateInputType = {
+    id?: true
+    campaignId?: true
+    leadId?: true
+    channel?: true
+    sentAt?: true
+    respondedAt?: true
+    responseType?: true
+    notes?: true
+    createdAt?: true
+  }
+
+  export type OutreachAttemptMaxAggregateInputType = {
+    id?: true
+    campaignId?: true
+    leadId?: true
+    channel?: true
+    sentAt?: true
+    respondedAt?: true
+    responseType?: true
+    notes?: true
+    createdAt?: true
+  }
+
+  export type OutreachAttemptCountAggregateInputType = {
+    id?: true
+    campaignId?: true
+    leadId?: true
+    channel?: true
+    sentAt?: true
+    respondedAt?: true
+    responseType?: true
+    notes?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type OutreachAttemptAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OutreachAttempt to aggregate.
+     */
+    where?: OutreachAttemptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OutreachAttempts to fetch.
+     */
+    orderBy?: OutreachAttemptOrderByWithRelationInput | OutreachAttemptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OutreachAttemptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OutreachAttempts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OutreachAttempts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OutreachAttempts
+    **/
+    _count?: true | OutreachAttemptCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OutreachAttemptMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OutreachAttemptMaxAggregateInputType
+  }
+
+  export type GetOutreachAttemptAggregateType<T extends OutreachAttemptAggregateArgs> = {
+        [P in keyof T & keyof AggregateOutreachAttempt]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOutreachAttempt[P]>
+      : GetScalarType<T[P], AggregateOutreachAttempt[P]>
+  }
+
+
+
+
+  export type OutreachAttemptGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OutreachAttemptWhereInput
+    orderBy?: OutreachAttemptOrderByWithAggregationInput | OutreachAttemptOrderByWithAggregationInput[]
+    by: OutreachAttemptScalarFieldEnum[] | OutreachAttemptScalarFieldEnum
+    having?: OutreachAttemptScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OutreachAttemptCountAggregateInputType | true
+    _min?: OutreachAttemptMinAggregateInputType
+    _max?: OutreachAttemptMaxAggregateInputType
+  }
+
+  export type OutreachAttemptGroupByOutputType = {
+    id: string
+    campaignId: string
+    leadId: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date
+    respondedAt: Date | null
+    responseType: $Enums.ResponseType | null
+    notes: string | null
+    createdAt: Date
+    _count: OutreachAttemptCountAggregateOutputType | null
+    _min: OutreachAttemptMinAggregateOutputType | null
+    _max: OutreachAttemptMaxAggregateOutputType | null
+  }
+
+  type GetOutreachAttemptGroupByPayload<T extends OutreachAttemptGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OutreachAttemptGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OutreachAttemptGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OutreachAttemptGroupByOutputType[P]>
+            : GetScalarType<T[P], OutreachAttemptGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OutreachAttemptSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    campaignId?: boolean
+    leadId?: boolean
+    channel?: boolean
+    sentAt?: boolean
+    respondedAt?: boolean
+    responseType?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    campaign?: boolean | OutreachCampaignDefaultArgs<ExtArgs>
+    lead?: boolean | LeadDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["outreachAttempt"]>
+
+  export type OutreachAttemptSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    campaignId?: boolean
+    leadId?: boolean
+    channel?: boolean
+    sentAt?: boolean
+    respondedAt?: boolean
+    responseType?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    campaign?: boolean | OutreachCampaignDefaultArgs<ExtArgs>
+    lead?: boolean | LeadDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["outreachAttempt"]>
+
+  export type OutreachAttemptSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    campaignId?: boolean
+    leadId?: boolean
+    channel?: boolean
+    sentAt?: boolean
+    respondedAt?: boolean
+    responseType?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    campaign?: boolean | OutreachCampaignDefaultArgs<ExtArgs>
+    lead?: boolean | LeadDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["outreachAttempt"]>
+
+  export type OutreachAttemptSelectScalar = {
+    id?: boolean
+    campaignId?: boolean
+    leadId?: boolean
+    channel?: boolean
+    sentAt?: boolean
+    respondedAt?: boolean
+    responseType?: boolean
+    notes?: boolean
+    createdAt?: boolean
+  }
+
+  export type OutreachAttemptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "campaignId" | "leadId" | "channel" | "sentAt" | "respondedAt" | "responseType" | "notes" | "createdAt", ExtArgs["result"]["outreachAttempt"]>
+  export type OutreachAttemptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | OutreachCampaignDefaultArgs<ExtArgs>
+    lead?: boolean | LeadDefaultArgs<ExtArgs>
+  }
+  export type OutreachAttemptIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | OutreachCampaignDefaultArgs<ExtArgs>
+    lead?: boolean | LeadDefaultArgs<ExtArgs>
+  }
+  export type OutreachAttemptIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | OutreachCampaignDefaultArgs<ExtArgs>
+    lead?: boolean | LeadDefaultArgs<ExtArgs>
+  }
+
+  export type $OutreachAttemptPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OutreachAttempt"
+    objects: {
+      campaign: Prisma.$OutreachCampaignPayload<ExtArgs>
+      lead: Prisma.$LeadPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      campaignId: string
+      leadId: string
+      channel: $Enums.OutreachChannel
+      sentAt: Date
+      respondedAt: Date | null
+      responseType: $Enums.ResponseType | null
+      notes: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["outreachAttempt"]>
+    composites: {}
+  }
+
+  type OutreachAttemptGetPayload<S extends boolean | null | undefined | OutreachAttemptDefaultArgs> = $Result.GetResult<Prisma.$OutreachAttemptPayload, S>
+
+  type OutreachAttemptCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<OutreachAttemptFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: OutreachAttemptCountAggregateInputType | true
+    }
+
+  export interface OutreachAttemptDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OutreachAttempt'], meta: { name: 'OutreachAttempt' } }
+    /**
+     * Find zero or one OutreachAttempt that matches the filter.
+     * @param {OutreachAttemptFindUniqueArgs} args - Arguments to find a OutreachAttempt
+     * @example
+     * // Get one OutreachAttempt
+     * const outreachAttempt = await prisma.outreachAttempt.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OutreachAttemptFindUniqueArgs>(args: SelectSubset<T, OutreachAttemptFindUniqueArgs<ExtArgs>>): Prisma__OutreachAttemptClient<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one OutreachAttempt that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {OutreachAttemptFindUniqueOrThrowArgs} args - Arguments to find a OutreachAttempt
+     * @example
+     * // Get one OutreachAttempt
+     * const outreachAttempt = await prisma.outreachAttempt.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OutreachAttemptFindUniqueOrThrowArgs>(args: SelectSubset<T, OutreachAttemptFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OutreachAttemptClient<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OutreachAttempt that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachAttemptFindFirstArgs} args - Arguments to find a OutreachAttempt
+     * @example
+     * // Get one OutreachAttempt
+     * const outreachAttempt = await prisma.outreachAttempt.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OutreachAttemptFindFirstArgs>(args?: SelectSubset<T, OutreachAttemptFindFirstArgs<ExtArgs>>): Prisma__OutreachAttemptClient<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OutreachAttempt that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachAttemptFindFirstOrThrowArgs} args - Arguments to find a OutreachAttempt
+     * @example
+     * // Get one OutreachAttempt
+     * const outreachAttempt = await prisma.outreachAttempt.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OutreachAttemptFindFirstOrThrowArgs>(args?: SelectSubset<T, OutreachAttemptFindFirstOrThrowArgs<ExtArgs>>): Prisma__OutreachAttemptClient<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more OutreachAttempts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachAttemptFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OutreachAttempts
+     * const outreachAttempts = await prisma.outreachAttempt.findMany()
+     * 
+     * // Get first 10 OutreachAttempts
+     * const outreachAttempts = await prisma.outreachAttempt.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const outreachAttemptWithIdOnly = await prisma.outreachAttempt.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends OutreachAttemptFindManyArgs>(args?: SelectSubset<T, OutreachAttemptFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a OutreachAttempt.
+     * @param {OutreachAttemptCreateArgs} args - Arguments to create a OutreachAttempt.
+     * @example
+     * // Create one OutreachAttempt
+     * const OutreachAttempt = await prisma.outreachAttempt.create({
+     *   data: {
+     *     // ... data to create a OutreachAttempt
+     *   }
+     * })
+     * 
+     */
+    create<T extends OutreachAttemptCreateArgs>(args: SelectSubset<T, OutreachAttemptCreateArgs<ExtArgs>>): Prisma__OutreachAttemptClient<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many OutreachAttempts.
+     * @param {OutreachAttemptCreateManyArgs} args - Arguments to create many OutreachAttempts.
+     * @example
+     * // Create many OutreachAttempts
+     * const outreachAttempt = await prisma.outreachAttempt.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OutreachAttemptCreateManyArgs>(args?: SelectSubset<T, OutreachAttemptCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OutreachAttempts and returns the data saved in the database.
+     * @param {OutreachAttemptCreateManyAndReturnArgs} args - Arguments to create many OutreachAttempts.
+     * @example
+     * // Create many OutreachAttempts
+     * const outreachAttempt = await prisma.outreachAttempt.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OutreachAttempts and only return the `id`
+     * const outreachAttemptWithIdOnly = await prisma.outreachAttempt.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OutreachAttemptCreateManyAndReturnArgs>(args?: SelectSubset<T, OutreachAttemptCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a OutreachAttempt.
+     * @param {OutreachAttemptDeleteArgs} args - Arguments to delete one OutreachAttempt.
+     * @example
+     * // Delete one OutreachAttempt
+     * const OutreachAttempt = await prisma.outreachAttempt.delete({
+     *   where: {
+     *     // ... filter to delete one OutreachAttempt
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OutreachAttemptDeleteArgs>(args: SelectSubset<T, OutreachAttemptDeleteArgs<ExtArgs>>): Prisma__OutreachAttemptClient<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one OutreachAttempt.
+     * @param {OutreachAttemptUpdateArgs} args - Arguments to update one OutreachAttempt.
+     * @example
+     * // Update one OutreachAttempt
+     * const outreachAttempt = await prisma.outreachAttempt.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OutreachAttemptUpdateArgs>(args: SelectSubset<T, OutreachAttemptUpdateArgs<ExtArgs>>): Prisma__OutreachAttemptClient<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more OutreachAttempts.
+     * @param {OutreachAttemptDeleteManyArgs} args - Arguments to filter OutreachAttempts to delete.
+     * @example
+     * // Delete a few OutreachAttempts
+     * const { count } = await prisma.outreachAttempt.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OutreachAttemptDeleteManyArgs>(args?: SelectSubset<T, OutreachAttemptDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OutreachAttempts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachAttemptUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OutreachAttempts
+     * const outreachAttempt = await prisma.outreachAttempt.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OutreachAttemptUpdateManyArgs>(args: SelectSubset<T, OutreachAttemptUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OutreachAttempts and returns the data updated in the database.
+     * @param {OutreachAttemptUpdateManyAndReturnArgs} args - Arguments to update many OutreachAttempts.
+     * @example
+     * // Update many OutreachAttempts
+     * const outreachAttempt = await prisma.outreachAttempt.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more OutreachAttempts and only return the `id`
+     * const outreachAttemptWithIdOnly = await prisma.outreachAttempt.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends OutreachAttemptUpdateManyAndReturnArgs>(args: SelectSubset<T, OutreachAttemptUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one OutreachAttempt.
+     * @param {OutreachAttemptUpsertArgs} args - Arguments to update or create a OutreachAttempt.
+     * @example
+     * // Update or create a OutreachAttempt
+     * const outreachAttempt = await prisma.outreachAttempt.upsert({
+     *   create: {
+     *     // ... data to create a OutreachAttempt
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OutreachAttempt we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OutreachAttemptUpsertArgs>(args: SelectSubset<T, OutreachAttemptUpsertArgs<ExtArgs>>): Prisma__OutreachAttemptClient<$Result.GetResult<Prisma.$OutreachAttemptPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of OutreachAttempts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachAttemptCountArgs} args - Arguments to filter OutreachAttempts to count.
+     * @example
+     * // Count the number of OutreachAttempts
+     * const count = await prisma.outreachAttempt.count({
+     *   where: {
+     *     // ... the filter for the OutreachAttempts we want to count
+     *   }
+     * })
+    **/
+    count<T extends OutreachAttemptCountArgs>(
+      args?: Subset<T, OutreachAttemptCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OutreachAttemptCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OutreachAttempt.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachAttemptAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OutreachAttemptAggregateArgs>(args: Subset<T, OutreachAttemptAggregateArgs>): Prisma.PrismaPromise<GetOutreachAttemptAggregateType<T>>
+
+    /**
+     * Group by OutreachAttempt.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OutreachAttemptGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OutreachAttemptGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OutreachAttemptGroupByArgs['orderBy'] }
+        : { orderBy?: OutreachAttemptGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OutreachAttemptGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOutreachAttemptGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OutreachAttempt model
+   */
+  readonly fields: OutreachAttemptFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OutreachAttempt.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OutreachAttemptClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    campaign<T extends OutreachCampaignDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OutreachCampaignDefaultArgs<ExtArgs>>): Prisma__OutreachCampaignClient<$Result.GetResult<Prisma.$OutreachCampaignPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    lead<T extends LeadDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LeadDefaultArgs<ExtArgs>>): Prisma__LeadClient<$Result.GetResult<Prisma.$LeadPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OutreachAttempt model
+   */
+  interface OutreachAttemptFieldRefs {
+    readonly id: FieldRef<"OutreachAttempt", 'String'>
+    readonly campaignId: FieldRef<"OutreachAttempt", 'String'>
+    readonly leadId: FieldRef<"OutreachAttempt", 'String'>
+    readonly channel: FieldRef<"OutreachAttempt", 'OutreachChannel'>
+    readonly sentAt: FieldRef<"OutreachAttempt", 'DateTime'>
+    readonly respondedAt: FieldRef<"OutreachAttempt", 'DateTime'>
+    readonly responseType: FieldRef<"OutreachAttempt", 'ResponseType'>
+    readonly notes: FieldRef<"OutreachAttempt", 'String'>
+    readonly createdAt: FieldRef<"OutreachAttempt", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OutreachAttempt findUnique
+   */
+  export type OutreachAttemptFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachAttempt to fetch.
+     */
+    where: OutreachAttemptWhereUniqueInput
+  }
+
+  /**
+   * OutreachAttempt findUniqueOrThrow
+   */
+  export type OutreachAttemptFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachAttempt to fetch.
+     */
+    where: OutreachAttemptWhereUniqueInput
+  }
+
+  /**
+   * OutreachAttempt findFirst
+   */
+  export type OutreachAttemptFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachAttempt to fetch.
+     */
+    where?: OutreachAttemptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OutreachAttempts to fetch.
+     */
+    orderBy?: OutreachAttemptOrderByWithRelationInput | OutreachAttemptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OutreachAttempts.
+     */
+    cursor?: OutreachAttemptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OutreachAttempts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OutreachAttempts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OutreachAttempts.
+     */
+    distinct?: OutreachAttemptScalarFieldEnum | OutreachAttemptScalarFieldEnum[]
+  }
+
+  /**
+   * OutreachAttempt findFirstOrThrow
+   */
+  export type OutreachAttemptFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachAttempt to fetch.
+     */
+    where?: OutreachAttemptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OutreachAttempts to fetch.
+     */
+    orderBy?: OutreachAttemptOrderByWithRelationInput | OutreachAttemptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OutreachAttempts.
+     */
+    cursor?: OutreachAttemptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OutreachAttempts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OutreachAttempts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OutreachAttempts.
+     */
+    distinct?: OutreachAttemptScalarFieldEnum | OutreachAttemptScalarFieldEnum[]
+  }
+
+  /**
+   * OutreachAttempt findMany
+   */
+  export type OutreachAttemptFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which OutreachAttempts to fetch.
+     */
+    where?: OutreachAttemptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OutreachAttempts to fetch.
+     */
+    orderBy?: OutreachAttemptOrderByWithRelationInput | OutreachAttemptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OutreachAttempts.
+     */
+    cursor?: OutreachAttemptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OutreachAttempts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OutreachAttempts.
+     */
+    skip?: number
+    distinct?: OutreachAttemptScalarFieldEnum | OutreachAttemptScalarFieldEnum[]
+  }
+
+  /**
+   * OutreachAttempt create
+   */
+  export type OutreachAttemptCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * The data needed to create a OutreachAttempt.
+     */
+    data: XOR<OutreachAttemptCreateInput, OutreachAttemptUncheckedCreateInput>
+  }
+
+  /**
+   * OutreachAttempt createMany
+   */
+  export type OutreachAttemptCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OutreachAttempts.
+     */
+    data: OutreachAttemptCreateManyInput | OutreachAttemptCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OutreachAttempt createManyAndReturn
+   */
+  export type OutreachAttemptCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * The data used to create many OutreachAttempts.
+     */
+    data: OutreachAttemptCreateManyInput | OutreachAttemptCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OutreachAttempt update
+   */
+  export type OutreachAttemptUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * The data needed to update a OutreachAttempt.
+     */
+    data: XOR<OutreachAttemptUpdateInput, OutreachAttemptUncheckedUpdateInput>
+    /**
+     * Choose, which OutreachAttempt to update.
+     */
+    where: OutreachAttemptWhereUniqueInput
+  }
+
+  /**
+   * OutreachAttempt updateMany
+   */
+  export type OutreachAttemptUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OutreachAttempts.
+     */
+    data: XOR<OutreachAttemptUpdateManyMutationInput, OutreachAttemptUncheckedUpdateManyInput>
+    /**
+     * Filter which OutreachAttempts to update
+     */
+    where?: OutreachAttemptWhereInput
+    /**
+     * Limit how many OutreachAttempts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * OutreachAttempt updateManyAndReturn
+   */
+  export type OutreachAttemptUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * The data used to update OutreachAttempts.
+     */
+    data: XOR<OutreachAttemptUpdateManyMutationInput, OutreachAttemptUncheckedUpdateManyInput>
+    /**
+     * Filter which OutreachAttempts to update
+     */
+    where?: OutreachAttemptWhereInput
+    /**
+     * Limit how many OutreachAttempts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OutreachAttempt upsert
+   */
+  export type OutreachAttemptUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * The filter to search for the OutreachAttempt to update in case it exists.
+     */
+    where: OutreachAttemptWhereUniqueInput
+    /**
+     * In case the OutreachAttempt found by the `where` argument doesn't exist, create a new OutreachAttempt with this data.
+     */
+    create: XOR<OutreachAttemptCreateInput, OutreachAttemptUncheckedCreateInput>
+    /**
+     * In case the OutreachAttempt was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OutreachAttemptUpdateInput, OutreachAttemptUncheckedUpdateInput>
+  }
+
+  /**
+   * OutreachAttempt delete
+   */
+  export type OutreachAttemptDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+    /**
+     * Filter which OutreachAttempt to delete.
+     */
+    where: OutreachAttemptWhereUniqueInput
+  }
+
+  /**
+   * OutreachAttempt deleteMany
+   */
+  export type OutreachAttemptDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OutreachAttempts to delete
+     */
+    where?: OutreachAttemptWhereInput
+    /**
+     * Limit how many OutreachAttempts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * OutreachAttempt without action
+   */
+  export type OutreachAttemptDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OutreachAttempt
+     */
+    select?: OutreachAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OutreachAttempt
+     */
+    omit?: OutreachAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OutreachAttemptInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -18710,6 +21391,12 @@ export namespace Prisma {
     scoreRationale: 'scoreRationale',
     lastContactedAt: 'lastContactedAt',
     nextActionAt: 'nextActionAt',
+    followUpActionType: 'followUpActionType',
+    productionNeedLevel: 'productionNeedLevel',
+    productionNeedEvidence: 'productionNeedEvidence',
+    productionNeedEvidenceNote: 'productionNeedEvidenceNote',
+    productionNeedApprovedAt: 'productionNeedApprovedAt',
+    productionNeedSource: 'productionNeedSource',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -18899,6 +21586,37 @@ export namespace Prisma {
   export type MergeProposalScalarFieldEnum = (typeof MergeProposalScalarFieldEnum)[keyof typeof MergeProposalScalarFieldEnum]
 
 
+  export const OutreachCampaignScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    type: 'type',
+    channel: 'channel',
+    startDate: 'startDate',
+    endDate: 'endDate',
+    targetCount: 'targetCount',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type OutreachCampaignScalarFieldEnum = (typeof OutreachCampaignScalarFieldEnum)[keyof typeof OutreachCampaignScalarFieldEnum]
+
+
+  export const OutreachAttemptScalarFieldEnum: {
+    id: 'id',
+    campaignId: 'campaignId',
+    leadId: 'leadId',
+    channel: 'channel',
+    sentAt: 'sentAt',
+    respondedAt: 'respondedAt',
+    responseType: 'responseType',
+    notes: 'notes',
+    createdAt: 'createdAt'
+  };
+
+  export type OutreachAttemptScalarFieldEnum = (typeof OutreachAttemptScalarFieldEnum)[keyof typeof OutreachAttemptScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -19023,6 +21741,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'FollowUpActionType'
+   */
+  export type EnumFollowUpActionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FollowUpActionType'>
+    
+
+
+  /**
+   * Reference to a field of type 'FollowUpActionType[]'
+   */
+  export type ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FollowUpActionType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ProductionNeedLevel'
+   */
+  export type EnumProductionNeedLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProductionNeedLevel'>
+    
+
+
+  /**
+   * Reference to a field of type 'ProductionNeedLevel[]'
+   */
+  export type ListEnumProductionNeedLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProductionNeedLevel[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -19082,6 +21828,48 @@ export namespace Prisma {
    * Reference to a field of type 'FileType[]'
    */
   export type ListEnumFileTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FileType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'CampaignType'
+   */
+  export type EnumCampaignTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignType'>
+    
+
+
+  /**
+   * Reference to a field of type 'CampaignType[]'
+   */
+  export type ListEnumCampaignTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'OutreachChannel'
+   */
+  export type EnumOutreachChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OutreachChannel'>
+    
+
+
+  /**
+   * Reference to a field of type 'OutreachChannel[]'
+   */
+  export type ListEnumOutreachChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OutreachChannel[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ResponseType'
+   */
+  export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
+    
+
+
+  /**
+   * Reference to a field of type 'ResponseType[]'
+   */
+  export type ListEnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType[]'>
     
   /**
    * Deep Input Types
@@ -19269,11 +22057,18 @@ export namespace Prisma {
     scoreRationale?: StringNullableFilter<"Lead"> | string | null
     lastContactedAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
     nextActionAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
+    followUpActionType?: EnumFollowUpActionTypeNullableFilter<"Lead"> | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFilter<"Lead"> | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: JsonNullableFilter<"Lead">
+    productionNeedEvidenceNote?: StringNullableFilter<"Lead"> | string | null
+    productionNeedApprovedAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
+    productionNeedSource?: JsonNullableFilter<"Lead">
     createdAt?: DateTimeFilter<"Lead"> | Date | string
     updatedAt?: DateTimeFilter<"Lead"> | Date | string
     artist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
     messages?: MessageDraftListRelationFilter
     activities?: ActivityListRelationFilter
+    outreachAttempts?: OutreachAttemptListRelationFilter
   }
 
   export type LeadOrderByWithRelationInput = {
@@ -19284,11 +22079,18 @@ export namespace Prisma {
     scoreRationale?: SortOrderInput | SortOrder
     lastContactedAt?: SortOrderInput | SortOrder
     nextActionAt?: SortOrderInput | SortOrder
+    followUpActionType?: SortOrderInput | SortOrder
+    productionNeedLevel?: SortOrder
+    productionNeedEvidence?: SortOrderInput | SortOrder
+    productionNeedEvidenceNote?: SortOrderInput | SortOrder
+    productionNeedApprovedAt?: SortOrderInput | SortOrder
+    productionNeedSource?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     artist?: ArtistOrderByWithRelationInput
     messages?: MessageDraftOrderByRelationAggregateInput
     activities?: ActivityOrderByRelationAggregateInput
+    outreachAttempts?: OutreachAttemptOrderByRelationAggregateInput
   }
 
   export type LeadWhereUniqueInput = Prisma.AtLeast<{
@@ -19302,11 +22104,18 @@ export namespace Prisma {
     scoreRationale?: StringNullableFilter<"Lead"> | string | null
     lastContactedAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
     nextActionAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
+    followUpActionType?: EnumFollowUpActionTypeNullableFilter<"Lead"> | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFilter<"Lead"> | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: JsonNullableFilter<"Lead">
+    productionNeedEvidenceNote?: StringNullableFilter<"Lead"> | string | null
+    productionNeedApprovedAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
+    productionNeedSource?: JsonNullableFilter<"Lead">
     createdAt?: DateTimeFilter<"Lead"> | Date | string
     updatedAt?: DateTimeFilter<"Lead"> | Date | string
     artist?: XOR<ArtistScalarRelationFilter, ArtistWhereInput>
     messages?: MessageDraftListRelationFilter
     activities?: ActivityListRelationFilter
+    outreachAttempts?: OutreachAttemptListRelationFilter
   }, "id">
 
   export type LeadOrderByWithAggregationInput = {
@@ -19317,6 +22126,12 @@ export namespace Prisma {
     scoreRationale?: SortOrderInput | SortOrder
     lastContactedAt?: SortOrderInput | SortOrder
     nextActionAt?: SortOrderInput | SortOrder
+    followUpActionType?: SortOrderInput | SortOrder
+    productionNeedLevel?: SortOrder
+    productionNeedEvidence?: SortOrderInput | SortOrder
+    productionNeedEvidenceNote?: SortOrderInput | SortOrder
+    productionNeedApprovedAt?: SortOrderInput | SortOrder
+    productionNeedSource?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: LeadCountOrderByAggregateInput
@@ -19337,6 +22152,12 @@ export namespace Prisma {
     scoreRationale?: StringNullableWithAggregatesFilter<"Lead"> | string | null
     lastContactedAt?: DateTimeNullableWithAggregatesFilter<"Lead"> | Date | string | null
     nextActionAt?: DateTimeNullableWithAggregatesFilter<"Lead"> | Date | string | null
+    followUpActionType?: EnumFollowUpActionTypeNullableWithAggregatesFilter<"Lead"> | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelWithAggregatesFilter<"Lead"> | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: JsonNullableWithAggregatesFilter<"Lead">
+    productionNeedEvidenceNote?: StringNullableWithAggregatesFilter<"Lead"> | string | null
+    productionNeedApprovedAt?: DateTimeNullableWithAggregatesFilter<"Lead"> | Date | string | null
+    productionNeedSource?: JsonNullableWithAggregatesFilter<"Lead">
     createdAt?: DateTimeWithAggregatesFilter<"Lead"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Lead"> | Date | string
   }
@@ -20282,6 +23103,166 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"MergeProposal"> | Date | string
   }
 
+  export type OutreachCampaignWhereInput = {
+    AND?: OutreachCampaignWhereInput | OutreachCampaignWhereInput[]
+    OR?: OutreachCampaignWhereInput[]
+    NOT?: OutreachCampaignWhereInput | OutreachCampaignWhereInput[]
+    id?: StringFilter<"OutreachCampaign"> | string
+    name?: StringFilter<"OutreachCampaign"> | string
+    type?: EnumCampaignTypeFilter<"OutreachCampaign"> | $Enums.CampaignType
+    channel?: EnumOutreachChannelFilter<"OutreachCampaign"> | $Enums.OutreachChannel
+    startDate?: DateTimeFilter<"OutreachCampaign"> | Date | string
+    endDate?: DateTimeNullableFilter<"OutreachCampaign"> | Date | string | null
+    targetCount?: IntFilter<"OutreachCampaign"> | number
+    status?: StringFilter<"OutreachCampaign"> | string
+    createdAt?: DateTimeFilter<"OutreachCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"OutreachCampaign"> | Date | string
+    attempts?: OutreachAttemptListRelationFilter
+  }
+
+  export type OutreachCampaignOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    channel?: SortOrder
+    startDate?: SortOrder
+    endDate?: SortOrderInput | SortOrder
+    targetCount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    attempts?: OutreachAttemptOrderByRelationAggregateInput
+  }
+
+  export type OutreachCampaignWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: OutreachCampaignWhereInput | OutreachCampaignWhereInput[]
+    OR?: OutreachCampaignWhereInput[]
+    NOT?: OutreachCampaignWhereInput | OutreachCampaignWhereInput[]
+    name?: StringFilter<"OutreachCampaign"> | string
+    type?: EnumCampaignTypeFilter<"OutreachCampaign"> | $Enums.CampaignType
+    channel?: EnumOutreachChannelFilter<"OutreachCampaign"> | $Enums.OutreachChannel
+    startDate?: DateTimeFilter<"OutreachCampaign"> | Date | string
+    endDate?: DateTimeNullableFilter<"OutreachCampaign"> | Date | string | null
+    targetCount?: IntFilter<"OutreachCampaign"> | number
+    status?: StringFilter<"OutreachCampaign"> | string
+    createdAt?: DateTimeFilter<"OutreachCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"OutreachCampaign"> | Date | string
+    attempts?: OutreachAttemptListRelationFilter
+  }, "id">
+
+  export type OutreachCampaignOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    channel?: SortOrder
+    startDate?: SortOrder
+    endDate?: SortOrderInput | SortOrder
+    targetCount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: OutreachCampaignCountOrderByAggregateInput
+    _avg?: OutreachCampaignAvgOrderByAggregateInput
+    _max?: OutreachCampaignMaxOrderByAggregateInput
+    _min?: OutreachCampaignMinOrderByAggregateInput
+    _sum?: OutreachCampaignSumOrderByAggregateInput
+  }
+
+  export type OutreachCampaignScalarWhereWithAggregatesInput = {
+    AND?: OutreachCampaignScalarWhereWithAggregatesInput | OutreachCampaignScalarWhereWithAggregatesInput[]
+    OR?: OutreachCampaignScalarWhereWithAggregatesInput[]
+    NOT?: OutreachCampaignScalarWhereWithAggregatesInput | OutreachCampaignScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"OutreachCampaign"> | string
+    name?: StringWithAggregatesFilter<"OutreachCampaign"> | string
+    type?: EnumCampaignTypeWithAggregatesFilter<"OutreachCampaign"> | $Enums.CampaignType
+    channel?: EnumOutreachChannelWithAggregatesFilter<"OutreachCampaign"> | $Enums.OutreachChannel
+    startDate?: DateTimeWithAggregatesFilter<"OutreachCampaign"> | Date | string
+    endDate?: DateTimeNullableWithAggregatesFilter<"OutreachCampaign"> | Date | string | null
+    targetCount?: IntWithAggregatesFilter<"OutreachCampaign"> | number
+    status?: StringWithAggregatesFilter<"OutreachCampaign"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"OutreachCampaign"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"OutreachCampaign"> | Date | string
+  }
+
+  export type OutreachAttemptWhereInput = {
+    AND?: OutreachAttemptWhereInput | OutreachAttemptWhereInput[]
+    OR?: OutreachAttemptWhereInput[]
+    NOT?: OutreachAttemptWhereInput | OutreachAttemptWhereInput[]
+    id?: StringFilter<"OutreachAttempt"> | string
+    campaignId?: StringFilter<"OutreachAttempt"> | string
+    leadId?: StringFilter<"OutreachAttempt"> | string
+    channel?: EnumOutreachChannelFilter<"OutreachAttempt"> | $Enums.OutreachChannel
+    sentAt?: DateTimeFilter<"OutreachAttempt"> | Date | string
+    respondedAt?: DateTimeNullableFilter<"OutreachAttempt"> | Date | string | null
+    responseType?: EnumResponseTypeNullableFilter<"OutreachAttempt"> | $Enums.ResponseType | null
+    notes?: StringNullableFilter<"OutreachAttempt"> | string | null
+    createdAt?: DateTimeFilter<"OutreachAttempt"> | Date | string
+    campaign?: XOR<OutreachCampaignScalarRelationFilter, OutreachCampaignWhereInput>
+    lead?: XOR<LeadScalarRelationFilter, LeadWhereInput>
+  }
+
+  export type OutreachAttemptOrderByWithRelationInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    leadId?: SortOrder
+    channel?: SortOrder
+    sentAt?: SortOrder
+    respondedAt?: SortOrderInput | SortOrder
+    responseType?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    campaign?: OutreachCampaignOrderByWithRelationInput
+    lead?: LeadOrderByWithRelationInput
+  }
+
+  export type OutreachAttemptWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: OutreachAttemptWhereInput | OutreachAttemptWhereInput[]
+    OR?: OutreachAttemptWhereInput[]
+    NOT?: OutreachAttemptWhereInput | OutreachAttemptWhereInput[]
+    campaignId?: StringFilter<"OutreachAttempt"> | string
+    leadId?: StringFilter<"OutreachAttempt"> | string
+    channel?: EnumOutreachChannelFilter<"OutreachAttempt"> | $Enums.OutreachChannel
+    sentAt?: DateTimeFilter<"OutreachAttempt"> | Date | string
+    respondedAt?: DateTimeNullableFilter<"OutreachAttempt"> | Date | string | null
+    responseType?: EnumResponseTypeNullableFilter<"OutreachAttempt"> | $Enums.ResponseType | null
+    notes?: StringNullableFilter<"OutreachAttempt"> | string | null
+    createdAt?: DateTimeFilter<"OutreachAttempt"> | Date | string
+    campaign?: XOR<OutreachCampaignScalarRelationFilter, OutreachCampaignWhereInput>
+    lead?: XOR<LeadScalarRelationFilter, LeadWhereInput>
+  }, "id">
+
+  export type OutreachAttemptOrderByWithAggregationInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    leadId?: SortOrder
+    channel?: SortOrder
+    sentAt?: SortOrder
+    respondedAt?: SortOrderInput | SortOrder
+    responseType?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: OutreachAttemptCountOrderByAggregateInput
+    _max?: OutreachAttemptMaxOrderByAggregateInput
+    _min?: OutreachAttemptMinOrderByAggregateInput
+  }
+
+  export type OutreachAttemptScalarWhereWithAggregatesInput = {
+    AND?: OutreachAttemptScalarWhereWithAggregatesInput | OutreachAttemptScalarWhereWithAggregatesInput[]
+    OR?: OutreachAttemptScalarWhereWithAggregatesInput[]
+    NOT?: OutreachAttemptScalarWhereWithAggregatesInput | OutreachAttemptScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"OutreachAttempt"> | string
+    campaignId?: StringWithAggregatesFilter<"OutreachAttempt"> | string
+    leadId?: StringWithAggregatesFilter<"OutreachAttempt"> | string
+    channel?: EnumOutreachChannelWithAggregatesFilter<"OutreachAttempt"> | $Enums.OutreachChannel
+    sentAt?: DateTimeWithAggregatesFilter<"OutreachAttempt"> | Date | string
+    respondedAt?: DateTimeNullableWithAggregatesFilter<"OutreachAttempt"> | Date | string | null
+    responseType?: EnumResponseTypeNullableWithAggregatesFilter<"OutreachAttempt"> | $Enums.ResponseType | null
+    notes?: StringNullableWithAggregatesFilter<"OutreachAttempt"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"OutreachAttempt"> | Date | string
+  }
+
   export type ArtistCreateInput = {
     id?: string
     name: string
@@ -20506,11 +23487,18 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     artist: ArtistCreateNestedOneWithoutLeadsInput
     messages?: MessageDraftCreateNestedManyWithoutLeadInput
     activities?: ActivityCreateNestedManyWithoutLeadInput
+    outreachAttempts?: OutreachAttemptCreateNestedManyWithoutLeadInput
   }
 
   export type LeadUncheckedCreateInput = {
@@ -20521,10 +23509,17 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: MessageDraftUncheckedCreateNestedManyWithoutLeadInput
     activities?: ActivityUncheckedCreateNestedManyWithoutLeadInput
+    outreachAttempts?: OutreachAttemptUncheckedCreateNestedManyWithoutLeadInput
   }
 
   export type LeadUpdateInput = {
@@ -20534,11 +23529,18 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artist?: ArtistUpdateOneRequiredWithoutLeadsNestedInput
     messages?: MessageDraftUpdateManyWithoutLeadNestedInput
     activities?: ActivityUpdateManyWithoutLeadNestedInput
+    outreachAttempts?: OutreachAttemptUpdateManyWithoutLeadNestedInput
   }
 
   export type LeadUncheckedUpdateInput = {
@@ -20549,10 +23551,17 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: MessageDraftUncheckedUpdateManyWithoutLeadNestedInput
     activities?: ActivityUncheckedUpdateManyWithoutLeadNestedInput
+    outreachAttempts?: OutreachAttemptUncheckedUpdateManyWithoutLeadNestedInput
   }
 
   export type LeadCreateManyInput = {
@@ -20563,6 +23572,12 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -20574,6 +23589,12 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -20586,6 +23607,12 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -21619,6 +24646,183 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type OutreachCampaignCreateInput = {
+    id?: string
+    name: string
+    type: $Enums.CampaignType
+    channel: $Enums.OutreachChannel
+    startDate: Date | string
+    endDate?: Date | string | null
+    targetCount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    attempts?: OutreachAttemptCreateNestedManyWithoutCampaignInput
+  }
+
+  export type OutreachCampaignUncheckedCreateInput = {
+    id?: string
+    name: string
+    type: $Enums.CampaignType
+    channel: $Enums.OutreachChannel
+    startDate: Date | string
+    endDate?: Date | string | null
+    targetCount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    attempts?: OutreachAttemptUncheckedCreateNestedManyWithoutCampaignInput
+  }
+
+  export type OutreachCampaignUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targetCount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: OutreachAttemptUpdateManyWithoutCampaignNestedInput
+  }
+
+  export type OutreachCampaignUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targetCount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: OutreachAttemptUncheckedUpdateManyWithoutCampaignNestedInput
+  }
+
+  export type OutreachCampaignCreateManyInput = {
+    id?: string
+    name: string
+    type: $Enums.CampaignType
+    channel: $Enums.OutreachChannel
+    startDate: Date | string
+    endDate?: Date | string | null
+    targetCount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OutreachCampaignUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targetCount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OutreachCampaignUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targetCount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OutreachAttemptCreateInput = {
+    id?: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+    campaign: OutreachCampaignCreateNestedOneWithoutAttemptsInput
+    lead: LeadCreateNestedOneWithoutOutreachAttemptsInput
+  }
+
+  export type OutreachAttemptUncheckedCreateInput = {
+    id?: string
+    campaignId: string
+    leadId: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+  }
+
+  export type OutreachAttemptUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: OutreachCampaignUpdateOneRequiredWithoutAttemptsNestedInput
+    lead?: LeadUpdateOneRequiredWithoutOutreachAttemptsNestedInput
+  }
+
+  export type OutreachAttemptUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    leadId?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OutreachAttemptCreateManyInput = {
+    id?: string
+    campaignId: string
+    leadId: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+  }
+
+  export type OutreachAttemptUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OutreachAttemptUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    leadId?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -21938,6 +25142,43 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type EnumFollowUpActionTypeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.FollowUpActionType | EnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.FollowUpActionType[] | ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.FollowUpActionType[] | ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumFollowUpActionTypeNullableFilter<$PrismaModel> | $Enums.FollowUpActionType | null
+  }
+
+  export type EnumProductionNeedLevelFilter<$PrismaModel = never> = {
+    equals?: $Enums.ProductionNeedLevel | EnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.ProductionNeedLevel[] | ListEnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ProductionNeedLevel[] | ListEnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumProductionNeedLevelFilter<$PrismaModel> | $Enums.ProductionNeedLevel
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
   export type ArtistScalarRelationFilter = {
     is?: ArtistWhereInput
     isNot?: ArtistWhereInput
@@ -21955,11 +25196,21 @@ export namespace Prisma {
     none?: ActivityWhereInput
   }
 
+  export type OutreachAttemptListRelationFilter = {
+    every?: OutreachAttemptWhereInput
+    some?: OutreachAttemptWhereInput
+    none?: OutreachAttemptWhereInput
+  }
+
   export type MessageDraftOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type ActivityOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type OutreachAttemptOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -21971,6 +25222,12 @@ export namespace Prisma {
     scoreRationale?: SortOrder
     lastContactedAt?: SortOrder
     nextActionAt?: SortOrder
+    followUpActionType?: SortOrder
+    productionNeedLevel?: SortOrder
+    productionNeedEvidence?: SortOrder
+    productionNeedEvidenceNote?: SortOrder
+    productionNeedApprovedAt?: SortOrder
+    productionNeedSource?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -21987,6 +25244,10 @@ export namespace Prisma {
     scoreRationale?: SortOrder
     lastContactedAt?: SortOrder
     nextActionAt?: SortOrder
+    followUpActionType?: SortOrder
+    productionNeedLevel?: SortOrder
+    productionNeedEvidenceNote?: SortOrder
+    productionNeedApprovedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -21999,6 +25260,10 @@ export namespace Prisma {
     scoreRationale?: SortOrder
     lastContactedAt?: SortOrder
     nextActionAt?: SortOrder
+    followUpActionType?: SortOrder
+    productionNeedLevel?: SortOrder
+    productionNeedEvidenceNote?: SortOrder
+    productionNeedApprovedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -22031,6 +25296,52 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type EnumFollowUpActionTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.FollowUpActionType | EnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.FollowUpActionType[] | ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.FollowUpActionType[] | ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumFollowUpActionTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.FollowUpActionType | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumFollowUpActionTypeNullableFilter<$PrismaModel>
+    _max?: NestedEnumFollowUpActionTypeNullableFilter<$PrismaModel>
+  }
+
+  export type EnumProductionNeedLevelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ProductionNeedLevel | EnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.ProductionNeedLevel[] | ListEnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ProductionNeedLevel[] | ListEnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumProductionNeedLevelWithAggregatesFilter<$PrismaModel> | $Enums.ProductionNeedLevel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumProductionNeedLevelFilter<$PrismaModel>
+    _max?: NestedEnumProductionNeedLevelFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type TrackAnalysisNullableScalarRelationFilter = {
@@ -22075,29 +25386,6 @@ export namespace Prisma {
     url?: SortOrder
     releaseType?: SortOrder
     createdAt?: SortOrder
-  }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type BoolNullableFilter<$PrismaModel = never> = {
@@ -22145,32 +25433,6 @@ export namespace Prisma {
     mxmArtistId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -22795,6 +26057,145 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type EnumCampaignTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignType | EnumCampaignTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignTypeFilter<$PrismaModel> | $Enums.CampaignType
+  }
+
+  export type EnumOutreachChannelFilter<$PrismaModel = never> = {
+    equals?: $Enums.OutreachChannel | EnumOutreachChannelFieldRefInput<$PrismaModel>
+    in?: $Enums.OutreachChannel[] | ListEnumOutreachChannelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OutreachChannel[] | ListEnumOutreachChannelFieldRefInput<$PrismaModel>
+    not?: NestedEnumOutreachChannelFilter<$PrismaModel> | $Enums.OutreachChannel
+  }
+
+  export type OutreachCampaignCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    channel?: SortOrder
+    startDate?: SortOrder
+    endDate?: SortOrder
+    targetCount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OutreachCampaignAvgOrderByAggregateInput = {
+    targetCount?: SortOrder
+  }
+
+  export type OutreachCampaignMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    channel?: SortOrder
+    startDate?: SortOrder
+    endDate?: SortOrder
+    targetCount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OutreachCampaignMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    channel?: SortOrder
+    startDate?: SortOrder
+    endDate?: SortOrder
+    targetCount?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OutreachCampaignSumOrderByAggregateInput = {
+    targetCount?: SortOrder
+  }
+
+  export type EnumCampaignTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignType | EnumCampaignTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignTypeWithAggregatesFilter<$PrismaModel> | $Enums.CampaignType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCampaignTypeFilter<$PrismaModel>
+    _max?: NestedEnumCampaignTypeFilter<$PrismaModel>
+  }
+
+  export type EnumOutreachChannelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.OutreachChannel | EnumOutreachChannelFieldRefInput<$PrismaModel>
+    in?: $Enums.OutreachChannel[] | ListEnumOutreachChannelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OutreachChannel[] | ListEnumOutreachChannelFieldRefInput<$PrismaModel>
+    not?: NestedEnumOutreachChannelWithAggregatesFilter<$PrismaModel> | $Enums.OutreachChannel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumOutreachChannelFilter<$PrismaModel>
+    _max?: NestedEnumOutreachChannelFilter<$PrismaModel>
+  }
+
+  export type EnumResponseTypeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.ResponseType | EnumResponseTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ResponseType[] | ListEnumResponseTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ResponseType[] | ListEnumResponseTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumResponseTypeNullableFilter<$PrismaModel> | $Enums.ResponseType | null
+  }
+
+  export type OutreachCampaignScalarRelationFilter = {
+    is?: OutreachCampaignWhereInput
+    isNot?: OutreachCampaignWhereInput
+  }
+
+  export type OutreachAttemptCountOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    leadId?: SortOrder
+    channel?: SortOrder
+    sentAt?: SortOrder
+    respondedAt?: SortOrder
+    responseType?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type OutreachAttemptMaxOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    leadId?: SortOrder
+    channel?: SortOrder
+    sentAt?: SortOrder
+    respondedAt?: SortOrder
+    responseType?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type OutreachAttemptMinOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    leadId?: SortOrder
+    channel?: SortOrder
+    sentAt?: SortOrder
+    respondedAt?: SortOrder
+    responseType?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EnumResponseTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ResponseType | EnumResponseTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ResponseType[] | ListEnumResponseTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ResponseType[] | ListEnumResponseTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumResponseTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.ResponseType | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumResponseTypeNullableFilter<$PrismaModel>
+    _max?: NestedEnumResponseTypeNullableFilter<$PrismaModel>
+  }
+
   export type ArtistCreatetagsInput = {
     set: string[]
   }
@@ -23151,6 +26552,13 @@ export namespace Prisma {
     connect?: ActivityWhereUniqueInput | ActivityWhereUniqueInput[]
   }
 
+  export type OutreachAttemptCreateNestedManyWithoutLeadInput = {
+    create?: XOR<OutreachAttemptCreateWithoutLeadInput, OutreachAttemptUncheckedCreateWithoutLeadInput> | OutreachAttemptCreateWithoutLeadInput[] | OutreachAttemptUncheckedCreateWithoutLeadInput[]
+    connectOrCreate?: OutreachAttemptCreateOrConnectWithoutLeadInput | OutreachAttemptCreateOrConnectWithoutLeadInput[]
+    createMany?: OutreachAttemptCreateManyLeadInputEnvelope
+    connect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+  }
+
   export type MessageDraftUncheckedCreateNestedManyWithoutLeadInput = {
     create?: XOR<MessageDraftCreateWithoutLeadInput, MessageDraftUncheckedCreateWithoutLeadInput> | MessageDraftCreateWithoutLeadInput[] | MessageDraftUncheckedCreateWithoutLeadInput[]
     connectOrCreate?: MessageDraftCreateOrConnectWithoutLeadInput | MessageDraftCreateOrConnectWithoutLeadInput[]
@@ -23165,6 +26573,13 @@ export namespace Prisma {
     connect?: ActivityWhereUniqueInput | ActivityWhereUniqueInput[]
   }
 
+  export type OutreachAttemptUncheckedCreateNestedManyWithoutLeadInput = {
+    create?: XOR<OutreachAttemptCreateWithoutLeadInput, OutreachAttemptUncheckedCreateWithoutLeadInput> | OutreachAttemptCreateWithoutLeadInput[] | OutreachAttemptUncheckedCreateWithoutLeadInput[]
+    connectOrCreate?: OutreachAttemptCreateOrConnectWithoutLeadInput | OutreachAttemptCreateOrConnectWithoutLeadInput[]
+    createMany?: OutreachAttemptCreateManyLeadInputEnvelope
+    connect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+  }
+
   export type EnumLeadStatusFieldUpdateOperationsInput = {
     set?: $Enums.LeadStatus
   }
@@ -23175,6 +26590,14 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type NullableEnumFollowUpActionTypeFieldUpdateOperationsInput = {
+    set?: $Enums.FollowUpActionType | null
+  }
+
+  export type EnumProductionNeedLevelFieldUpdateOperationsInput = {
+    set?: $Enums.ProductionNeedLevel
   }
 
   export type ArtistUpdateOneRequiredWithoutLeadsNestedInput = {
@@ -23213,6 +26636,20 @@ export namespace Prisma {
     deleteMany?: ActivityScalarWhereInput | ActivityScalarWhereInput[]
   }
 
+  export type OutreachAttemptUpdateManyWithoutLeadNestedInput = {
+    create?: XOR<OutreachAttemptCreateWithoutLeadInput, OutreachAttemptUncheckedCreateWithoutLeadInput> | OutreachAttemptCreateWithoutLeadInput[] | OutreachAttemptUncheckedCreateWithoutLeadInput[]
+    connectOrCreate?: OutreachAttemptCreateOrConnectWithoutLeadInput | OutreachAttemptCreateOrConnectWithoutLeadInput[]
+    upsert?: OutreachAttemptUpsertWithWhereUniqueWithoutLeadInput | OutreachAttemptUpsertWithWhereUniqueWithoutLeadInput[]
+    createMany?: OutreachAttemptCreateManyLeadInputEnvelope
+    set?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    disconnect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    delete?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    connect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    update?: OutreachAttemptUpdateWithWhereUniqueWithoutLeadInput | OutreachAttemptUpdateWithWhereUniqueWithoutLeadInput[]
+    updateMany?: OutreachAttemptUpdateManyWithWhereWithoutLeadInput | OutreachAttemptUpdateManyWithWhereWithoutLeadInput[]
+    deleteMany?: OutreachAttemptScalarWhereInput | OutreachAttemptScalarWhereInput[]
+  }
+
   export type MessageDraftUncheckedUpdateManyWithoutLeadNestedInput = {
     create?: XOR<MessageDraftCreateWithoutLeadInput, MessageDraftUncheckedCreateWithoutLeadInput> | MessageDraftCreateWithoutLeadInput[] | MessageDraftUncheckedCreateWithoutLeadInput[]
     connectOrCreate?: MessageDraftCreateOrConnectWithoutLeadInput | MessageDraftCreateOrConnectWithoutLeadInput[]
@@ -23239,6 +26676,20 @@ export namespace Prisma {
     update?: ActivityUpdateWithWhereUniqueWithoutLeadInput | ActivityUpdateWithWhereUniqueWithoutLeadInput[]
     updateMany?: ActivityUpdateManyWithWhereWithoutLeadInput | ActivityUpdateManyWithWhereWithoutLeadInput[]
     deleteMany?: ActivityScalarWhereInput | ActivityScalarWhereInput[]
+  }
+
+  export type OutreachAttemptUncheckedUpdateManyWithoutLeadNestedInput = {
+    create?: XOR<OutreachAttemptCreateWithoutLeadInput, OutreachAttemptUncheckedCreateWithoutLeadInput> | OutreachAttemptCreateWithoutLeadInput[] | OutreachAttemptUncheckedCreateWithoutLeadInput[]
+    connectOrCreate?: OutreachAttemptCreateOrConnectWithoutLeadInput | OutreachAttemptCreateOrConnectWithoutLeadInput[]
+    upsert?: OutreachAttemptUpsertWithWhereUniqueWithoutLeadInput | OutreachAttemptUpsertWithWhereUniqueWithoutLeadInput[]
+    createMany?: OutreachAttemptCreateManyLeadInputEnvelope
+    set?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    disconnect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    delete?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    connect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    update?: OutreachAttemptUpdateWithWhereUniqueWithoutLeadInput | OutreachAttemptUpdateWithWhereUniqueWithoutLeadInput[]
+    updateMany?: OutreachAttemptUpdateManyWithWhereWithoutLeadInput | OutreachAttemptUpdateManyWithWhereWithoutLeadInput[]
+    deleteMany?: OutreachAttemptScalarWhereInput | OutreachAttemptScalarWhereInput[]
   }
 
   export type ArtistCreateNestedOneWithoutReleasesInput = {
@@ -23669,6 +27120,88 @@ export namespace Prisma {
     update?: XOR<XOR<ArtistUpdateToOneWithWhereWithoutDuplicateMergesInput, ArtistUpdateWithoutDuplicateMergesInput>, ArtistUncheckedUpdateWithoutDuplicateMergesInput>
   }
 
+  export type OutreachAttemptCreateNestedManyWithoutCampaignInput = {
+    create?: XOR<OutreachAttemptCreateWithoutCampaignInput, OutreachAttemptUncheckedCreateWithoutCampaignInput> | OutreachAttemptCreateWithoutCampaignInput[] | OutreachAttemptUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: OutreachAttemptCreateOrConnectWithoutCampaignInput | OutreachAttemptCreateOrConnectWithoutCampaignInput[]
+    createMany?: OutreachAttemptCreateManyCampaignInputEnvelope
+    connect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+  }
+
+  export type OutreachAttemptUncheckedCreateNestedManyWithoutCampaignInput = {
+    create?: XOR<OutreachAttemptCreateWithoutCampaignInput, OutreachAttemptUncheckedCreateWithoutCampaignInput> | OutreachAttemptCreateWithoutCampaignInput[] | OutreachAttemptUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: OutreachAttemptCreateOrConnectWithoutCampaignInput | OutreachAttemptCreateOrConnectWithoutCampaignInput[]
+    createMany?: OutreachAttemptCreateManyCampaignInputEnvelope
+    connect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+  }
+
+  export type EnumCampaignTypeFieldUpdateOperationsInput = {
+    set?: $Enums.CampaignType
+  }
+
+  export type EnumOutreachChannelFieldUpdateOperationsInput = {
+    set?: $Enums.OutreachChannel
+  }
+
+  export type OutreachAttemptUpdateManyWithoutCampaignNestedInput = {
+    create?: XOR<OutreachAttemptCreateWithoutCampaignInput, OutreachAttemptUncheckedCreateWithoutCampaignInput> | OutreachAttemptCreateWithoutCampaignInput[] | OutreachAttemptUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: OutreachAttemptCreateOrConnectWithoutCampaignInput | OutreachAttemptCreateOrConnectWithoutCampaignInput[]
+    upsert?: OutreachAttemptUpsertWithWhereUniqueWithoutCampaignInput | OutreachAttemptUpsertWithWhereUniqueWithoutCampaignInput[]
+    createMany?: OutreachAttemptCreateManyCampaignInputEnvelope
+    set?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    disconnect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    delete?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    connect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    update?: OutreachAttemptUpdateWithWhereUniqueWithoutCampaignInput | OutreachAttemptUpdateWithWhereUniqueWithoutCampaignInput[]
+    updateMany?: OutreachAttemptUpdateManyWithWhereWithoutCampaignInput | OutreachAttemptUpdateManyWithWhereWithoutCampaignInput[]
+    deleteMany?: OutreachAttemptScalarWhereInput | OutreachAttemptScalarWhereInput[]
+  }
+
+  export type OutreachAttemptUncheckedUpdateManyWithoutCampaignNestedInput = {
+    create?: XOR<OutreachAttemptCreateWithoutCampaignInput, OutreachAttemptUncheckedCreateWithoutCampaignInput> | OutreachAttemptCreateWithoutCampaignInput[] | OutreachAttemptUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: OutreachAttemptCreateOrConnectWithoutCampaignInput | OutreachAttemptCreateOrConnectWithoutCampaignInput[]
+    upsert?: OutreachAttemptUpsertWithWhereUniqueWithoutCampaignInput | OutreachAttemptUpsertWithWhereUniqueWithoutCampaignInput[]
+    createMany?: OutreachAttemptCreateManyCampaignInputEnvelope
+    set?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    disconnect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    delete?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    connect?: OutreachAttemptWhereUniqueInput | OutreachAttemptWhereUniqueInput[]
+    update?: OutreachAttemptUpdateWithWhereUniqueWithoutCampaignInput | OutreachAttemptUpdateWithWhereUniqueWithoutCampaignInput[]
+    updateMany?: OutreachAttemptUpdateManyWithWhereWithoutCampaignInput | OutreachAttemptUpdateManyWithWhereWithoutCampaignInput[]
+    deleteMany?: OutreachAttemptScalarWhereInput | OutreachAttemptScalarWhereInput[]
+  }
+
+  export type OutreachCampaignCreateNestedOneWithoutAttemptsInput = {
+    create?: XOR<OutreachCampaignCreateWithoutAttemptsInput, OutreachCampaignUncheckedCreateWithoutAttemptsInput>
+    connectOrCreate?: OutreachCampaignCreateOrConnectWithoutAttemptsInput
+    connect?: OutreachCampaignWhereUniqueInput
+  }
+
+  export type LeadCreateNestedOneWithoutOutreachAttemptsInput = {
+    create?: XOR<LeadCreateWithoutOutreachAttemptsInput, LeadUncheckedCreateWithoutOutreachAttemptsInput>
+    connectOrCreate?: LeadCreateOrConnectWithoutOutreachAttemptsInput
+    connect?: LeadWhereUniqueInput
+  }
+
+  export type NullableEnumResponseTypeFieldUpdateOperationsInput = {
+    set?: $Enums.ResponseType | null
+  }
+
+  export type OutreachCampaignUpdateOneRequiredWithoutAttemptsNestedInput = {
+    create?: XOR<OutreachCampaignCreateWithoutAttemptsInput, OutreachCampaignUncheckedCreateWithoutAttemptsInput>
+    connectOrCreate?: OutreachCampaignCreateOrConnectWithoutAttemptsInput
+    upsert?: OutreachCampaignUpsertWithoutAttemptsInput
+    connect?: OutreachCampaignWhereUniqueInput
+    update?: XOR<XOR<OutreachCampaignUpdateToOneWithWhereWithoutAttemptsInput, OutreachCampaignUpdateWithoutAttemptsInput>, OutreachCampaignUncheckedUpdateWithoutAttemptsInput>
+  }
+
+  export type LeadUpdateOneRequiredWithoutOutreachAttemptsNestedInput = {
+    create?: XOR<LeadCreateWithoutOutreachAttemptsInput, LeadUncheckedCreateWithoutOutreachAttemptsInput>
+    connectOrCreate?: LeadCreateOrConnectWithoutOutreachAttemptsInput
+    upsert?: LeadUpsertWithoutOutreachAttemptsInput
+    connect?: LeadWhereUniqueInput
+    update?: XOR<XOR<LeadUpdateToOneWithWhereWithoutOutreachAttemptsInput, LeadUpdateWithoutOutreachAttemptsInput>, LeadUncheckedUpdateWithoutOutreachAttemptsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -23837,6 +27370,20 @@ export namespace Prisma {
     not?: NestedEnumLeadStatusFilter<$PrismaModel> | $Enums.LeadStatus
   }
 
+  export type NestedEnumFollowUpActionTypeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.FollowUpActionType | EnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.FollowUpActionType[] | ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.FollowUpActionType[] | ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumFollowUpActionTypeNullableFilter<$PrismaModel> | $Enums.FollowUpActionType | null
+  }
+
+  export type NestedEnumProductionNeedLevelFilter<$PrismaModel = never> = {
+    equals?: $Enums.ProductionNeedLevel | EnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.ProductionNeedLevel[] | ListEnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ProductionNeedLevel[] | ListEnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumProductionNeedLevelFilter<$PrismaModel> | $Enums.ProductionNeedLevel
+  }
+
   export type NestedEnumLeadStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.LeadStatus | EnumLeadStatusFieldRefInput<$PrismaModel>
     in?: $Enums.LeadStatus[] | ListEnumLeadStatusFieldRefInput<$PrismaModel>
@@ -23863,9 +27410,24 @@ export namespace Prisma {
     _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
-  export type NestedBoolNullableFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
-    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  export type NestedEnumFollowUpActionTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.FollowUpActionType | EnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.FollowUpActionType[] | ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.FollowUpActionType[] | ListEnumFollowUpActionTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumFollowUpActionTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.FollowUpActionType | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumFollowUpActionTypeNullableFilter<$PrismaModel>
+    _max?: NestedEnumFollowUpActionTypeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumProductionNeedLevelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ProductionNeedLevel | EnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.ProductionNeedLevel[] | ListEnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ProductionNeedLevel[] | ListEnumProductionNeedLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumProductionNeedLevelWithAggregatesFilter<$PrismaModel> | $Enums.ProductionNeedLevel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumProductionNeedLevelFilter<$PrismaModel>
+    _max?: NestedEnumProductionNeedLevelFilter<$PrismaModel>
   }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -23889,6 +27451,11 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedBoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
   }
 
   export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -24029,6 +27596,57 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type NestedEnumCampaignTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignType | EnumCampaignTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignTypeFilter<$PrismaModel> | $Enums.CampaignType
+  }
+
+  export type NestedEnumOutreachChannelFilter<$PrismaModel = never> = {
+    equals?: $Enums.OutreachChannel | EnumOutreachChannelFieldRefInput<$PrismaModel>
+    in?: $Enums.OutreachChannel[] | ListEnumOutreachChannelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OutreachChannel[] | ListEnumOutreachChannelFieldRefInput<$PrismaModel>
+    not?: NestedEnumOutreachChannelFilter<$PrismaModel> | $Enums.OutreachChannel
+  }
+
+  export type NestedEnumCampaignTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignType | EnumCampaignTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignTypeWithAggregatesFilter<$PrismaModel> | $Enums.CampaignType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCampaignTypeFilter<$PrismaModel>
+    _max?: NestedEnumCampaignTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumOutreachChannelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.OutreachChannel | EnumOutreachChannelFieldRefInput<$PrismaModel>
+    in?: $Enums.OutreachChannel[] | ListEnumOutreachChannelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OutreachChannel[] | ListEnumOutreachChannelFieldRefInput<$PrismaModel>
+    not?: NestedEnumOutreachChannelWithAggregatesFilter<$PrismaModel> | $Enums.OutreachChannel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumOutreachChannelFilter<$PrismaModel>
+    _max?: NestedEnumOutreachChannelFilter<$PrismaModel>
+  }
+
+  export type NestedEnumResponseTypeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.ResponseType | EnumResponseTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ResponseType[] | ListEnumResponseTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ResponseType[] | ListEnumResponseTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumResponseTypeNullableFilter<$PrismaModel> | $Enums.ResponseType | null
+  }
+
+  export type NestedEnumResponseTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ResponseType | EnumResponseTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ResponseType[] | ListEnumResponseTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ResponseType[] | ListEnumResponseTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumResponseTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.ResponseType | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumResponseTypeNullableFilter<$PrismaModel>
+    _max?: NestedEnumResponseTypeNullableFilter<$PrismaModel>
+  }
+
   export type LeadCreateWithoutArtistInput = {
     id?: string
     status?: $Enums.LeadStatus
@@ -24036,10 +27654,17 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: MessageDraftCreateNestedManyWithoutLeadInput
     activities?: ActivityCreateNestedManyWithoutLeadInput
+    outreachAttempts?: OutreachAttemptCreateNestedManyWithoutLeadInput
   }
 
   export type LeadUncheckedCreateWithoutArtistInput = {
@@ -24049,10 +27674,17 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: MessageDraftUncheckedCreateNestedManyWithoutLeadInput
     activities?: ActivityUncheckedCreateNestedManyWithoutLeadInput
+    outreachAttempts?: OutreachAttemptUncheckedCreateNestedManyWithoutLeadInput
   }
 
   export type LeadCreateOrConnectWithoutArtistInput = {
@@ -24294,6 +27926,12 @@ export namespace Prisma {
     scoreRationale?: StringNullableFilter<"Lead"> | string | null
     lastContactedAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
     nextActionAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
+    followUpActionType?: EnumFollowUpActionTypeNullableFilter<"Lead"> | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFilter<"Lead"> | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: JsonNullableFilter<"Lead">
+    productionNeedEvidenceNote?: StringNullableFilter<"Lead"> | string | null
+    productionNeedApprovedAt?: DateTimeNullableFilter<"Lead"> | Date | string | null
+    productionNeedSource?: JsonNullableFilter<"Lead">
     createdAt?: DateTimeFilter<"Lead"> | Date | string
     updatedAt?: DateTimeFilter<"Lead"> | Date | string
   }
@@ -24594,6 +28232,38 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type OutreachAttemptCreateWithoutLeadInput = {
+    id?: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+    campaign: OutreachCampaignCreateNestedOneWithoutAttemptsInput
+  }
+
+  export type OutreachAttemptUncheckedCreateWithoutLeadInput = {
+    id?: string
+    campaignId: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+  }
+
+  export type OutreachAttemptCreateOrConnectWithoutLeadInput = {
+    where: OutreachAttemptWhereUniqueInput
+    create: XOR<OutreachAttemptCreateWithoutLeadInput, OutreachAttemptUncheckedCreateWithoutLeadInput>
+  }
+
+  export type OutreachAttemptCreateManyLeadInputEnvelope = {
+    data: OutreachAttemptCreateManyLeadInput | OutreachAttemptCreateManyLeadInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ArtistUpsertWithoutLeadsInput = {
     update: XOR<ArtistUpdateWithoutLeadsInput, ArtistUncheckedUpdateWithoutLeadsInput>
     create: XOR<ArtistCreateWithoutLeadsInput, ArtistUncheckedCreateWithoutLeadsInput>
@@ -24726,6 +28396,37 @@ export namespace Prisma {
     note?: StringNullableFilter<"Activity"> | string | null
     occurredAt?: DateTimeFilter<"Activity"> | Date | string
     createdAt?: DateTimeFilter<"Activity"> | Date | string
+  }
+
+  export type OutreachAttemptUpsertWithWhereUniqueWithoutLeadInput = {
+    where: OutreachAttemptWhereUniqueInput
+    update: XOR<OutreachAttemptUpdateWithoutLeadInput, OutreachAttemptUncheckedUpdateWithoutLeadInput>
+    create: XOR<OutreachAttemptCreateWithoutLeadInput, OutreachAttemptUncheckedCreateWithoutLeadInput>
+  }
+
+  export type OutreachAttemptUpdateWithWhereUniqueWithoutLeadInput = {
+    where: OutreachAttemptWhereUniqueInput
+    data: XOR<OutreachAttemptUpdateWithoutLeadInput, OutreachAttemptUncheckedUpdateWithoutLeadInput>
+  }
+
+  export type OutreachAttemptUpdateManyWithWhereWithoutLeadInput = {
+    where: OutreachAttemptScalarWhereInput
+    data: XOR<OutreachAttemptUpdateManyMutationInput, OutreachAttemptUncheckedUpdateManyWithoutLeadInput>
+  }
+
+  export type OutreachAttemptScalarWhereInput = {
+    AND?: OutreachAttemptScalarWhereInput | OutreachAttemptScalarWhereInput[]
+    OR?: OutreachAttemptScalarWhereInput[]
+    NOT?: OutreachAttemptScalarWhereInput | OutreachAttemptScalarWhereInput[]
+    id?: StringFilter<"OutreachAttempt"> | string
+    campaignId?: StringFilter<"OutreachAttempt"> | string
+    leadId?: StringFilter<"OutreachAttempt"> | string
+    channel?: EnumOutreachChannelFilter<"OutreachAttempt"> | $Enums.OutreachChannel
+    sentAt?: DateTimeFilter<"OutreachAttempt"> | Date | string
+    respondedAt?: DateTimeNullableFilter<"OutreachAttempt"> | Date | string | null
+    responseType?: EnumResponseTypeNullableFilter<"OutreachAttempt"> | $Enums.ResponseType | null
+    notes?: StringNullableFilter<"OutreachAttempt"> | string | null
+    createdAt?: DateTimeFilter<"OutreachAttempt"> | Date | string
   }
 
   export type ArtistCreateWithoutReleasesInput = {
@@ -25171,10 +28872,17 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     artist: ArtistCreateNestedOneWithoutLeadsInput
     activities?: ActivityCreateNestedManyWithoutLeadInput
+    outreachAttempts?: OutreachAttemptCreateNestedManyWithoutLeadInput
   }
 
   export type LeadUncheckedCreateWithoutMessagesInput = {
@@ -25185,9 +28893,16 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     activities?: ActivityUncheckedCreateNestedManyWithoutLeadInput
+    outreachAttempts?: OutreachAttemptUncheckedCreateNestedManyWithoutLeadInput
   }
 
   export type LeadCreateOrConnectWithoutMessagesInput = {
@@ -25213,10 +28928,17 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artist?: ArtistUpdateOneRequiredWithoutLeadsNestedInput
     activities?: ActivityUpdateManyWithoutLeadNestedInput
+    outreachAttempts?: OutreachAttemptUpdateManyWithoutLeadNestedInput
   }
 
   export type LeadUncheckedUpdateWithoutMessagesInput = {
@@ -25227,9 +28949,16 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     activities?: ActivityUncheckedUpdateManyWithoutLeadNestedInput
+    outreachAttempts?: OutreachAttemptUncheckedUpdateManyWithoutLeadNestedInput
   }
 
   export type LeadCreateWithoutActivitiesInput = {
@@ -25239,10 +28968,17 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     artist: ArtistCreateNestedOneWithoutLeadsInput
     messages?: MessageDraftCreateNestedManyWithoutLeadInput
+    outreachAttempts?: OutreachAttemptCreateNestedManyWithoutLeadInput
   }
 
   export type LeadUncheckedCreateWithoutActivitiesInput = {
@@ -25253,9 +28989,16 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: MessageDraftUncheckedCreateNestedManyWithoutLeadInput
+    outreachAttempts?: OutreachAttemptUncheckedCreateNestedManyWithoutLeadInput
   }
 
   export type LeadCreateOrConnectWithoutActivitiesInput = {
@@ -25281,10 +29024,17 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artist?: ArtistUpdateOneRequiredWithoutLeadsNestedInput
     messages?: MessageDraftUpdateManyWithoutLeadNestedInput
+    outreachAttempts?: OutreachAttemptUpdateManyWithoutLeadNestedInput
   }
 
   export type LeadUncheckedUpdateWithoutActivitiesInput = {
@@ -25295,9 +29045,16 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: MessageDraftUncheckedUpdateManyWithoutLeadNestedInput
+    outreachAttempts?: OutreachAttemptUncheckedUpdateManyWithoutLeadNestedInput
   }
 
   export type ArtistCreateWithoutProjectsInput = {
@@ -26429,6 +30186,218 @@ export namespace Prisma {
     primaryMerges?: MergeProposalUncheckedUpdateManyWithoutPrimaryArtistNestedInput
   }
 
+  export type OutreachAttemptCreateWithoutCampaignInput = {
+    id?: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+    lead: LeadCreateNestedOneWithoutOutreachAttemptsInput
+  }
+
+  export type OutreachAttemptUncheckedCreateWithoutCampaignInput = {
+    id?: string
+    leadId: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+  }
+
+  export type OutreachAttemptCreateOrConnectWithoutCampaignInput = {
+    where: OutreachAttemptWhereUniqueInput
+    create: XOR<OutreachAttemptCreateWithoutCampaignInput, OutreachAttemptUncheckedCreateWithoutCampaignInput>
+  }
+
+  export type OutreachAttemptCreateManyCampaignInputEnvelope = {
+    data: OutreachAttemptCreateManyCampaignInput | OutreachAttemptCreateManyCampaignInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type OutreachAttemptUpsertWithWhereUniqueWithoutCampaignInput = {
+    where: OutreachAttemptWhereUniqueInput
+    update: XOR<OutreachAttemptUpdateWithoutCampaignInput, OutreachAttemptUncheckedUpdateWithoutCampaignInput>
+    create: XOR<OutreachAttemptCreateWithoutCampaignInput, OutreachAttemptUncheckedCreateWithoutCampaignInput>
+  }
+
+  export type OutreachAttemptUpdateWithWhereUniqueWithoutCampaignInput = {
+    where: OutreachAttemptWhereUniqueInput
+    data: XOR<OutreachAttemptUpdateWithoutCampaignInput, OutreachAttemptUncheckedUpdateWithoutCampaignInput>
+  }
+
+  export type OutreachAttemptUpdateManyWithWhereWithoutCampaignInput = {
+    where: OutreachAttemptScalarWhereInput
+    data: XOR<OutreachAttemptUpdateManyMutationInput, OutreachAttemptUncheckedUpdateManyWithoutCampaignInput>
+  }
+
+  export type OutreachCampaignCreateWithoutAttemptsInput = {
+    id?: string
+    name: string
+    type: $Enums.CampaignType
+    channel: $Enums.OutreachChannel
+    startDate: Date | string
+    endDate?: Date | string | null
+    targetCount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OutreachCampaignUncheckedCreateWithoutAttemptsInput = {
+    id?: string
+    name: string
+    type: $Enums.CampaignType
+    channel: $Enums.OutreachChannel
+    startDate: Date | string
+    endDate?: Date | string | null
+    targetCount?: number
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OutreachCampaignCreateOrConnectWithoutAttemptsInput = {
+    where: OutreachCampaignWhereUniqueInput
+    create: XOR<OutreachCampaignCreateWithoutAttemptsInput, OutreachCampaignUncheckedCreateWithoutAttemptsInput>
+  }
+
+  export type LeadCreateWithoutOutreachAttemptsInput = {
+    id?: string
+    status?: $Enums.LeadStatus
+    score?: number | null
+    scoreRationale?: string | null
+    lastContactedAt?: Date | string | null
+    nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    artist: ArtistCreateNestedOneWithoutLeadsInput
+    messages?: MessageDraftCreateNestedManyWithoutLeadInput
+    activities?: ActivityCreateNestedManyWithoutLeadInput
+  }
+
+  export type LeadUncheckedCreateWithoutOutreachAttemptsInput = {
+    id?: string
+    artistId: string
+    status?: $Enums.LeadStatus
+    score?: number | null
+    scoreRationale?: string | null
+    lastContactedAt?: Date | string | null
+    nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: MessageDraftUncheckedCreateNestedManyWithoutLeadInput
+    activities?: ActivityUncheckedCreateNestedManyWithoutLeadInput
+  }
+
+  export type LeadCreateOrConnectWithoutOutreachAttemptsInput = {
+    where: LeadWhereUniqueInput
+    create: XOR<LeadCreateWithoutOutreachAttemptsInput, LeadUncheckedCreateWithoutOutreachAttemptsInput>
+  }
+
+  export type OutreachCampaignUpsertWithoutAttemptsInput = {
+    update: XOR<OutreachCampaignUpdateWithoutAttemptsInput, OutreachCampaignUncheckedUpdateWithoutAttemptsInput>
+    create: XOR<OutreachCampaignCreateWithoutAttemptsInput, OutreachCampaignUncheckedCreateWithoutAttemptsInput>
+    where?: OutreachCampaignWhereInput
+  }
+
+  export type OutreachCampaignUpdateToOneWithWhereWithoutAttemptsInput = {
+    where?: OutreachCampaignWhereInput
+    data: XOR<OutreachCampaignUpdateWithoutAttemptsInput, OutreachCampaignUncheckedUpdateWithoutAttemptsInput>
+  }
+
+  export type OutreachCampaignUpdateWithoutAttemptsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targetCount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OutreachCampaignUncheckedUpdateWithoutAttemptsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targetCount?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LeadUpsertWithoutOutreachAttemptsInput = {
+    update: XOR<LeadUpdateWithoutOutreachAttemptsInput, LeadUncheckedUpdateWithoutOutreachAttemptsInput>
+    create: XOR<LeadCreateWithoutOutreachAttemptsInput, LeadUncheckedCreateWithoutOutreachAttemptsInput>
+    where?: LeadWhereInput
+  }
+
+  export type LeadUpdateToOneWithWhereWithoutOutreachAttemptsInput = {
+    where?: LeadWhereInput
+    data: XOR<LeadUpdateWithoutOutreachAttemptsInput, LeadUncheckedUpdateWithoutOutreachAttemptsInput>
+  }
+
+  export type LeadUpdateWithoutOutreachAttemptsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumLeadStatusFieldUpdateOperationsInput | $Enums.LeadStatus
+    score?: NullableFloatFieldUpdateOperationsInput | number | null
+    scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
+    lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    artist?: ArtistUpdateOneRequiredWithoutLeadsNestedInput
+    messages?: MessageDraftUpdateManyWithoutLeadNestedInput
+    activities?: ActivityUpdateManyWithoutLeadNestedInput
+  }
+
+  export type LeadUncheckedUpdateWithoutOutreachAttemptsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    artistId?: StringFieldUpdateOperationsInput | string
+    status?: EnumLeadStatusFieldUpdateOperationsInput | $Enums.LeadStatus
+    score?: NullableFloatFieldUpdateOperationsInput | number | null
+    scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
+    lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: MessageDraftUncheckedUpdateManyWithoutLeadNestedInput
+    activities?: ActivityUncheckedUpdateManyWithoutLeadNestedInput
+  }
+
   export type LeadCreateManyArtistInput = {
     id?: string
     status?: $Enums.LeadStatus
@@ -26436,6 +30405,12 @@ export namespace Prisma {
     scoreRationale?: string | null
     lastContactedAt?: Date | string | null
     nextActionAt?: Date | string | null
+    followUpActionType?: $Enums.FollowUpActionType | null
+    productionNeedLevel?: $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: string | null
+    productionNeedApprovedAt?: Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -26514,10 +30489,17 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: MessageDraftUpdateManyWithoutLeadNestedInput
     activities?: ActivityUpdateManyWithoutLeadNestedInput
+    outreachAttempts?: OutreachAttemptUpdateManyWithoutLeadNestedInput
   }
 
   export type LeadUncheckedUpdateWithoutArtistInput = {
@@ -26527,10 +30509,17 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: MessageDraftUncheckedUpdateManyWithoutLeadNestedInput
     activities?: ActivityUncheckedUpdateManyWithoutLeadNestedInput
+    outreachAttempts?: OutreachAttemptUncheckedUpdateManyWithoutLeadNestedInput
   }
 
   export type LeadUncheckedUpdateManyWithoutArtistInput = {
@@ -26540,6 +30529,12 @@ export namespace Prisma {
     scoreRationale?: NullableStringFieldUpdateOperationsInput | string | null
     lastContactedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     nextActionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    followUpActionType?: NullableEnumFollowUpActionTypeFieldUpdateOperationsInput | $Enums.FollowUpActionType | null
+    productionNeedLevel?: EnumProductionNeedLevelFieldUpdateOperationsInput | $Enums.ProductionNeedLevel
+    productionNeedEvidence?: NullableJsonNullValueInput | InputJsonValue
+    productionNeedEvidenceNote?: NullableStringFieldUpdateOperationsInput | string | null
+    productionNeedApprovedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    productionNeedSource?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -26770,6 +30765,17 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type OutreachAttemptCreateManyLeadInput = {
+    id?: string
+    campaignId: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+  }
+
   export type MessageDraftUpdateWithoutLeadInput = {
     id?: StringFieldUpdateOperationsInput | string
     tone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -26818,6 +30824,39 @@ export namespace Prisma {
     type?: EnumActivityTypeFieldUpdateOperationsInput | $Enums.ActivityType
     note?: NullableStringFieldUpdateOperationsInput | string | null
     occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OutreachAttemptUpdateWithoutLeadInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: OutreachCampaignUpdateOneRequiredWithoutAttemptsNestedInput
+  }
+
+  export type OutreachAttemptUncheckedUpdateWithoutLeadInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OutreachAttemptUncheckedUpdateManyWithoutLeadInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -26941,6 +30980,50 @@ export namespace Prisma {
     resolved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     timestamp?: NullableFloatFieldUpdateOperationsInput | number | null
+  }
+
+  export type OutreachAttemptCreateManyCampaignInput = {
+    id?: string
+    leadId: string
+    channel: $Enums.OutreachChannel
+    sentAt: Date | string
+    respondedAt?: Date | string | null
+    responseType?: $Enums.ResponseType | null
+    notes?: string | null
+    createdAt?: Date | string
+  }
+
+  export type OutreachAttemptUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lead?: LeadUpdateOneRequiredWithoutOutreachAttemptsNestedInput
+  }
+
+  export type OutreachAttemptUncheckedUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    leadId?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OutreachAttemptUncheckedUpdateManyWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    leadId?: StringFieldUpdateOperationsInput | string
+    channel?: EnumOutreachChannelFieldUpdateOperationsInput | $Enums.OutreachChannel
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    responseType?: NullableEnumResponseTypeFieldUpdateOperationsInput | $Enums.ResponseType | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

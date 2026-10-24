@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { LeadIngestService, LeadPayload } from "@/lib/lead-ingest-service";
 

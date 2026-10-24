@@ -13,6 +13,9 @@ import { NeonButton } from "@/components/NeonButton";
 import { StatusPill } from "@/components/StatusPill";
 import { DynamicThemeShell } from "@/components/DynamicThemeShell";
 import { EditableArtistName } from "@/components/EditableArtistName";
+import { EditableArtistLocation } from "@/components/EditableArtistLocation";
+import { EditableSpotifyProfile } from "@/components/EditableSpotifyProfile";
+import LeadBottomNavigation from "@/components/LeadBottomNavigation";
 import {
   generateDraftsForLead,
   refreshLeadData,
@@ -37,12 +40,14 @@ const formatRelativeDate = (date: Date | null | undefined) => {
   return formatter.format(diffMonths, "month");
 };
 
-const formatStatusLabel = (status: string) =>
-  status
+const formatStatusLabel = (status: string) => {
+  if (status === "PAUSED") return "Paused / Ignore";
+  return status
     .toLowerCase()
     .split("_")
     .map((word) => word[0]?.toUpperCase() + word.slice(1))
     .join(" ");
+};
 
 const proxiedHelper = (url: string | null) => {
   if (!url) return undefined;
@@ -71,7 +76,7 @@ const normalizeHex = (value?: string | null) => {
   return null;
 };
 
-const statusOptions: LeadStatus[] = ["NEW", "QUALIFIED", "CONTACTED", "FOLLOW_UP", "WON", "LOST"];
+const statusOptions: LeadStatus[] = ["NEW", "QUALIFIED", "CONTACTED", "FOLLOW_UP", "WON", "LOST", "PAUSED"];
 
 type LeadDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -137,8 +142,8 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
     if (!lead) notFound();
   }
 
-  const spotifyImageUrl = lead.artist.spotifyImageUrl;
-  const themeImageUrl = spotifyImageUrl ? `/api/proxy?url=${encodeURIComponent(spotifyImageUrl)}` : null;
+  const bannerRawUrl = lead.artist.spotifyImageUrl ?? lead.artist.instagramProfileImageUrl ?? null;
+  const themeImageUrl = bannerRawUrl ? `/api/proxy?url=${encodeURIComponent(bannerRawUrl)}` : null;
 
   const postWhere = {
     artistId: lead.artist.id,
@@ -154,7 +159,7 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
     ],
   };
 
-  const [releaseRows, postRows, releaseCount, postCount] = await Promise.all([
+  const [releaseRows, postRows, releaseCount, postCount, allLeadsNav] = await Promise.all([
     prisma.release.findMany({
       where: releaseWhere,
       orderBy: [
@@ -174,7 +179,32 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
     }),
     prisma.release.count({ where: releaseWhere }),
     prisma.instagramPost.count({ where: postWhere }),
+    prisma.lead.findMany({
+      where: {
+        status: { not: "PAUSED" },
+      },
+      select: {
+        id: true,
+        score: true,
+        artist: { select: { name: true } },
+      },
+      orderBy: [{ score: "desc" }, { updatedAt: "desc" }, { id: "desc" }],
+    }),
   ]);
+
+  const leadIndex = allLeadsNav.findIndex((l) => l.id === id);
+  const prevLead = leadIndex > 0 ? {
+    id: allLeadsNav[leadIndex - 1].id,
+    name: allLeadsNav[leadIndex - 1].artist.name,
+    score: allLeadsNav[leadIndex - 1].score,
+  } : null;
+  const nextLead = leadIndex >= 0 && leadIndex < allLeadsNav.length - 1 ? {
+    id: allLeadsNav[leadIndex + 1].id,
+    name: allLeadsNav[leadIndex + 1].artist.name,
+    score: allLeadsNav[leadIndex + 1].score,
+  } : null;
+  const currentIndex = leadIndex >= 0 ? leadIndex : 0;
+  const totalLeads = allLeadsNav.length;
 
   const releaseTotalPages = Math.max(1, Math.ceil(releaseCount / releasePageSize));
   const postTotalPages = Math.max(1, Math.ceil(postCount / postPageSize));
@@ -286,37 +316,88 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
     <DynamicThemeShell imageUrl={themeImageUrl} artistName={lead.artist.name} genre={lead.artist.genre} accentColors={accentColors}>
       <div className="relative min-h-screen pb-20 selection:bg-accent/30 selection:text-white">
         <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-6 pt-12">
-          <div className="relative h-[400px] w-full rounded-[40px] overflow-hidden group shadow-2xl">
+          <div className="relative min-h-[420px] md:h-[480px] w-full rounded-[40px] overflow-hidden group shadow-2xl border border-white/10 bg-zinc-950 flex flex-col justify-between p-6 md:p-10">
             {themeImageUrl && (
-              <img
-                src={themeImageUrl}
-                alt={lead.artist.name}
-                className="absolute"
-                style={{ top: '0', left: '0', width: '100%', height: '340px', objectFit: 'cover', objectPosition: 'center center' }}
-                loading="eager"
-              />
+              <>
+                <img
+                  src={themeImageUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full object-cover blur-3xl scale-110 opacity-35 brightness-75 pointer-events-none select-none"
+                />
+                <img
+                  src={themeImageUrl}
+                  alt={lead.artist.name}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                  style={{ objectPosition: "center 20%" }}
+                  loading="eager"
+                />
+              </>
             )}
-            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-            <div
-              className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-8 p-8"
-              style={{ height: '180px', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.1)' }}
-            >
-              <div className="space-y-1 max-w-[75%]">
-                <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-white/50 hover:text-accent transition-colors mb-3">
-                  <span>← Back</span>
-                </Link>
-                <div className="text-[2.5rem] leading-[1] font-black tracking-tight text-white" style={{ fontFamily: 'var(--font-display)' }}>
-                  <EditableArtistName artistId={lead.artist.id} initialName={lead.artist.name} />
+            <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/40 via-45% to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/25 via-50% to-transparent pointer-events-none" />
+
+            {/* Top Navigation Row */}
+            <div className="relative z-10 flex items-center justify-between gap-4">
+              <Link
+                href="/leads"
+                className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-white/80 hover:text-white px-4 py-2 rounded-full bg-black/40 border border-white/10 backdrop-blur-md transition-all hover:bg-black/60 hover:border-white/20 shadow-lg"
+              >
+                <span>← Back</span>
+              </Link>
+            </div>
+
+            {/* Bottom Artist Info Row */}
+            <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 pt-12">
+              <div className="flex items-center gap-5 md:gap-6 min-w-0 max-w-[85%] md:max-w-[70%]">
+                {themeImageUrl && (
+                  <div className="hidden sm:block h-20 w-20 md:h-24 md:w-24 shrink-0 rounded-2xl md:rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl bg-zinc-900/60 backdrop-blur-sm">
+                    <img
+                      src={themeImageUrl}
+                      alt={lead.artist.name}
+                      className="h-full w-full object-cover"
+                      style={{ objectPosition: "center 20%" }}
+                    />
+                  </div>
+                )}
+                <div className="space-y-1.5 min-w-0">
+                  <div className="text-3xl sm:text-4xl md:text-5xl leading-[1.05] font-black tracking-tight text-white drop-shadow-md" style={{ fontFamily: "var(--font-display)" }}>
+                    <EditableArtistName artistId={lead.artist.id} initialName={lead.artist.name} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.25em] text-white/70 pt-1">
+                    <EditableArtistLocation artistId={lead.artist.id} initialLocation={lead.artist.location} />
+                    <span>•</span>
+                    <span className="text-white/80">{lead.artist.genre || "Social Profile"}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.3em] text-white/50">
-                  {lead.artist.location && <span>{lead.artist.location}</span>}
-                  <span>{lead.artist.genre || "Social Profile"}</span>
+              </div>
+
+              <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
+                <div className="flex items-baseline gap-1.5 bg-black/50 border border-white/15 rounded-2xl px-5 py-2.5 backdrop-blur-md shadow-xl">
+                  <span className="text-3xl font-black text-accent">{score}</span>
+                  <span className="text-xs uppercase tracking-widest text-white/50 font-bold">/ 100</span>
                 </div>
+                {lead.scoreRationale && (
+                  <span className="text-[11px] font-medium text-white/70 max-w-[280px] text-left md:text-right truncate drop-shadow-sm" title={lead.scoreRationale}>
+                    {lead.scoreRationale}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
           <div className="space-y-10">
+            {lead.status === "PAUSED" && (
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-amber-200/80">
+                <div className="flex items-center gap-3">
+                  <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                  <span>Lead is Paused / Ignored · Completely removed from all active views</span>
+                </div>
+                <Link href="/leads?status=PAUSED&contact=ALL" className="text-accent hover:underline">
+                  View Paused Leads →
+                </Link>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/3 px-4 py-3">
               <form
                 action={async (formData) => {
@@ -385,7 +466,24 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-white/35">Latest Posts</h3>
-                    <div className="flex items-center gap-2 text-xs font-bold text-white/35">
+                    <div className="flex items-center gap-3 text-xs font-bold text-white/35">
+                      <form action={refreshLeadData}>
+                        <input type="hidden" name="leadId" value={lead.id} />
+                        <button
+                          type="submit"
+                          title="Refresh Instagram data"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-white/10 bg-white/3 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 2v6h-6" />
+                            <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                            <path d="M3 22v-6h6" />
+                            <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                          </svg>
+                          Refresh
+                        </button>
+                      </form>
+                      <div className="flex items-center gap-2">
                       <Link
                         href={hrefWith({ rPage: releasePage, pPage: Math.max(1, postPage - 1), igPage: igDraftPage, emailPage: emailDraftPage })}
                         className={`px-2 py-1 rounded border ${postPage > 1 ? "border-white/20 hover:border-accent/40" : "border-white/5 opacity-40 pointer-events-none"}`}
@@ -399,8 +497,10 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                       >
                         Next
                       </Link>
+                      </div>
                     </div>
                   </div>
+
 
                   <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory custom-scrollbar">
                     {postRows.length === 0 ? (
@@ -432,7 +532,15 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
 
               <GlassCard className="p-6! bg-white/2 border-white/5">
                 <div className="space-y-5">
-                  <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-white/35">Spotify</h3>
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-white/35">Spotify</h3>
+                    <EditableSpotifyProfile
+                      artistId={lead.artist.id}
+                      leadId={lead.id}
+                      spotifyName={lead.artist.name}
+                      spotifyUrl={lead.artist.spotifyArtistUrl}
+                    />
+                  </div>
 
                   {featuredRelease ? (
                     <iframe
@@ -576,6 +684,13 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                 })}
               </div>
             </GlassCard>
+
+            <LeadBottomNavigation
+              prevLead={prevLead}
+              nextLead={nextLead}
+              currentIndex={currentIndex}
+              totalLeads={totalLeads}
+            />
           </div>
         </div>
       </div>

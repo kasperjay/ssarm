@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MVP_VENUES } from "./config";
-import { scrapeDo512Venue, splitArtistTitle } from "./shared";
+import { ACTIVE_VENUES, MVP_VENUES, isVenueActive } from "./config";
+import { getVenueScraper } from "./index";
+import { scrapeDo512Venue, scrapeTheCutVenue, splitArtistTitle } from "./shared";
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -20,6 +22,30 @@ describe("direct venue calendar scrapers", () => {
       "Antone's",
       "Mohawk",
     ]);
+  });
+
+  it("registers all active venues and leaves closed venues out of selectable search", () => {
+    expect(ACTIVE_VENUES.map((venue) => venue.id)).toEqual([
+      "come-and-take-it",
+      "continental-club",
+      "continental-gallery",
+      "hotel-vegas",
+      "antones",
+      "mohawk",
+      "haute-spot",
+      "parker-jazz",
+      "the-cut",
+      "scoot-inn",
+      "saxon-pub",
+      "elephant-room",
+      "cboys",
+      "broken-spoke",
+      "3ten",
+      "valhalla-tavern",
+    ]);
+    expect(ACTIVE_VENUES.every((venue) => typeof getVenueScraper(venue.id) === "function")).toBe(true);
+    expect(isVenueActive("empire-atx")).toBe(false);
+    expect(isVenueActive("valhalla-tavern")).toBe(true);
   });
 
   it("splits each lineup artist separately and excludes non-music events", () => {
@@ -78,5 +104,116 @@ describe("direct venue calendar scrapers", () => {
     expect(result.warnings).toContain("1 event detail page(s) could not be loaded; event titles were used as fallback.");
     expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("outside-window"), expect.anything());
     expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("movie-club"), expect.anything());
+  });
+
+  it("scrapes The Cut lineup cards into separate artist rows and reads event details", async () => {
+    const now = new Date("2026-10-10T18:00:00.000Z");
+    const calendarHtml = `
+      <a href="/tickets/october-show" aria-label="October 20">
+        <span class="spineCol">Tue October 20</span>
+        <span class="headlinerName">Headliner</span>
+        <span class="supportName">Support Artist</span>
+        <span class="eventMeta">Show 2000 – 2200</span>
+      </a>
+      <a href="/tickets/outside-show" aria-label="November 25">
+        <span class="spineCol">Wed November 25</span>
+        <span class="headlinerName">Outside Artist</span>
+      </a>
+    `;
+    const detailHtml = `<meta name="description" content="October live show">`;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "https://www.thecutatx.com/") {
+        return new Response(calendarHtml, { headers: { "content-type": "text/html; charset=utf-8" } });
+      }
+      if (url === "https://www.thecutatx.com/tickets/october-show") {
+        return new Response(detailHtml, { headers: { "content-type": "text/html; charset=utf-8" } });
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const venue = ACTIVE_VENUES.find((item) => item.id === "the-cut")!;
+    const result = await scrapeTheCutVenue(venue, now);
+
+    expect(result.eventsFound).toBe(1);
+    expect(result.items.map((item) => item.artist).sort()).toEqual(["Headliner", "Support Artist"]);
+    expect(result.items[0]).toMatchObject({
+      venueName: "The Cut ATX",
+      eventTitle: "Headliner w/ Support Artist",
+      eventUrl: "https://www.thecutatx.com/tickets/october-show",
+      description: "October live show",
+      eventDateOnly: false,
+    });
+    expect(result.eventPagesRead).toBe(1);
+    expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("outside-show"), expect.anything());
+  });
+
+  it("enforces the 30-second per-venue timeout", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+    })));
+
+    const search = scrapeDo512Venue(MVP_VENUES[0], new Date("2026-10-10T18:00:00.000Z"));
+    const timedOut = expect(search).rejects.toThrow("Venue scraper timed out after 30 seconds.");
+    await vi.advanceTimersByTimeAsync(30_000);
+    await timedOut;
+  });
+
+  it("retries a transient venue-calendar error once", async () => {
+    const now = new Date("2026-01-01T18:00:00.000Z");
+    const calendarHtml = calendarCard("Retry Artist", "2026-01-20T20:00:00-06:00", "retry-show");
+    let calendarAttempts = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/month_events")) {
+        calendarAttempts += 1;
+        if (calendarAttempts === 1) return new Response("temporary failure", { status: 503 });
+        return new Response(calendarHtml, { headers: { "content-type": "text/html; charset=utf-8" } });
+      }
+      if (url.endsWith("/events/retry-show")) {
+        return new Response(`<div itemprop="performer"><span itemprop="name">Retry Artist</span></div>`, { headers: { "content-type": "text/html; charset=utf-8" } });
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const venue = MVP_VENUES.find((item) => item.id === "come-and-take-it")!;
+    const result = await scrapeDo512Venue(venue, now);
+
+    expect(calendarAttempts).toBe(2);
+    expect(result.items.map((item) => item.artist)).toEqual(["Retry Artist"]);
+    expect(result.warnings).toEqual([]);
+  });
+
+  it("supports event pages linked from the standard Do512 host", async () => {
+    const now = new Date("2026-10-10T18:00:00.000Z");
+    const crossHost = `<article itemprop="event"><h3 itemprop="name">Cross-Host Artist</h3><time itemprop="startDate" datetime="2026-10-20T20:00:00-05:00"></time><a itemprop="url" href="https://family.do512.com/events/cross-host">Details</a></article>`;
+    const calendarHtml = `${calendarCard("Standard Domain Artist", "2026-10-20T20:00:00-05:00", "standard-show")}${crossHost}`;
+    const detailHtml = `<div itemprop="performer"><span itemprop="name">Standard Domain Artist</span></div>`;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/month_events")) {
+        return new Response(calendarHtml, { headers: { "content-type": "text/html; charset=utf-8" } });
+      }
+      if (url === "https://do512.com/events/standard-show") {
+        return new Response(detailHtml, { headers: { "content-type": "text/html; charset=utf-8" } });
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const venue = ACTIVE_VENUES.find((item) => item.id === "haute-spot")!;
+    const result = await scrapeDo512Venue(venue, now);
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
+      artist: "Standard Domain Artist",
+      eventUrl: "https://do512.com/events/standard-show",
+      venueName: "Haute Spot",
+    });
+    expect(result.eventPagesRead).toBe(1);
+    expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("cross-host"), expect.anything());
   });
 });

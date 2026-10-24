@@ -1,10 +1,12 @@
 import { JSDOM, VirtualConsole } from "jsdom";
-import type { MVPVenue } from "./config";
+import type { Venue } from "./config";
 
 const TIME_ZONE = "America/Chicago";
 const SCRAPER_TIMEOUT_MS = 30_000;
 const EVENT_DETAIL_CONCURRENCY = 4;
-const GLOBAL_HTTP_CONCURRENCY = 8;
+const GLOBAL_HTTP_CONCURRENCY = 32;const FETCH_RETRIES = 1;
+const FETCH_RETRY_DELAY_MS = 150;
+const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
 const WEEKDAYS: Record<string, number> = {
   sun: 0,
   mon: 1,
@@ -92,6 +94,8 @@ type CalendarEvent = {
   startDateOnly: boolean;
   eventUrl: string;
   recurringWeekday?: number;
+  performers?: Performer[];
+  description?: string;
 };
 
 type Performer = {
@@ -101,6 +105,8 @@ type Performer = {
 
 type EventDetails = {
   performers: Performer[];
+  title?: string;
+  startDate?: string;
   description?: string;
   failed: boolean;
 };
@@ -183,11 +189,25 @@ function parseCalendarDate(value: string): EventOccurrence | null {
   return Number.isFinite(timestamp) ? { eventDate: new Date(timestamp).toISOString(), dateOnly: false } : null;
 }
 
+function occurrenceIsWithinWindow(occurrence: EventOccurrence, now: Date, end: Date): boolean {
+  if (!occurrence.dateOnly) {
+    const timestamp = Date.parse(occurrence.eventDate);
+    return timestamp >= now.getTime() && timestamp <= end.getTime();
+  }
+
+  const eventDate = datePartsInZone(new Date(occurrence.eventDate));
+  const startDate = datePartsInZone(now);
+  const endDate = datePartsInZone(end);
+  const eventDay = Date.UTC(eventDate.year, eventDate.month - 1, eventDate.day);
+  const startDay = Date.UTC(startDate.year, startDate.month - 1, startDate.day);
+  const endDay = Date.UTC(endDate.year, endDate.month - 1, endDate.day);
+  return eventDay >= startDay && eventDay <= endDay;
+}
+
 function recurrenceDates(event: CalendarEvent, now: Date, end: Date): EventOccurrence[] {
   if (event.recurringWeekday === undefined) {
     const parsed = parseCalendarDate(event.startDate);
-    const timestamp = parsed ? Date.parse(parsed.eventDate) : Number.NaN;
-    return parsed && timestamp >= now.getTime() && timestamp <= end.getTime() ? [parsed] : [];
+    return parsed && occurrenceIsWithinWindow(parsed, now, end) ? [parsed] : [];
   }
 
   const time = event.startDate.match(/T(\d{2}):(\d{2})/);
@@ -222,6 +242,7 @@ function parseCalendarEvents(html: string, pageUrl: string): CalendarEvent[] {
     url: pageUrl,
     virtualConsole: new VirtualConsole(),
   }).window.document;
+  const calendarHost = new URL(pageUrl).hostname.replace(/^www\./, "");
   const events: CalendarEvent[] = [];
 
   for (const card of document.querySelectorAll('[itemprop="event"]')) {
@@ -246,7 +267,8 @@ function parseCalendarEvents(html: string, pageUrl: string): CalendarEvent[] {
     } catch {
       continue;
     }
-    if (url.protocol !== "https:" || url.hostname !== "family.do512.com" || !url.pathname.startsWith("/events/")) {
+    const eventHost = url.hostname.replace(/^www\./, "");
+    if (url.protocol !== "https:" || eventHost !== calendarHost || !["do512.com", "family.do512.com"].includes(eventHost) || !url.pathname.startsWith("/events/")) {
       continue;
     }
 
@@ -289,17 +311,13 @@ export function splitArtistTitle(value: string): string[] {
 
   const sections = title.split(/\s+(?:w\/|with|ft\.?|feat(?:uring)?\.?)\s+/i);
   const names: string[] = [];
-  sections.forEach((section, index) => {
-    const commaSeparated = section.split(/\s*[;,]\s*/);
-    for (const [partIndex, part] of commaSeparated.entries()) {
-      const candidates = index > 0 || partIndex > 0 ? part.split(/\s+(?:&|and)\s+/i) : [part];
-      for (const candidate of candidates) {
-        const name = cleanArtistName(candidate.replace(/^(?:and|&|plus)\s+/i, ""));
-        if (!name || isNonArtistEvent(name) || /^(?:tba|to be announced|various artists|more bands?)$/i.test(name)) continue;
-        if (!names.some((existing) => existing.toLowerCase().replace(/[^a-z0-9]/g, "") === name.toLowerCase().replace(/[^a-z0-9]/g, ""))) names.push(name);
-      }
+  for (const section of sections) {
+    for (const part of section.split(/\s*[;,]\s*/)) {
+      const name = cleanArtistName(part.replace(/^(?:and|&|plus)\s+/i, ""));
+      if (!name || isNonArtistEvent(name) || /^(?:tba|to be announced|various artists|more bands?)$/i.test(name)) continue;
+      if (!names.some((existing) => existing.toLowerCase().replace(/[^a-z0-9]/g, "") === name.toLowerCase().replace(/[^a-z0-9]/g, ""))) names.push(name);
     }
-  });
+  }
 
   return names;
 }
@@ -329,70 +347,146 @@ function addJsonLdPerformers(value: unknown, performers: Performer[]): void {
   Object.values(record).forEach((item) => addJsonLdPerformers(item, performers));
 }
 
+type JsonLdEvent = { title?: string; startDate?: string; description?: string };
+
+function collectJsonLdEvents(value: unknown, events: JsonLdEvent[]): void {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectJsonLdEvents(item, events));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+
+  const record = value as Record<string, unknown>;
+  const types = Array.isArray(record["@type"]) ? record["@type"] : [record["@type"]];
+  if (types.some((type) => typeof type === "string" && /Event$/i.test(type))) {
+    events.push({
+      title: typeof record.name === "string" ? normalizeText(record.name) : undefined,
+      startDate: typeof record.startDate === "string" ? record.startDate : undefined,
+      description: typeof record.description === "string" ? normalizeText(record.description) : undefined,
+    });
+  }
+  Object.values(record).forEach((item) => collectJsonLdEvents(item, events));
+}
+
 function parseEventDetails(html: string, eventUrl: string): Omit<EventDetails, "failed"> {
   const document = new JSDOM(html, {
     url: eventUrl,
     virtualConsole: new VirtualConsole(),
   }).window.document;
   const performers: Performer[] = [];
+  const events: JsonLdEvent[] = [];
 
   for (const element of document.querySelectorAll('[itemprop="performer"]')) {
     const name = cleanArtistName(
       element.querySelector('[itemprop="name"]')?.textContent || element.textContent || "",
     );
     const href = element.querySelector('a[itemprop="url"]')?.getAttribute("href");
-    if (name) {
-      let url: string | undefined;
-      if (href) {
-        try {
-          url = new URL(href, eventUrl).toString();
-        } catch {
-          url = undefined;
-        }
+    if (!name) continue;
+    let url: string | undefined;
+    if (href) {
+      try {
+        url = new URL(href, eventUrl).toString();
+      } catch {
+        url = undefined;
       }
-      performers.push({ name, url });
     }
+    performers.push({ name, url });
   }
 
   for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
     try {
-      addJsonLdPerformers(JSON.parse(script.textContent || ""), performers);
+      const data = JSON.parse(script.textContent || "");
+      addJsonLdPerformers(data, performers);
+      collectJsonLdEvents(data, events);
     } catch {
       continue;
     }
   }
 
-  const unique = new Map<string, Performer>();
-  for (const performer of performers) {
-    const key = performer.name.toLowerCase();
-    if (!unique.has(key)) unique.set(key, performer);
-  }
-
+  const metaDescription = normalizeText(document.querySelector('meta[name="description"]')?.getAttribute("content"));
   return {
-    performers: [...unique.values()],
-    description: normalizeText(document.querySelector('meta[name="description"]')?.getAttribute("content")) || undefined,
+    performers: uniquePerformers(performers),
+    title: events.find((event) => event.title)?.title,
+    startDate: events.find((event) => event.startDate)?.startDate,
+    description: metaDescription || events.find((event) => event.description)?.description,
   };
 }
 
-async function fetchHtml(url: string, signal: AbortSignal): Promise<string> {
-  await acquireHttpRequestSlot(signal);
-  try {
-    const response = await fetch(url, {
-      headers: {
-        accept: "text/html,application/xhtml+xml",
-        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      },
-      redirect: "follow",
-      signal,
-      cache: "no-store",
-    });
-    if (!response.ok) throw new Error(`Calendar request returned ${response.status}.`);
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("text/html")) throw new Error("Calendar returned a non-HTML response.");
-    return await response.text();
-  } finally {
-    releaseHttpRequestSlot();
+function parseNaturalEventDate(value: string, now: Date, end: Date): EventOccurrence | null {
+  const monthNames = "january february march april may june july august september october november december".split(" ");
+  const monthPattern = "jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?";
+  const match = value.match(new RegExp(`\\b(?:(\\d{1,2})\\s+(${monthPattern})|(${monthPattern})\\s+(\\d{1,2})(?:st|nd|rd|th)?)(?:,?\\s+(\\d{4}))?\\b`, "i"));
+  if (!match) return null;
+
+  const day = Number(match[1] || match[4]);
+  const monthName = (match[2] || match[3]).toLowerCase();
+  const monthIndex = monthNames.findIndex((month) => month.startsWith(monthName.slice(0, 3)));
+  if (monthIndex < 0 || day < 1 || day > 31) return null;
+
+  const startYear = datePartsInZone(now).year;
+  const years = match[5] ? [Number(match[5])] : [startYear - 1, startYear, startYear + 1];
+  for (const year of years) {
+    const parsed = parseCalendarDate(`${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+    if (parsed && occurrenceIsWithinWindow(parsed, now, end)) return parsed;
   }
+  return null;
+}
+
+function artistKey(value: string): string {
+  return cleanArtistName(value).normalize("NFKD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function uniquePerformers(performers: Performer[]): Performer[] {
+  const unique = new Map<string, Performer>();
+  for (const performer of performers) {
+    const name = cleanArtistName(performer.name);
+    const key = artistKey(name);
+    if (name && key && !isNonArtistEvent(name) && !unique.has(key)) unique.set(key, { ...performer, name });
+  }
+  return [...unique.values()];
+}
+
+async function fetchHtml(url: string, signal: AbortSignal): Promise<string> {
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt <= FETCH_RETRIES; attempt += 1) {
+    await acquireHttpRequestSlot(signal);
+    let failure: { error: Error; retryable: boolean } | undefined;
+    try {
+      const response = await fetch(url, {
+        headers: {
+          accept: "text/html,application/xhtml+xml",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        },
+        redirect: "follow",
+        signal,
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        failure = {
+          error: new Error(`Calendar request returned ${response.status}.`),
+          retryable: RETRYABLE_STATUS_CODES.has(response.status),
+        };
+      } else {
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("text/html")) {
+          failure = { error: new Error("Calendar returned a non-HTML response."), retryable: false };
+        } else {
+          return await response.text();
+        }
+      }
+    } catch (error) {
+      if (signal.aborted) throw scraperTimeoutError();
+      failure = { error: error instanceof Error ? error : new Error("Calendar request failed."), retryable: true };
+    } finally {
+      releaseHttpRequestSlot();
+    }
+
+    if (!failure) throw new Error("Calendar request failed.");
+    if (!failure.retryable || attempt === FETCH_RETRIES) throw failure.error;
+    lastError = failure.error;
+    await new Promise((resolve) => setTimeout(resolve, FETCH_RETRY_DELAY_MS));
+  }
+  throw lastError || new Error("Calendar request failed.");
 }
 
 async function mapLimit<T, U>(items: T[], limit: number, signal: AbortSignal, task: (item: T) => Promise<U>): Promise<U[]> {
@@ -411,7 +505,7 @@ async function mapLimit<T, U>(items: T[], limit: number, signal: AbortSignal, ta
   return output;
 }
 
-export async function scrapeDo512Venue(venue: MVPVenue, now = new Date()): Promise<VenueScrapeResult> {
+export async function scrapeDo512Venue(venue: Venue, now = new Date()): Promise<VenueScrapeResult> {
   const end = new Date(now.getTime() + 30 * 86_400_000);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), SCRAPER_TIMEOUT_MS);
@@ -505,6 +599,94 @@ export async function scrapeDo512Venue(venue: MVPVenue, now = new Date()): Promi
     };
   } catch (error) {
     if (controller.signal.aborted) throw new Error("Venue scraper timed out after 30 seconds.");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+
+function eventWindow(now: Date) {
+  return new Date(now.getTime() + 30 * 86_400_000);
+}
+
+function timeFromCutCard(value: string): { hour: number; minute: number } | null {
+  const match = value.match(/\b([01]\d|2[0-3])([0-5]\d)\s*[–-]/);
+  return match ? { hour: Number(match[1]), minute: Number(match[2]) } : null;
+}
+
+export async function scrapeTheCutVenue(venue: Venue, now = new Date()): Promise<VenueScrapeResult> {
+  const end = eventWindow(now);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SCRAPER_TIMEOUT_MS);
+
+  try {
+    const html = await fetchHtml(venue.calendarUrl, controller.signal);
+    const document = new JSDOM(html, { url: venue.calendarUrl, virtualConsole: new VirtualConsole() }).window.document;
+    const events = [...document.querySelectorAll('a[href^="/tickets/"]')].flatMap((card) => {
+      const href = card.getAttribute("href");
+      if (!href) return [];
+      const eventUrl = new URL(href, venue.calendarUrl);
+      if (eventUrl.protocol !== "https:" || eventUrl.origin !== new URL(venue.calendarUrl).origin) return [];
+
+      const dateText = card.getAttribute("aria-label") || card.querySelector('[class*="spineCol"]')?.textContent || "";
+      const occurrence = parseNaturalEventDate(dateText, now, end);
+      if (!occurrence) return [];
+
+      const names = [
+        card.querySelector('[class*="headliner"]')?.textContent,
+        ...[...card.querySelectorAll('[class*="support"]:not([class*="supportRow"])')].map((element) => element.textContent),
+      ].map((name) => cleanArtistName(name || "")).filter(Boolean);
+      const performers = uniquePerformers(names.map((name) => ({ name })));
+      if (!performers.length) return [];
+
+      const time = timeFromCutCard(card.querySelector('[class*="meta"]')?.textContent || "");
+      const dateParts = datePartsInZone(new Date(occurrence.eventDate));
+      const startDate = time
+        ? chicagoDateTimeIso(dateParts.year, dateParts.month, dateParts.day, time.hour, time.minute)
+        : occurrence.eventDate;
+      return [{
+        eventUrl: eventUrl.toString(),
+        title: performers.map((performer) => performer.name).join(" w/ "),
+        startDate,
+        startDateOnly: !time,
+        performers,
+      }];
+    });
+
+    const detailEntries = await mapLimit(events, EVENT_DETAIL_CONCURRENCY, controller.signal, async (event) => {
+      try {
+        const detailHtml = await fetchHtml(event.eventUrl, controller.signal);
+        return { eventUrl: event.eventUrl, ...parseEventDetails(detailHtml, event.eventUrl), failed: false };
+      } catch (error) {
+        if (controller.signal.aborted) throw error;
+        return { eventUrl: event.eventUrl, performers: [], failed: true };
+      }
+    });
+
+    if (controller.signal.aborted) throw scraperTimeoutError();
+    const detailByUrl = new Map(detailEntries.map((entry) => [entry.eventUrl, entry]));
+    const failures = detailEntries.filter((entry) => entry.failed).length;
+    const warnings = failures ? [`${failures} event detail page(s) could not be loaded; calendar lineups were used as fallback.`] : [];
+    const items = events.flatMap((event) => {
+      const details = detailByUrl.get(event.eventUrl);
+      const performers = uniquePerformers([...event.performers, ...(details?.performers || [])]);
+      return performers.map((performer) => ({
+        artist: performer.name,
+        artistProfileUrl: performer.url,
+        eventTitle: event.title,
+        eventDate: new Date(event.startDate).toISOString(),
+        eventDateOnly: event.startDateOnly,
+        venueName: venue.name,
+        eventUrl: event.eventUrl,
+        sourceUrl: event.eventUrl,
+        description: details?.description,
+      }));
+    });
+
+    return { items, eventsFound: events.length, eventPagesRead: detailEntries.length - failures, warnings };
+  } catch (error) {
+    if (controller.signal.aborted) throw scraperTimeoutError();
     throw error;
   } finally {
     clearTimeout(timer);

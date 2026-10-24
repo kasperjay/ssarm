@@ -118,7 +118,12 @@ class StateManager {
       console.log(`⏳ Rate limit: waiting ${(waitMs / 1000).toFixed(1)}s`);
       await sleep(waitMs);
     }
+  }
 
+  async recordSentSuccess() {
+    await this.load();
+    const day = todayKey();
+    const count = this.state.dmCounts[day] || 0;
     this.state.dmCounts[day] = count + 1;
     this.state.lastSent = Date.now();
     await this.save();
@@ -270,9 +275,28 @@ async function sendDmToUsername(page, targetUsername, message) {
 
   console.log(`🔍 Searching for: @${target}`);
 
-  const dialog2 = page
-    .locator('[role="dialog"], div[aria-modal="true"]')
-    .first();
+  // Ensure "New message" dialog is open
+  let dialog2 = page.locator('[role="dialog"], div[aria-modal="true"]').first();
+  if ((await dialog2.count()) === 0) {
+    const newMsgBtn = page
+      .locator(
+        'svg[aria-label="New message"], [aria-label="New message"], [aria-label="New Message"], button:has-text("Send message")'
+      )
+      .first();
+    if (await newMsgBtn.count()) {
+      console.log("Clicking New message button to open composer dialog...");
+      await newMsgBtn.click({ timeout: 5000 }).catch(() => {});
+      await page.waitForTimeout(1200);
+    }
+  }
+
+  dialog2 = page.locator('[role="dialog"], div[aria-modal="true"]').first();
+  try {
+    await dialog2.waitFor({ timeout: 10000 });
+  } catch {
+    console.log("Dialog not found, falling back to page scope");
+  }
+
   const scope2 = (await dialog2.count()) ? dialog2 : page;
 
   const toInput = scope2
@@ -286,17 +310,23 @@ async function sendDmToUsername(page, targetUsername, message) {
     )
     .first();
 
-  await toInput.waitFor({ timeout: 20000 });
+  const uname = target.replace(/^@/, "").trim();
+  const reExact = new RegExp(`(^|\\s|@)${escapeRegExp(uname)}(\\s|$)`, "i");
 
+  await toInput.waitFor({ timeout: 20000 });
+  await toInput.click();
   await toInput.fill("");
   await page.waitForTimeout(200);
-  await toInput.type(target, { delay: 40 });
 
-  await page.waitForTimeout(500);
-  await page.keyboard.press("Enter").catch(() => {});
-  await page.waitForTimeout(1200);
+  if (toInput.pressSequentially) {
+    await toInput.pressSequentially(uname, { delay: 50 });
+  } else {
+    await toInput.type(uname, { delay: 50 });
+  }
 
-  const rows = scope2.locator('div[role="button"]');
+  await page.waitForTimeout(1500);
+
+  const rows = scope2.locator('div[role="button"], div[role="listitem"], label');
   let rowCount = await rows.count();
 
   console.log(`📋 Results rows detected: ${rowCount}`);
@@ -306,9 +336,6 @@ async function sendDmToUsername(page, targetUsername, message) {
     await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
     throw new Error(`No search results rendered for "${target}". Screenshot: ${shot}`);
   }
-
-  const uname = target.replace(/^@/, "").trim();
-  const reExact = new RegExp(`(^|\\s|@)${escapeRegExp(uname)}(\\s|$)`, "i");
 
   let pickIndex = -1;
 
@@ -344,7 +371,17 @@ async function sendDmToUsername(page, targetUsername, message) {
     }
   }
 
+  let clickedDirect = false;
   if (pickIndex === -1) {
+    const directSpan = scope2.locator("span", { hasText: reExact }).first();
+    if (await directSpan.count()) {
+      console.log(`👤 Found direct span match for @${uname}`);
+      await directSpan.click({ timeout: 5000 });
+      clickedDirect = true;
+    }
+  }
+
+  if (pickIndex === -1 && !clickedDirect) {
     const safe = uname.replace(/[^a-zA-Z0-9._-]/g, "_");
     const shot = `${CONFIG.logsDir}/no-exact-match-${safe}-${Date.now()}.png`;
     await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
@@ -353,8 +390,10 @@ async function sendDmToUsername(page, targetUsername, message) {
     );
   }
 
-  console.log(`👤 Selecting exact-match recipient row [${pickIndex}]...`);
-  await rows.nth(pickIndex).click({ timeout: 8000 });
+  if (!clickedDirect) {
+    console.log(`👤 Selecting exact-match recipient row [${pickIndex}]...`);
+    await rows.nth(pickIndex).click({ timeout: 8000 });
+  }
 
   // Wait briefly for Instagram to react — it may navigate directly to a thread
   // if there's an existing conversation, or stay in the composer (needs Next).
@@ -365,22 +404,39 @@ async function sendDmToUsername(page, targetUsername, message) {
   const alreadyInThread = currentUrl.includes("/direct/t/");
 
   if (alreadyInThread) {
-    console.log(`💬 Already in thread (${currentUrl}) — skipping Next button`);
+    console.log(`💬 Already in thread (${currentUrl}) — skipping Next/Chat button`);
   } else {
-    console.log("➡️ Clicking Next...");
-    const nextBtn = page.getByRole("button", { name: /Next/i }).first();
+    console.log("➡️ Finding Chat or Next button inside dialog...");
+    // Target strictly inside scope2 (dialog) with exact match to avoid matching inbox preview texts
+    const nextBtn = scope2
+      .locator('div[role="button"], button')
+      .filter({ hasText: /^(Chat|Next)$/i })
+      .first();
+
     try {
-      await nextBtn.waitFor({ timeout: 10000 });
-      await nextBtn.click();
+      await nextBtn.waitFor({ state: "visible", timeout: 10000 });
+
+      // Wait up to 5s for recipient selection to enable the button (aria-disabled -> false)
+      for (let i = 0; i < 20; i++) {
+        const disabled = await nextBtn.getAttribute("aria-disabled");
+        if (disabled !== "true") break;
+        await page.waitForTimeout(250);
+      }
+
+      console.log("➡️ Clicking Chat/Next button...");
+      await nextBtn.click({ timeout: 5000 });
+
+      // Wait for navigation into the direct thread
+      await page.waitForURL((url) => url.pathname.includes("/direct/t/"), { timeout: 15000 }).catch(() => {});
       await page.waitForTimeout(1000);
       await dismissModalPopupsAggressive(page, 2);
-    } catch {
-      // One more check: maybe it navigated to the thread while we waited
+    } catch (err) {
+      // Check if it navigated to the thread despite any button click error
       const urlAfterWait = page.url();
       if (!urlAfterWait.includes("/direct/t/")) {
         const shot = `${CONFIG.logsDir}/next-btn-timeout-${Date.now()}.png`;
         await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
-        throw new Error(`Next button not found and not in thread. Screenshot: ${shot}`);
+        throw new Error(`Chat/Next button failed and not in thread (${err.message}). Screenshot: ${shot}`);
       }
       console.log(`💬 Navigated to thread during Next wait — continuing`);
     }
@@ -391,21 +447,29 @@ async function sendDmToUsername(page, targetUsername, message) {
 
   console.log("✍️ Typing message...");
   const dmComposer = page
-    .locator('div[contenteditable="true"][role="textbox"]')
+    .locator('div[contenteditable="true"][role="textbox"], div[aria-label*="Message"][contenteditable="true"]')
     .first();
-  await dmComposer.waitFor({ timeout: 20000 });
+  await dmComposer.waitFor({ state: "visible", timeout: 20000 });
   await dmComposer.click();
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(300);
 
   await dmComposer.fill(msg).catch(async () => {
     await page.keyboard.type(msg, { delay: 25 });
   });
 
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(500);
 
   console.log("📤 Sending...");
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(1200);
+
+  // If text is still in composer, also try clicking the Send button
+  const sendBtn = page.locator('div[role="button"]:has-text("Send"), button:has-text("Send")').first();
+  if (await sendBtn.isVisible()) {
+    console.log("📤 Clicking Send button...");
+    await sendBtn.click().catch(() => {});
+    await page.waitForTimeout(1000);
+  }
 
   console.log("✅ Sent!");
 }
@@ -462,6 +526,11 @@ async function main() {
       throw new Error("Missing IG_USERNAME or IG_MESSAGE env.");
     }
 
+    // Fail immediately if redirected to login page instead of waiting for rate limiter
+    if (page.url().includes("/accounts/login")) {
+      throw new Error("Not logged in (redirected to /accounts/login). Refresh cookies with LOGIN_MODE=true.");
+    }
+
     console.log("\n=== SINGLE SEND ===");
 
     const lockKey = "dm-send-lock";
@@ -479,6 +548,7 @@ async function main() {
         console.log(`Message: ${CONFIG.igMessage}`);
       } else {
         await sendDmToUsername(page, CONFIG.igUsername, CONFIG.igMessage);
+        await stateManager.recordSentSuccess();
       }
     } finally {
       await stateManager.releaseLock(lockKey);

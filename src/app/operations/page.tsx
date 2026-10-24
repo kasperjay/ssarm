@@ -1,144 +1,89 @@
+export const dynamic = "force-dynamic";
 import React from "react";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { GlassCard } from "@/components/GlassCard";
+import OperationsQueue from "@/components/OperationsQueue";
+import { buildQueueItem, comparePriority, isNonLocalWithPastGigOnly, QueueItem } from "@/lib/priority-queue";
 
-// Helper to calculate days ago/due
-function getDaysDifference(date: Date | null) {
-  if (!date) return 0;
-  const now = new Date();
-  const diffTime = now.getTime() - date.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+function toClientItem(item: QueueItem) {
+  return {
+    lead: {
+      id: item.lead.id,
+      status: item.lead.status,
+      artist: {
+        name: item.lead.artist.name,
+        genre: item.lead.artist.genre ?? null,
+      },
+    },
+    priority: {
+      score: item.priority.score,
+      components: item.priority.components,
+      reasons: item.priority.reasons,
+      topReasons: item.priority.topReasons,
+      productionNeed: {
+        expired: item.priority.productionNeed.expired,
+        needsReview: item.priority.productionNeed.needsReview,
+      },
+    },
+    dueReason: item.dueReason,
+    eligibility: { cleanup: item.eligibility.cleanup },
+  };
 }
 
 export default async function OperationsPage() {
-  // 1. Due Follow-ups
-  const dueFollowUps = await prisma.lead.findMany({
-    where: {
-      nextActionAt: { lt: new Date() },
-      status: { notIn: ["WON", "LOST"] },
-    },
+  const now = new Date();
+  const leads = await prisma.lead.findMany({
+    where: { status: { notIn: ["WON", "LOST", "PAUSED"] } },
     include: {
-      artist: true,
+      artist: {
+        select: {
+          name: true,
+          genre: true,
+          emails: true,
+          instagramHandle: true,
+          city: true,
+          state: true,
+          location: true,
+          country: true,
+          bio: true,
+        },
+      },
       activities: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
+        select: { type: true, note: true },
       },
     },
-    orderBy: { nextActionAt: "asc" },
-    take: 20,
   });
 
-  // 2. High-score uncontacted leads
-  const readyToMessage = await prisma.lead.findMany({
-    where: {
-      score: { gte: 60 },
-      status: { in: ["NEW", "QUALIFIED"] },
-      lastContactedAt: null,
-    },
-    include: {
-      artist: true,
-    },
-    orderBy: { score: "desc" },
-    take: 20,
-  });
+  // Non-local artists whose gigs in Austin have already been played are removed from the lead queue
+  const activeLeads = leads.filter((lead: any) => !isNonLocalWithPastGigOnly(lead, now));
+
+  const outreachItems = activeLeads.map((lead: any) => buildQueueItem(lead, "outreach", now));
+  const followUpItems = activeLeads.map((lead: any) => buildQueueItem(lead, "follow-up", now));
+  const outreach = {
+    actionable: outreachItems.filter((item: QueueItem) => item.eligibility.actionable).sort(comparePriority),
+    cleanup: outreachItems.filter((item: QueueItem) => !item.eligibility.actionable),
+  };
+  const followUps = {
+    actionable: followUpItems.filter((item: QueueItem) => item.eligibility.actionable).sort(comparePriority),
+    cleanup: followUpItems.filter((item: QueueItem) => !item.eligibility.actionable),
+  };
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-12">
+    <main className="mx-auto max-w-6xl space-y-8 p-8">
       <header>
-        <h1 className="text-4xl font-bold mb-2">Operations Queue</h1>
-        <p className="text-white/60">Action items and pipeline bottlenecks requiring manual review.</p>
+        <h1 className="mb-2 text-4xl font-bold">Operations Queue</h1>
+        <p className="text-white/60">The next best action, separated into first outreach and follow-ups.</p>
       </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Due Follow-ups */}
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
-              Due Follow-ups
-            </h2>
-            <span className="text-sm bg-white/10 px-3 py-1 rounded-full">{dueFollowUps.length} items</span>
-          </div>
-
-          <div className="space-y-4">
-            {dueFollowUps.length === 0 ? (
-              <GlassCard className="p-6 text-center text-white/50">
-                No due follow-ups right now. You're caught up!
-              </GlassCard>
-            ) : (
-              dueFollowUps.map((lead) => {
-                const daysOverdue = getDaysDifference(lead.nextActionAt);
-                return (
-                  <GlassCard key={lead.id} className="p-5 flex flex-col gap-3 hover:bg-white/[0.04] transition-colors">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <Link href={`/leads/${lead.id}`} className="font-bold text-lg hover:text-[#00FF9D] transition-colors">
-                          {lead.artist.name}
-                        </Link>
-                        <p className="text-sm text-white/60 mt-1">
-                          Status: <span className="text-white/80">{lead.status}</span>
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className={`text-xs font-medium px-2 py-1 rounded ${daysOverdue > 3 ? "bg-red-500/20 text-red-400" : "bg-orange-500/20 text-orange-400"}`}>
-                          {daysOverdue} {daysOverdue === 1 ? "day" : "days"} overdue
-                        </span>
-                      </div>
-                    </div>
-                    {lead.activities[0] && (
-                      <div className="text-sm bg-black/30 p-3 rounded text-white/70 italic border border-white/5">
-                        <span className="block text-xs font-semibold mb-1 text-white/40">Last Activity:</span>
-                        {lead.activities[0].note || "No notes."}
-                      </div>
-                    )}
-                  </GlassCard>
-                );
-              })
-            )}
-          </div>
-        </section>
-
-        {/* Ready to Message */}
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full bg-[#00FF9D]"></span>
-              Ready to Message
-            </h2>
-            <span className="text-sm bg-white/10 px-3 py-1 rounded-full">{readyToMessage.length} items</span>
-          </div>
-
-          <div className="space-y-4">
-            {readyToMessage.length === 0 ? (
-              <GlassCard className="p-6 text-center text-white/50">
-                No high-score uncontacted leads.
-              </GlassCard>
-            ) : (
-              readyToMessage.map((lead) => (
-                <GlassCard key={lead.id} className="p-5 flex flex-col gap-3 hover:bg-white/[0.04] transition-colors">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <Link href={`/leads/${lead.id}`} className="font-bold text-lg hover:text-[#00FF9D] transition-colors">
-                        {lead.artist.name}
-                      </Link>
-                      <p className="text-sm text-white/60 mt-1">
-                        Genre: <span className="text-white/80">{lead.artist.genre || "Unknown"}</span>
-                      </p>
-                    </div>
-                    <div className="text-right flex flex-col items-end gap-2">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold text-[#00FF9D]">{Math.round(lead.score || 0)}</span>
-                        <span className="text-xs text-white/40">/100</span>
-                      </div>
-                    </div>
-                  </div>
-                </GlassCard>
-              ))
-            )}
-          </div>
-        </section>
-      </div>
-    </div>
+      <OperationsQueue
+        outreach={{
+          actionable: outreach.actionable.map(toClientItem),
+          cleanup: outreach.cleanup.map(toClientItem),
+        }}
+        followUps={{
+          actionable: followUps.actionable.map(toClientItem),
+          cleanup: followUps.cleanup.map(toClientItem),
+        }}
+        updatedAt={now.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+      />
+    </main>
   );
 }

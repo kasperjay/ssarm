@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import logger from "@/lib/logger";
 import { discoverEmailsFromUrls, extractEmailsFromTextSafe, mergeEmails } from "@/lib/email";
 import { resolveArtistEnrichment } from "@/lib/location";
+import { parseLocationString } from "@/lib/location-parser";
 import { scoreLead } from "@/lib/scoring";
 import { cleanArtistName } from "@/lib/utils";
 import { extractAccentFromImage } from "@/lib/accent-palette";
@@ -13,7 +14,8 @@ export type LeadStatus =
   | "CONTACTED"
   | "FOLLOW_UP"
   | "WON"
-  | "LOST";
+  | "LOST"
+  | "PAUSED";
 
 export type ActivityType =
   | "MESSAGE_SENT"
@@ -24,6 +26,7 @@ export type ActivityType =
 
 export type LeadPayload = {
   isDiscoveryImport?: boolean;
+  skipApifyDiscovery?: boolean;
   skipInstagramFetch?: boolean;
   skipSpotifyFetch?: boolean;
   artist: {
@@ -105,6 +108,7 @@ export class LeadIngestService {
       const enrichment = await this.enrichmentService.enrich(name, {
         instagramHandle: payload.artist.instagramHandle,
         spotifyArtistId: payload.artist.spotifyArtistId,
+        skipApifyDiscovery: payload.skipApifyDiscovery,
         skipInstagramFetch: payload.skipInstagramFetch,
         skipSpotifyFetch: payload.skipSpotifyFetch,
       });
@@ -218,9 +222,9 @@ export class LeadIngestService {
     const resolvedLastPostAt = dateOptions.length > 0 ? new Date(Math.max(...dateOptions.map(d => d.getTime()))) : undefined;
     
     let resolvedGenre = genre ?? enrichment.spotifyProfile?.genres?.[0] ?? existingArtist?.genre ?? undefined;
-    const resolvedCity = city ?? existingArtist?.city ?? undefined;
-    const resolvedState = state ?? existingArtist?.state ?? undefined;
-    const resolvedCountry = country ?? existingArtist?.country ?? undefined;
+    let resolvedCity = city ?? existingArtist?.city ?? undefined;
+    let resolvedState = state ?? existingArtist?.state ?? undefined;
+    let resolvedCountry = country ?? existingArtist?.country ?? undefined;
     let resolvedLocation = location ?? existingArtist?.location ?? undefined;
 
     const needsEnrichment = !resolvedLocation || !resolvedGenre || !resolvedBio;
@@ -234,6 +238,9 @@ export class LeadIngestService {
           skipGoogle: payload.isDiscoveryImport === true,
         });
         if (!resolvedLocation && enrichmentData.location) resolvedLocation = enrichmentData.location;
+        if (!resolvedCity && enrichmentData.city) resolvedCity = enrichmentData.city;
+        if (!resolvedState && enrichmentData.state) resolvedState = enrichmentData.state;
+        if (!resolvedCountry && enrichmentData.country) resolvedCountry = enrichmentData.country;
         if (!resolvedGenre && enrichmentData.genre) resolvedGenre = enrichmentData.genre;
         if (!resolvedBio && enrichmentData.externalBio) {
           const source = enrichmentData.externalBioSource === 'lastfm' ? '[Last.fm]' : enrichmentData.externalBioSource === 'discogs' ? '[Discogs]' : '';
@@ -241,6 +248,15 @@ export class LeadIngestService {
         }
       } catch (e) {
         logger.error({ err: e }, `[LeadIngestService] Enrichment failed for ${name}`);
+      }
+    }
+
+    if (resolvedLocation && (!resolvedCity || !resolvedState)) {
+      const parsed = parseLocationString(resolvedLocation);
+      if (parsed) {
+        if (!resolvedCity && parsed.city) resolvedCity = parsed.city;
+        if (!resolvedState && parsed.state) resolvedState = parsed.state;
+        if (!resolvedCountry && parsed.country) resolvedCountry = parsed.country;
       }
     }
 

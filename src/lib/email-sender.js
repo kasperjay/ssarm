@@ -4,8 +4,8 @@ const getTransporter = () => {
   const host = process.env.SMTP_HOST || "mail.spacemail.com";
   const port = parseInt(process.env.SMTP_PORT || "465", 10);
   const secure = port === 465; // SSL for 465
-  const user = process.env.SMTP_USER || "admin@spectralsound.works";
-  const pass = process.env.SMTP_PASS || "k1TTENLL4M4$!";
+  const user = process.env.SMTP_USER || "kasper@spectralsound.works";
+  const pass = process.env.SMTP_PASS || "K!ttenll4m4$";
 
   return nodemailer.createTransport({
     host,
@@ -20,7 +20,7 @@ const getTransporter = () => {
 
 const sendEmail = async (to, subject, html) => {
   const transporter = getTransporter();
-  const from = process.env.SMTP_FROM || '"Spectral Soundworks" <admin@spectralsound.works>';
+  const from = process.env.SMTP_FROM || '"Kasper | Spectral Soundworks" <kasper@spectralsound.works>';
 
   const info = await transporter.sendMail({
     from,

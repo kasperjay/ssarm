@@ -1,13 +1,14 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { Prisma, LeadStatus } from "local-prisma-client";
 import { prisma } from "@/lib/prisma";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
 import { formatRelativeDate, formatLocation, clampScore } from "@/lib/utils";
 import { StatusPill } from "@/components/StatusPill";
 
-const STATUS_OPTIONS = ["ALL", "NEW", "QUALIFIED", "CONTACTED", "FOLLOW_UP", "WON", "LOST"] as const;
+const STATUS_OPTIONS = ["ALL", "NEW", "QUALIFIED", "CONTACTED", "FOLLOW_UP", "WON", "LOST", "PAUSED"] as const;
 const CONTACT_OPTIONS = ["ALL", "WITH_CONTACT", "NO_CONTACT"] as const;
 const SORT_OPTIONS = ["score_desc", "score_asc", "updated_desc", "updated_asc", "name_asc", "name_desc", "created_desc", "created_asc"] as const;
 
@@ -32,34 +33,12 @@ export default async function ContactManagementPage(props: PageProps) {
   const safeContact = CONTACT_OPTIONS.includes(contact as (typeof CONTACT_OPTIONS)[number]) ? contact : "ALL";
   const safeSort = SORT_OPTIONS.includes(sort as (typeof SORT_OPTIONS)[number]) ? sort : "score_desc";
 
-  const where: {
-    status?: "NEW" | "QUALIFIED" | "CONTACTED" | "FOLLOW_UP" | "WON" | "LOST";
-    OR?: Array<{
-      artist?: {
-        name?: { contains: string; mode: "insensitive" };
-        genre?: { contains: string; mode: "insensitive" };
-        city?: { contains: string; mode: "insensitive" };
-        state?: { contains: string; mode: "insensitive" };
-        country?: { contains: string; mode: "insensitive" };
-      };
-      scoreRationale?: { contains: string; mode: "insensitive" };
-    }>;
-    artist?: {
-      OR?: Array<
-        | { emails: { isEmpty: boolean } }
-        | { instagramHandle: { not: null } }
-        | { officialSiteUrl: { not: null } }
-      >;
-      AND?: Array<
-        | { emails: { isEmpty: boolean } }
-        | { instagramHandle: null }
-        | { officialSiteUrl: null }
-      >;
-    };
-  } = {};
+  const where: Prisma.LeadWhereInput = {};
 
   if (safeStatus !== "ALL") {
-    where.status = safeStatus as "NEW" | "QUALIFIED" | "CONTACTED" | "FOLLOW_UP" | "WON" | "LOST";
+    where.status = safeStatus as LeadStatus;
+  } else {
+    where.status = { not: "PAUSED" };
   }
 
   if (safeContact === "WITH_CONTACT") {
@@ -172,13 +151,14 @@ export default async function ContactManagementPage(props: PageProps) {
               <label className="flex flex-col gap-2">
                 <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/30">Status</span>
                 <select name="status" defaultValue={safeStatus} className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent/30">
-                  <option value="ALL">All Statuses</option>
+                  <option value="ALL">All Statuses (Active)</option>
                   <option value="NEW">New</option>
                   <option value="QUALIFIED">Qualified</option>
                   <option value="CONTACTED">Contacted</option>
                   <option value="FOLLOW_UP">Follow Up</option>
                   <option value="WON">Won</option>
                   <option value="LOST">Lost</option>
+                  <option value="PAUSED">Paused / Ignore</option>
                 </select>
               </label>
 

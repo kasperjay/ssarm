@@ -30,6 +30,7 @@ const getInstagramHandle = (payload) => {
  * ─────────────────────────────────────────────────────────── */
 const sendQueue = [];
 let queueRunning = false;
+let cachedLogin = { loggedIn: false, checkedAt: 0 };
 
 function runQueue() {
   if (queueRunning || sendQueue.length === 0) return;
@@ -65,6 +66,14 @@ app.post("/ig/send", async (req, res) => {
   const secret = req.header("x-webhook-secret") || req.header("x-secret") || "";
   if (!INBOUND_SECRET || secret !== INBOUND_SECRET) {
     return res.status(401).json({ ok: false, error: "bad secret" });
+  }
+
+  // If we recently confirmed the bot is logged out, reject immediately
+  if (cachedLogin.checkedAt > 0 && !cachedLogin.loggedIn && (Date.now() - cachedLogin.checkedAt < 5 * 60 * 1000)) {
+    return res.status(503).json({
+      ok: false,
+      error: "Instagram DM bot is not logged in. Instagram session cookies have expired.",
+    });
   }
 
   const payload = req.body || {};
@@ -113,6 +122,14 @@ app.get("/ig/status", async (req, res) => {
     return res.status(401).json({ ok: false, error: "bad secret" });
   }
 
+  if (Date.now() - cachedLogin.checkedAt < 30000) {
+    return res.status(cachedLogin.loggedIn ? 200 : 503).json({
+      ok: true,
+      loggedIn: cachedLogin.loggedIn,
+      cached: true,
+    });
+  }
+
   const timeoutSeconds = Number(process.env.STATUS_TIMEOUT_SECONDS || 25);
   const scriptPath = path.join(BOT_ROOT, "src", "check_login.js");
 
@@ -127,6 +144,7 @@ app.get("/ig/status", async (req, res) => {
 
   child.on("exit", (code) => {
     clearTimeout(timeout);
+    cachedLogin = { loggedIn: code === 0, checkedAt: Date.now() };
     if (code === 0) {
       return res.json({ ok: true, loggedIn: true });
     }

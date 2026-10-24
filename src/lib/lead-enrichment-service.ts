@@ -15,16 +15,17 @@ export class LeadEnrichmentService {
   async enrich(name: string, payload: {
     instagramHandle?: string | null;
     spotifyArtistId?: string | null;
+    skipApifyDiscovery?: boolean;
     skipInstagramFetch?: boolean;
     skipSpotifyFetch?: boolean;
   }): Promise<EnrichmentResult> {
     let instagramHandle = payload.instagramHandle;
-    if (!instagramHandle) {
+    if (!instagramHandle && !payload.skipApifyDiscovery) {
       instagramHandle = await discoverInstagramHandle(name);
     }
 
     let resolvedSpotifyArtistId = payload.spotifyArtistId;
-    if (!resolvedSpotifyArtistId) {
+    if (!resolvedSpotifyArtistId && !payload.skipApifyDiscovery) {
       resolvedSpotifyArtistId = await discoverSpotifyArtistId(name);
     }
 

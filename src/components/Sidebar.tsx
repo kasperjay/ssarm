@@ -27,8 +27,9 @@ export function Sidebar({ className = "" }: { className?: string }) {
   const exploreLinks = useMemo(() => {
     const items = [
       { href: '/', label: 'Dashboard', description: 'Overview and recent activity' },
+      { href: '/KPIs', label: 'KPIs', description: 'Outreach success and campaign analytics' },
       { href: '/leads/discover', label: 'Artist Search', description: 'Venue and Instagram discovery' },
-      { href: '/leads/drafts', label: 'Message Drafts', description: 'Review outreach and replies' },
+      { href: '/leads', label: 'Leads', description: 'Central view of all leads and contacts' },
       { href: '/projects', label: 'Projects', description: 'Manage active client work' },
       { href: '/calendar', label: 'Calendar', description: 'Upcoming sessions and bookings' },
     ];
@@ -63,8 +64,8 @@ export function Sidebar({ className = "" }: { className?: string }) {
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2 2"/><path d="m7.8 16.2 2-2"/><path d="m14.5 14.5 2 2"/><path d="m9.5 9.5-2-2"/><path d="m18.3 12-2.3 0"/><path d="m5.7 12 2.3 0"/><path d="m12 5.7 0 2.3"/><path d="m12 18.3 0 2.3"/></svg>
           </NavIcon>
         </Link>
-        <Link href="/leads/drafts">
-          <NavIcon active={pathname?.startsWith('/leads/drafts') || false}>
+        <Link href="/leads">
+          <NavIcon active={pathname === '/leads' || (pathname?.startsWith('/leads') && !pathname?.startsWith('/leads/discover'))}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
           </NavIcon>
         </Link>

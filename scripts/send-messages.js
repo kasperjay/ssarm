@@ -27,6 +27,7 @@ async function main() {
   // To keep it simple, we look for leads that have a selected draft but haven't been "CONTACTED" in the last 12 hours
   const leads = await prisma.lead.findMany({
     where: {
+      status: { not: "PAUSED" },
       messages: { some: { selected: true } },
       OR: [
         { lastContactedAt: null },
@@ -41,6 +42,22 @@ async function main() {
   });
 
   console.log(`ℹ️ Found ${leads.length} leads eligible for delivery.`);
+
+  const hasIgMessages = leads.some(l => !l.messages[0]?.tone?.toLowerCase().includes("email"));
+  if (hasIgMessages && CONFIG.igWebhookUrl && !CONFIG.dryRun) {
+    const statusUrl = CONFIG.igWebhookUrl.replace("/ig/send", "/ig/status");
+    try {
+      const res = await fetch(statusUrl, {
+        headers: CONFIG.igWebhookSecret ? { "X-Webhook-Secret": CONFIG.igWebhookSecret } : {},
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.loggedIn) {
+        console.error("⚠️ WARNING: Instagram DM bot is not logged in! Session cookies expired.");
+      }
+    } catch (e) {
+      console.error("⚠️ WARNING: Could not check Instagram DM bot status:", e.message);
+    }
+  }
 
   let sentCount = 0;
 
@@ -133,8 +150,14 @@ async function sendEmailMessage(lead, draft) {
   }
 
   try {
-    const subject = `Inquiry regarding ${lead.artist.name}`;
-    await sendEmail(to, subject, draft.body);
+    let subject = `Inquiry regarding ${lead.artist.name}`;
+    let bodyText = draft.body;
+    const subjectMatch = draft.body.match(/^Subject:\s*(.+?)(?:\r?\n\r?\n|\r?\n)/i);
+    if (subjectMatch) {
+      subject = subjectMatch[1].trim();
+      bodyText = draft.body.slice(subjectMatch[0].length).trim();
+    }
+    await sendEmail(to, subject, bodyText);
     return true;
   } catch (err) {
     console.error(`💥 Error sending email: ${err.message}`);

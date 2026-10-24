@@ -4,7 +4,8 @@ export type LeadStatus =
   | "CONTACTED"
   | "FOLLOW_UP"
   | "WON"
-  | "LOST";
+  | "LOST"
+  | "PAUSED";
 
 export type ActivityType =
   | "MESSAGE_SENT"

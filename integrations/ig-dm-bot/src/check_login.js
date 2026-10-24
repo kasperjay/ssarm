@@ -65,10 +65,14 @@ async function dismissModalPopupsAggressive(page, attempts = 3) {
 }
 
 async function waitForLoggedInSignal(page) {
-  const deadline = Date.now() + 2 * 60 * 1000;
+  const deadline = Date.now() + 15 * 1000;
 
   while (Date.now() < deadline) {
     const url = page.url();
+    if (url.includes("/accounts/login")) {
+      console.log("Redirected to /accounts/login — not logged in.");
+      return false;
+    }
     const hasNav = (await page.locator("nav").count()) > 0;
     const hasDirectLink =
       (await page.locator('a[href*="/direct/"]').count()) > 0;
@@ -77,7 +81,7 @@ async function waitForLoggedInSignal(page) {
     if (notOnLoginPage && hasNav && hasDirectLink) {
       return true;
     }
-    await sleep(2000);
+    await sleep(1000);
   }
 
   return false;

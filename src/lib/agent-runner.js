@@ -1,3 +1,36 @@
+const fs = require("fs");
+const path = require("path");
+
+// Defensively ensure .env is loaded before pool/prisma instantiation
+if (!process.env.DATABASE_URL) {
+  try {
+    require("dotenv").config();
+  } catch (_) {}
+
+  if (!process.env.DATABASE_URL) {
+    const candidatePaths = [
+      path.resolve(process.cwd(), ".env"),
+      path.resolve(__dirname, "../../.env"),
+    ];
+    for (const envPath of candidatePaths) {
+      if (fs.existsSync(envPath)) {
+        for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const idx = trimmed.indexOf("=");
+          if (idx === -1) continue;
+          const key = trimmed.slice(0, idx).trim();
+          const val = trimmed.slice(idx + 1).trim().replace(/^['"]|['"]$/g, "");
+          if (key && process.env[key] === undefined) {
+            process.env[key] = val;
+          }
+        }
+        if (process.env.DATABASE_URL) break;
+      }
+    }
+  }
+}
+
 const { PrismaClient } = require("../../prisma/generated-client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
