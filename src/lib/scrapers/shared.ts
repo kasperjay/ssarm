@@ -297,8 +297,8 @@ function cleanArtistName(value: string): string {
 }
 
 function isNonArtistEvent(value: string): boolean {
-  return /\b(?:movie|film|screening|trivia(?: night)?|karaoke|dance class|drag show|bingo|market|open mic|happy hour|watch party|costume contest|anniversary|book club|comedy show|football|soccer match|which witch wednesdays|cumbia night)\b/i.test(value) ||
-    /^(?:blue monday|hotel vegas movie club|free week|lezfest|primos on the patio|the rocky horror drag show)\b/i.test(value);
+  return /\b(?:movie|film|screening|trivia(?: night)?|karaoke|dance class|drag (?:show|brunch)|burlesque|cabaret|pageant|bingo|market|flea market|vintage market|craft fair|pop-up|open mic|happy hour|watch party|costume contest|anniversary|book club|comedy show|comedy|stand-?up|improv|football|soccer match|which witch wednesdays|cumbia night|blade rave|rave|dance party|\b(?:80s|90s|disco|emo|goth|taylor swift|smiths vs morrissey)\s+night\b|tribute to|benefitting|benefit for|fundraiser for)\b/i.test(value) ||
+    /^(?:blue monday|hotel vegas movie club|free week|lezfest|primos on the patio|the rocky horror drag show|howdy gals presents?|f1 gran premio|tiniest dog party)\b/i.test(value);
 }
 
 export function splitArtistTitle(value: string): string[] {
@@ -560,16 +560,22 @@ export async function scrapeDo512Venue(venue: Venue, now = new Date()): Promise<
     const seen = new Set<string>();
     for (const event of candidateEvents) {
       const details = detailByUrl.get(event.eventUrl);
-      const performers: Performer[] = details?.performers.length
+      const rawPerformers: Performer[] = details?.performers.length
         ? details.performers
         : splitArtistTitle(event.title).map((name) => ({ name }));
       const performerMap = new Map<string, Performer>();
 
-      for (const performer of performers) {
-        const artist = cleanArtistName(performer.name);
-        if (!artist || isNonArtistEvent(artist) || /^(?:tba|to be announced|various artists|more bands?)$/i.test(artist)) continue;
-        const performerKey = artist.normalize("NFKD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        if (!performerMap.has(performerKey)) performerMap.set(performerKey, { ...performer, name: artist });
+      for (const performer of rawPerformers) {
+        // Also split any performer names that bundle multiple artists (e.g. "A w/ B", "A ft. B", "A with B")
+        const splitNames = splitArtistTitle(performer.name);
+        const namesToProcess = splitNames.length > 0 ? splitNames : [cleanArtistName(performer.name)];
+
+        for (const name of namesToProcess) {
+          const artist = cleanArtistName(name);
+          if (!artist || isNonArtistEvent(artist) || /^(?:tba|to be announced|various artists|more bands?)$/i.test(artist)) continue;
+          const performerKey = artist.normalize("NFKD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          if (!performerMap.has(performerKey)) performerMap.set(performerKey, { ...performer, name: artist });
+        }
       }
 
       for (const performer of performerMap.values()) {

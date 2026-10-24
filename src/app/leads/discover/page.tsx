@@ -67,7 +67,7 @@ type ApiErrorResponse = { error?: string; detail?: string };
 type CalendarSearchResponse = ApiErrorResponse & { status?: string; items?: DiscoveryItem[]; venues?: VenueRunStatus[] };
 type DiscoveryStartResponse = { runId: string; datasetId: string };
 type DiscoveryStatusResponse = { status: string; itemCount?: number; items?: Record<string, unknown>[] };
-type SiftResponse = { results?: boolean[]; mode?: string };
+type SiftResponse = { results?: boolean[]; mode?: string; cleanedNames?: Record<string | number, string> };
 
 function getErrorMessage(error: unknown, fallback: string): string {
     return error instanceof Error ? error.message : fallback;
@@ -373,9 +373,25 @@ export default function DiscoverPage() {
             }
 
             const data = await res.json() as SiftResponse;
-            const { results: aiResults, mode } = data;
+            const { results: aiResults, mode, cleanedNames } = data;
             if (mode === "ai" || mode === "fallback") {
                 setSiftMode(mode);
+            }
+
+            if (cleanedNames && typeof cleanedNames === "object") {
+                setResults((prevResults) =>
+                    prevResults.map((item, idx) => {
+                        const cleaned = cleanedNames[idx] || cleanedNames[String(idx)];
+                        if (cleaned && typeof cleaned === "string" && cleaned.trim().length > 0) {
+                            return {
+                                ...item,
+                                artist: cleaned.trim(),
+                                artistName: cleaned.trim(),
+                            };
+                        }
+                        return item;
+                    })
+                );
             }
 
             if (Array.isArray(aiResults)) {
@@ -817,6 +833,9 @@ export default function DiscoverPage() {
                             {siftMode && (
                                 <div className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-white/40">
                                     Smart selection mode: <span className="text-accent">{siftMode === "ai" ? "AI" : "Fallback"}</span>
+                                    {selectedIndices.size > 0 && (
+                                        <span className="ml-3 text-white/60">· {selectedIndices.size} of {results.length} artists separated & selected</span>
+                                    )}
                                 </div>
                             )}
 
@@ -865,12 +884,25 @@ export default function DiscoverPage() {
                                                         </td>
                                                         <td className="px-8 py-6">
                                                              <div className="space-y-1">
-                                                                 <div className="font-bold text-white/90 text-[14px] tracking-tight group-hover:text-accent transition-colors">{displayName}</div>
+                                                                 <div className="font-bold text-white/90 text-[14px] tracking-tight group-hover:text-accent transition-colors flex items-center gap-2 flex-wrap">
+                                                                     <span>{displayName}</span>
+                                                                     {item.sourceType && (
+                                                                         <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
+                                                                             {item.sourceType === "tagged"
+                                                                                 ? (item.taggedCount && Number(item.taggedCount) > 1 ? `Tagged in ${item.taggedCount} posts` : "Tagged in Post")
+                                                                                 : item.sourceType === "coauthor"
+                                                                                 ? "Co-author"
+                                                                                 : item.sourceType === "mention"
+                                                                                 ? "Mentioned"
+                                                                                 : "Post Author"}
+                                                                         </span>
+                                                                     )}
+                                                                 </div>
                                                                  {(item.eventTitle || item.venueName || item.eventDate) && (
                                                                      <div className="text-[10px] text-white/40">{[item.eventTitle, item.venueName, formatEventDate(item.eventDate, item.eventDateOnly)].filter(Boolean).join(" · ")}</div>
                                                                  )}
                                                                  {handle !== "No Handle" && (
-                                                                     <div className="text-[9px] font-bold font-sans text-white/20 uppercase tracking-[0.2em]">@{String(handle).replace('@', '')}</div>
+                                                                     <div className="text-[9px] font-bold font-sans text-white/20 uppercase tracking-[0.2em]">@{String(handle).replace(/^@/, '')}</div>
                                                                  )}
                                                              </div>
                                                          </td>
@@ -878,19 +910,30 @@ export default function DiscoverPage() {
                                                             {isUnknown ? (
                                                                 <span className="text-xs font-bold text-white/10 uppercase tracking-widest">NO DATA</span>
                                                             ) : (
-                                                                url !== "-" ? (
-                                                                    <a 
-                                                                        href={url} 
-                                                                        target="_blank" 
-                                                                        rel="noreferrer" 
-                                                                        className="inline-flex items-center gap-2 text-accent/60 hover:text-accent font-bold uppercase tracking-[0.3em] text-[9px] transition-all group/link"
-                                                                    >
-                                                                        {url.includes('ticketmaster') || url.includes('event') ? 'View Event' : 'View Profile'}
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-                                                                    </a>
-                                                                ) : (
-                                                                    <span className="text-xs font-bold text-white/10 uppercase tracking-widest">No Link</span>
-                                                                )
+                                                                <div className="inline-flex items-center gap-4 justify-end">
+                                                                    {handle !== "No Handle" && (
+                                                                        <a 
+                                                                            href={`https://www.instagram.com/${String(handle).replace(/^@/, '')}/`} 
+                                                                            target="_blank" 
+                                                                            rel="noreferrer" 
+                                                                            className="inline-flex items-center gap-1.5 text-accent/60 hover:text-accent font-bold uppercase tracking-[0.2em] text-[9px] transition-all group/link"
+                                                                        >
+                                                                            Profile
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                                                                        </a>
+                                                                    )}
+                                                                    {url !== "-" && (
+                                                                        <a 
+                                                                            href={url} 
+                                                                            target="_blank" 
+                                                                            rel="noreferrer" 
+                                                                            className="inline-flex items-center gap-1.5 text-white/40 hover:text-white font-bold uppercase tracking-[0.2em] text-[9px] transition-all group/link"
+                                                                        >
+                                                                            {item.eventTitle ? 'Event' : 'Post'}
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                                                                        </a>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                         </td>
                                                     </tr>
