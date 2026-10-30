@@ -84,7 +84,10 @@ export function EditableSpotifyProfile({
     return (
       <div className="mt-2 space-y-2">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400/80">
-          ⚠ Correct Spotify Artist
+          Correct Spotify Artist
+        </p>
+        <p className="text-[11px] text-white/40">
+          Paste the correct Spotify artist URL or ID. This replaces the linked Spotify releases for this artist.
         </p>
         <div className="flex items-center gap-2">
           <input
@@ -144,11 +147,9 @@ export function EditableSpotifyProfile({
         type="button"
         onClick={handleOpen}
         title="Correct Spotify artist"
-        className="opacity-0 group-hover/spotify:opacity-100 transition-opacity shrink-0 p-1 rounded-lg bg-white/5 hover:bg-amber-400/10 hover:text-amber-400 text-white/30 border border-white/8 hover:border-amber-400/30"
+        className="shrink-0 rounded-lg border border-amber-400/20 bg-amber-400/5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300/80 transition-colors hover:border-amber-400/40 hover:bg-amber-400/10 hover:text-amber-200"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-        </svg>
+        Change
       </button>
     </div>
   );

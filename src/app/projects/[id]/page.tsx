@@ -8,6 +8,7 @@ import CopyButton from "../components/CopyButton";
 import VisibilityToggle from "../components/VisibilityToggle";
 import ResolveButton from "../components/ResolveButton";
 import DeleteProjectButton from "../components/DeleteProjectButton";
+import PaywallToggle from "../components/PaywallToggle";
 import { Navbar } from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
 import { StatusPill } from "@/components/StatusPill";
@@ -72,6 +73,11 @@ export default async function ProjectDetailPage({
                   {project.title || `Project Alpha`}
                 </h1>
                 <StatusPill status={project.status} />
+                {project.mixApprovedForMastering && (
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                    ✓ Mix Approved
+                  </span>
+                )}
                 <div className="ml-auto md:ml-4">
                     <DeleteProjectButton projectId={project.id} isDetail={true} />
                 </div>
@@ -142,6 +148,13 @@ export default async function ProjectDetailPage({
                 <span className="text-xs font-sans font-bold text-accent-warm/40 uppercase tracking-widest ml-auto">{deliverables.length} Files</span>
                 <div className="h-px w-20 bg-accent/10" />
               </div>
+
+              <PaywallToggle
+                projectId={project.id}
+                initialValue={project.paywallDeliverables}
+                hasInvoice={Boolean(project.invoice)}
+                isPaid={Boolean(project.invoice?.paidAt)}
+              />
 
               <FileUploadArea projectId={project.id} type="DELIVERABLE" />
 

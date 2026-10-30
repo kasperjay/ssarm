@@ -520,6 +520,7 @@ export async function generateDraftsForLead(
       : null,
     bio: lead.artist.bio,
     hasEmail: (lead.artist.emails?.length ?? 0) > 0,
+    portfolioOffer: true,
     styleHint: styleHint ?? undefined,
     productionNeedLevel: lead.productionNeedLevel,
     productionNeedEvidence: evidenceList,
@@ -682,6 +683,7 @@ export async function regenerateDraft(formData: FormData) {
       : null,
     bio: lead.artist.bio,
     hasEmail: (lead.artist.emails?.length ?? 0) > 0,
+    portfolioOffer: true,
     styleHint,
     productionNeedLevel: lead.productionNeedLevel,
     productionNeedEvidence: evidenceList,
@@ -979,6 +981,17 @@ export async function updateArtistSpotifyProfile(state: {
   });
   if (!artist) return { ok: false, error: "Artist not found." };
 
+  const spotifyOwner = await prisma.artist.findUnique({
+    where: { spotifyArtistId: parsed.id },
+    select: { id: true, name: true },
+  });
+  if (spotifyOwner && spotifyOwner.id !== artist.id) {
+    return {
+      ok: false,
+      error: `That Spotify profile is already linked to ${spotifyOwner.name}. Choose a different artist profile.`,
+    };
+  }
+
   // Fetch new Spotify artist profile
   const profile = await fetchSpotifyArtistProfile(parsed.id);
   if (!profile) {
@@ -992,47 +1005,46 @@ export async function updateArtistSpotifyProfile(state: {
   const newImageUrl = profile.imageUrl ?? null;
   const accent = newImageUrl ? await extractAccentFromImage(newImageUrl).catch(() => null) : null;
 
-  // Clear old Spotify releases that belong to this artist (they'll be replaced)
-  await prisma.release.deleteMany({
-    where: {
-      artistId: artist.id,
-      OR: [
-        { spotifyReleaseId: { not: null } },
-        { spotifyTrackId: { not: null } },
-      ],
-    },
-  });
-
-  // Update artist with new Spotify data
-  await prisma.artist.update({
-    where: { id: artist.id },
-    data: {
-      spotifyArtistId: parsed.id,
-      spotifyArtistUrl: parsed.url,
-      spotifyImageUrl: newImageUrl,
-      spotifyAccent: accent?.accent ?? null,
-      spotifyAccentStrong: accent?.accentStrong ?? null,
-      spotifyHighlight: accent?.highlight ?? null,
-      ...(profile.genres?.length ? { genre: profile.genres[0] } : {}),
-    },
-  });
-
-  // Upsert new releases
-  for (const release of releases) {
-    const releaseData = {
-      artistId: artist.id,
-      title: release.title,
-      releaseDate: release.releaseDate ? new Date(release.releaseDate) : undefined,
-      imageUrl: release.imageUrl ?? undefined,
-      url: release.url ?? undefined,
-      releaseType: release.releaseType ?? undefined,
-    };
-    await prisma.release.upsert({
-      where: { spotifyReleaseId: release.spotifyReleaseId },
-      update: releaseData,
-      create: { ...releaseData, spotifyReleaseId: release.spotifyReleaseId },
+  await prisma.$transaction(async (tx) => {
+    await tx.release.deleteMany({
+      where: {
+        artistId: artist.id,
+        OR: [
+          { spotifyReleaseId: { not: null } },
+          { spotifyTrackId: { not: null } },
+        ],
+      },
     });
-  }
+
+    await tx.artist.update({
+      where: { id: artist.id },
+      data: {
+        spotifyArtistId: parsed.id,
+        spotifyArtistUrl: profile.url ?? parsed.url,
+        spotifyImageUrl: newImageUrl,
+        spotifyAccent: accent?.accent ?? null,
+        spotifyAccentStrong: accent?.accentStrong ?? null,
+        spotifyHighlight: accent?.highlight ?? null,
+        ...(profile.genres?.length ? { genre: profile.genres[0] } : {}),
+      },
+    });
+
+    for (const release of releases) {
+      const releaseData = {
+        artistId: artist.id,
+        title: release.title,
+        releaseDate: release.releaseDate ? new Date(release.releaseDate) : undefined,
+        imageUrl: release.imageUrl ?? undefined,
+        url: release.url ?? undefined,
+        releaseType: release.releaseType ?? undefined,
+      };
+      await tx.release.upsert({
+        where: { spotifyReleaseId: release.spotifyReleaseId },
+        update: releaseData,
+        create: { ...releaseData, spotifyReleaseId: release.spotifyReleaseId },
+      });
+    }
+  });
 
   // Log activity
   await prisma.activity.create({

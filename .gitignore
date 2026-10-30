@@ -56,3 +56,6 @@ full_chat_conversation.csv
 # agent workspaces
 .agents/
 .superpowers/
+
+# Database dumps
+*.sql

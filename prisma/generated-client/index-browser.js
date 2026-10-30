@@ -229,8 +229,15 @@ exports.Prisma.ProjectScalarFieldEnum = {
   title: 'title',
   portalToken: 'portalToken',
   status: 'status',
+  workflowStage: 'workflowStage',
+  paywallDeliverables: 'paywallDeliverables',
+  mixApprovedForMastering: 'mixApprovedForMastering',
+  mixApprovedAt: 'mixApprovedAt',
+  mixApprovedBy: 'mixApprovedBy',
+  mixApprovalNotes: 'mixApprovalNotes',
   rating: 'rating',
   review: 'review',
+  ratingSubmittedAt: 'ratingSubmittedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -244,6 +251,13 @@ exports.Prisma.ProjectFileScalarFieldEnum = {
   size: 'size',
   mimeType: 'mimeType',
   type: 'type',
+  category: 'category',
+  format: 'format',
+  sampleRate: 'sampleRate',
+  bitDepth: 'bitDepth',
+  duration: 'duration',
+  waveformPeaks: 'waveformPeaks',
+  downloadCount: 'downloadCount',
   isPublic: 'isPublic',
   createdAt: 'createdAt'
 };
@@ -253,27 +267,63 @@ exports.Prisma.ProjectFeedbackScalarFieldEnum = {
   projectId: 'projectId',
   content: 'content',
   resolved: 'resolved',
+  resolvedAt: 'resolvedAt',
   createdAt: 'createdAt',
   fileId: 'fileId',
-  timestamp: 'timestamp'
+  timestamp: 'timestamp',
+  authorRole: 'authorRole',
+  authorName: 'authorName',
+  parentFeedbackId: 'parentFeedbackId'
 };
 
 exports.Prisma.ProjectInvoiceScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
+  templateId: 'templateId',
   invoiceNumber: 'invoiceNumber',
+  status: 'status',
   issuedAt: 'issuedAt',
   dueAt: 'dueAt',
+  paidAt: 'paidAt',
   currency: 'currency',
   lineItems: 'lineItems',
   subtotalCents: 'subtotalCents',
   taxCents: 'taxCents',
   totalCents: 'totalCents',
   notes: 'notes',
+  selectedPaymentMethod: 'selectedPaymentMethod',
+  paymentReference: 'paymentReference',
   stripePaymentUrl: 'stripePaymentUrl',
-  paidAt: 'paidAt',
+  venmoHandle: 'venmoHandle',
+  paypalUrl: 'paypalUrl',
+  chimeTag: 'chimeTag',
+  receiptUrl: 'receiptUrl',
+  paymentNotes: 'paymentNotes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InvoiceTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  code: 'code',
+  description: 'description',
+  category: 'category',
+  lineItems: 'lineItems',
+  suggestedPriceCents: 'suggestedPriceCents',
+  isPreset: 'isPreset',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProjectActivityLogScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  actorRole: 'actorRole',
+  actorName: 'actorName',
+  action: 'action',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.AgentRunScalarFieldEnum = {
@@ -334,6 +384,41 @@ exports.Prisma.OutreachAttemptScalarFieldEnum = {
   responseType: 'responseType',
   notes: 'notes',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.ReplyTriageScalarFieldEnum = {
+  id: 'id',
+  activityId: 'activityId',
+  leadId: 'leadId',
+  intent: 'intent',
+  note: 'note',
+  triaged: 'triaged',
+  triagedAt: 'triagedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.FollowUpSequenceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  steps: 'steps',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LeadSequenceEnrollmentScalarFieldEnum = {
+  id: 'id',
+  leadId: 'leadId',
+  sequenceId: 'sequenceId',
+  currentStep: 'currentStep',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  pausedAt: 'pausedAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -404,9 +489,75 @@ exports.ProjectStatus = exports.$Enums.ProjectStatus = {
   ARCHIVED: 'ARCHIVED'
 };
 
+exports.ProjectWorkflowStage = exports.$Enums.ProjectWorkflowStage = {
+  IN_MIXING: 'IN_MIXING',
+  MIX_APPROVED: 'MIX_APPROVED',
+  IN_MASTERING: 'IN_MASTERING',
+  MASTERED: 'MASTERED',
+  COMPLETED: 'COMPLETED'
+};
+
 exports.FileType = exports.$Enums.FileType = {
   WORKING: 'WORKING',
   DELIVERABLE: 'DELIVERABLE'
+};
+
+exports.FileCategory = exports.$Enums.FileCategory = {
+  FINAL_MASTER: 'FINAL_MASTER',
+  FINAL_MIX: 'FINAL_MIX',
+  STEMS: 'STEMS',
+  TRACK_OUTS: 'TRACK_OUTS',
+  INSTRUMENTAL: 'INSTRUMENTAL',
+  ACAPELLA: 'ACAPELLA',
+  REFERENCE: 'REFERENCE',
+  OTHER: 'OTHER'
+};
+
+exports.AudioFormat = exports.$Enums.AudioFormat = {
+  WAV: 'WAV',
+  MP3: 'MP3',
+  AIFF: 'AIFF',
+  FLAC: 'FLAC',
+  ZIP: 'ZIP',
+  OTHER: 'OTHER'
+};
+
+exports.SampleRate = exports.$Enums.SampleRate = {
+  SR_44_1_KHZ: 'SR_44_1_KHZ',
+  SR_48_KHZ: 'SR_48_KHZ',
+  SR_88_2_KHZ: 'SR_88_2_KHZ',
+  SR_96_KHZ: 'SR_96_KHZ',
+  NOT_APPLICABLE: 'NOT_APPLICABLE'
+};
+
+exports.BitDepth = exports.$Enums.BitDepth = {
+  BIT_16: 'BIT_16',
+  BIT_24: 'BIT_24',
+  BIT_32_FLOAT: 'BIT_32_FLOAT',
+  NOT_APPLICABLE: 'NOT_APPLICABLE'
+};
+
+exports.FeedbackAuthorRole = exports.$Enums.FeedbackAuthorRole = {
+  ARTIST: 'ARTIST',
+  ENGINEER: 'ENGINEER'
+};
+
+exports.InvoiceStatus = exports.$Enums.InvoiceStatus = {
+  DRAFT: 'DRAFT',
+  ISSUED: 'ISSUED',
+  PAID: 'PAID',
+  VOID: 'VOID'
+};
+
+exports.PaymentMethod = exports.$Enums.PaymentMethod = {
+  STRIPE: 'STRIPE',
+  APPLE_PAY: 'APPLE_PAY',
+  PAYPAL: 'PAYPAL',
+  VENMO: 'VENMO',
+  CHIME: 'CHIME',
+  CASH_APP: 'CASH_APP',
+  WIRE: 'WIRE',
+  OTHER: 'OTHER'
 };
 
 exports.CampaignType = exports.$Enums.CampaignType = {
@@ -414,7 +565,8 @@ exports.CampaignType = exports.$Enums.CampaignType = {
   VENUE_BOOKING: 'VENUE_BOOKING',
   COLLABORATION: 'COLLABORATION',
   REENGAGEMENT: 'REENGAGEMENT',
-  RECRUITMENT: 'RECRUITMENT'
+  RECRUITMENT: 'RECRUITMENT',
+  PORTFOLIO_BUILDING: 'PORTFOLIO_BUILDING'
 };
 
 exports.OutreachChannel = exports.$Enums.OutreachChannel = {
@@ -432,6 +584,16 @@ exports.ResponseType = exports.$Enums.ResponseType = {
   NO_RESPONSE: 'NO_RESPONSE'
 };
 
+exports.ReplyIntent = exports.$Enums.ReplyIntent = {
+  INTERESTED: 'INTERESTED',
+  NOT_NOW: 'NOT_NOW',
+  PRICING_REQUEST: 'PRICING_REQUEST',
+  WRONG_CONTACT: 'WRONG_CONTACT',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  BOOKED: 'BOOKED',
+  UNCLEAR: 'UNCLEAR'
+};
+
 exports.Prisma.ModelName = {
   Artist: 'Artist',
   Lead: 'Lead',
@@ -444,11 +606,16 @@ exports.Prisma.ModelName = {
   ProjectFile: 'ProjectFile',
   ProjectFeedback: 'ProjectFeedback',
   ProjectInvoice: 'ProjectInvoice',
+  InvoiceTemplate: 'InvoiceTemplate',
+  ProjectActivityLog: 'ProjectActivityLog',
   AgentRun: 'AgentRun',
   ContactInfo: 'ContactInfo',
   MergeProposal: 'MergeProposal',
   OutreachCampaign: 'OutreachCampaign',
-  OutreachAttempt: 'OutreachAttempt'
+  OutreachAttempt: 'OutreachAttempt',
+  ReplyTriage: 'ReplyTriage',
+  FollowUpSequence: 'FollowUpSequence',
+  LeadSequenceEnrollment: 'LeadSequenceEnrollment'
 };
 
 /**

@@ -368,7 +368,9 @@ export default function DiscoverPage() {
                 try {
                     const parsed: unknown = JSON.parse(textBody);
                     if (isRecord(parsed)) data = parsed as ApiErrorResponse;
-                } catch {}
+                } catch (parseErr) {
+                    console.warn("[Discover] Failed to parse API error response as JSON:", parseErr);
+                }
                 throw new Error(data?.detail || data?.error || `Failed to sift results (${res.status}).`);
             }
 
@@ -495,7 +497,9 @@ export default function DiscoverPage() {
                         let responseData: { success?: boolean; error?: string; detail?: string } | null = null;
                         try {
                             responseData = JSON.parse(responseText);
-                        } catch {}
+                        } catch (parseErr) {
+                            console.warn("[Discover] Failed to parse import response as JSON:", parseErr);
+                        }
 
                         if (!response.ok || responseData?.success !== true) {
                             const reason = responseData?.error || responseData?.detail || responseText.slice(0, 300) || `Import failed (HTTP ${response.status}).`;

@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { Prisma, LeadStatus, ProductionNeedLevel } from "local-prisma-client";
+import { Prisma, LeadStatus } from "local-prisma-client";
 import { prisma } from "@/lib/prisma";
 import { GlassCard } from "@/components/GlassCard";
 import { NeonButton } from "@/components/NeonButton";
@@ -57,6 +57,7 @@ const CONTACT_OPTIONS = [
 ] as const;
 
 const SORT_OPTIONS = [
+  "portfolio_desc",
   "score_desc",
   "score_asc",
   "updated_desc",
@@ -67,8 +68,25 @@ const SORT_OPTIONS = [
   "created_asc",
 ] as const;
 
+const VIEW_OPTIONS = ["portfolio", "score"] as const;
+
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+type PortfolioLead = {
+  score: number | null;
+  status: string;
+  artist: {
+    emails?: string[];
+    instagramHandle?: string | null;
+    officialSiteUrl?: string | null;
+    location?: string | null;
+    city?: string | null;
+    state?: string | null;
+    lastPostAt?: Date | string | null;
+    releases?: Array<{ releaseDate?: Date | string | null; createdAt: Date | string }>;
+  };
 };
 
 function asSingle(value: string | string[] | undefined, fallback: string): string {
@@ -76,15 +94,43 @@ function asSingle(value: string | string[] | undefined, fallback: string): strin
   return value ?? fallback;
 }
 
+function portfolioPriority(lead: PortfolioLead): number {
+  const artist = lead.artist;
+  const hasContact = Boolean(
+    artist.emails?.length || artist.instagramHandle || artist.officialSiteUrl
+  );
+  const latestRelease = artist.releases?.[0];
+  const releaseDate = latestRelease?.releaseDate ?? latestRelease?.createdAt;
+  const releaseAgeDays = releaseDate
+    ? Math.max(0, (Date.now() - new Date(releaseDate).getTime()) / 86400000)
+    : Infinity;
+  const isActiveArtist = Boolean(artist.lastPostAt && (Date.now() - new Date(artist.lastPostAt).getTime()) / 86400000 <= 90);
+  const locationText = [artist.location, artist.city, artist.state].filter(Boolean).join(" ");
+  const isLocal = /austin|atx|round rock|cedar park|pflugerville|georgetown|buda|kyle/i.test(locationText);
+  const statusPoints = lead.status === "NEW" ? 10 : lead.status === "QUALIFIED" ? 8 : lead.status === "FOLLOW_UP" ? 5 : 0;
+
+  return (
+    (hasContact ? 30 : 0) +
+    (releaseAgeDays <= 180 ? 20 : releaseAgeDays <= 365 ? 10 : 0) +
+    (isActiveArtist ? 15 : 0) +
+    (isLocal ? 10 : 0) +
+    statusPoints +
+    Math.min(25, Math.max(0, Number(lead.score) || 0) * 0.25)
+  );
+}
+
 export default async function LeadsPage(props: PageProps) {
   const params = await props.searchParams;
 
-  const status = asSingle(params.status, "QUALIFIED").toUpperCase();
+  const view = asSingle(params.view, "portfolio").toLowerCase();
+  const safeView = VIEW_OPTIONS.includes(view as (typeof VIEW_OPTIONS)[number]) ? view : "portfolio";
+  const isPortfolioView = safeView === "portfolio";
+  const status = asSingle(params.status, isPortfolioView ? "ALL" : "QUALIFIED").toUpperCase();
   const score = asSingle(params.score, "ALL").toUpperCase();
   const location = asSingle(params.location, "ALL").toUpperCase();
   const need = asSingle(params.need, "ALL").toUpperCase();
   const contact = asSingle(params.contact, "WITH_CONTACT").toUpperCase();
-  const sort = asSingle(params.sort, "score_desc").toLowerCase();
+  const sort = asSingle(params.sort, isPortfolioView ? "portfolio_desc" : "score_desc").toLowerCase();
   const q = asSingle(params.q, "").trim();
   const loc = asSingle(params.loc, "").trim();
   const minScoreRaw = asSingle(params.minScore, "").trim();
@@ -95,7 +141,11 @@ export default async function LeadsPage(props: PageProps) {
   const safeLocation = LOCATION_OPTIONS.includes(location as (typeof LOCATION_OPTIONS)[number]) ? location : "ALL";
   const safeNeed = NEED_OPTIONS.includes(need as (typeof NEED_OPTIONS)[number]) ? need : "ALL";
   const safeContact = CONTACT_OPTIONS.includes(contact as (typeof CONTACT_OPTIONS)[number]) ? contact : "WITH_CONTACT";
-  const safeSort = SORT_OPTIONS.includes(sort as (typeof SORT_OPTIONS)[number]) ? sort : "score_desc";
+  const safeSort = SORT_OPTIONS.includes(sort as (typeof SORT_OPTIONS)[number])
+    ? sort
+    : isPortfolioView
+      ? "portfolio_desc"
+      : "score_desc";
 
   const where: Prisma.LeadWhereInput = {};
 
@@ -258,6 +308,9 @@ export default async function LeadsPage(props: PageProps) {
 
   // Sort Order
   const orderBy =
+    safeSort === "portfolio_desc"
+      ? [{ updatedAt: "desc" as const }]
+      :
     safeSort === "score_asc"
       ? [{ score: "asc" as const }, { updatedAt: "desc" as const }]
       : safeSort === "updated_desc"
@@ -295,6 +348,9 @@ export default async function LeadsPage(props: PageProps) {
 
   // Non-local artists whose gigs in Austin have already been played are removed from the lead queue
   const leads = rawLeads.filter((lead) => safeStatus === "PAUSED" || !isNonLocalWithPastGigOnly(lead));
+  if (safeSort === "portfolio_desc") {
+    leads.sort((a, b) => portfolioPriority(b) - portfolioPriority(a) || (Number(b.score) || 0) - (Number(a.score) || 0));
+  }
 
   // Calculate active filter count and chips for UI feedback
   const activeChips: string[] = [];
@@ -335,6 +391,7 @@ export default async function LeadsPage(props: PageProps) {
   if (safeContact !== "ALL") {
     activeChips.push(safeContact === "WITH_CONTACT" ? "Has Contacts" : "Missing Contacts");
   }
+  if (isPortfolioView) activeChips.unshift("Portfolio Outreach: Any Genre");
 
   return (
     <div className="relative min-h-screen bg-transparent">
@@ -362,11 +419,17 @@ export default async function LeadsPage(props: PageProps) {
                 Lead <span className="premium-gradient-text italic">Management</span>
               </h1>
               <p className="text-white/40 text-sm max-w-2xl font-medium leading-relaxed">
-                Central view of leads with multi-tier smart scoring, Austin proximity, verified production need, and contact readiness.
+                Portfolio outreach view for artists of any genre, with the existing Smart Score preserved as a long-term intelligence signal.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-col items-end gap-2 bg-white/2 backdrop-blur-sm border border-white/5 p-6 rounded-[32px]">
+                <span className="text-xs font-bold text-white/30 uppercase tracking-[0.2em]">Current Mode</span>
+                <span className="text-sm font-bold uppercase tracking-[0.15em] text-accent">
+                  {isPortfolioView ? "Portfolio Outreach" : "Smart Score"}
+                </span>
+              </div>
               <div className="flex flex-col items-end gap-2 bg-white/2 backdrop-blur-sm border border-white/5 p-6 rounded-[32px]">
                 <span className="text-xs font-bold text-white/30 uppercase tracking-[0.2em]">Lead Records</span>
                 <div className="flex items-baseline gap-2">
@@ -390,6 +453,30 @@ export default async function LeadsPage(props: PageProps) {
         <section className="relative z-10">
           <GlassCard className="p-6! border-white/5 bg-white/2 space-y-6">
             <form method="GET" action="/leads" className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-accent/20 bg-accent/5 px-4 py-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">
+                    {isPortfolioView ? "Portfolio outreach" : "Smart score intelligence"}
+                  </p>
+                  <p className="mt-1 text-xs text-white/45">
+                    {isPortfolioView
+                      ? "Prioritizes reachable, active artists across every genre. Smart Score remains visible and unchanged."
+                      : "Uses the existing scoring model and rationale for long-term lead intelligence."
+                    }
+                  </p>
+                </div>
+                <label className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.15em] text-white/50">
+                  View
+                  <select
+                    name="view"
+                    defaultValue={safeView}
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="portfolio">Portfolio Outreach · Any Genre</option>
+                    <option value="score">Smart Score Intelligence</option>
+                  </select>
+                </label>
+              </div>
               {/* Row 1: Core Triage Filters */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Search */}
@@ -509,6 +596,7 @@ export default async function LeadsPage(props: PageProps) {
                     defaultValue={safeSort}
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent/30"
                   >
+                    <option value="portfolio_desc">Portfolio Priority (Reachability → Fit)</option>
                     <option value="score_desc">Smart Score (High → Low)</option>
                     <option value="score_asc">Smart Score (Low → High)</option>
                     <option value="updated_desc">Last Updated (Newest)</option>
@@ -653,7 +741,7 @@ export default async function LeadsPage(props: PageProps) {
                               : "bg-white/5 border-white/10 text-white/50"
                           }`}
                         >
-                          Score {score}%
+                          Smart Score {score}%
                         </div>
                       </div>
                     </div>

@@ -5,7 +5,10 @@ const path = require("path");
 if (!process.env.DATABASE_URL) {
   try {
     require("dotenv").config();
-  } catch (_) {}
+  } catch (err) {
+    // Optional dotenv fallback
+    if (process.env.DEBUG) console.debug("[AgentRunner] dotenv not loaded:", err);
+  }
 
   if (!process.env.DATABASE_URL) {
     const candidatePaths = [

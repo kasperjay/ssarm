@@ -57,6 +57,72 @@ enum FileType {
   DELIVERABLE
 }
 
+enum ProjectWorkflowStage {
+  IN_MIXING
+  MIX_APPROVED
+  IN_MASTERING
+  MASTERED
+  COMPLETED
+}
+
+enum FileCategory {
+  FINAL_MASTER
+  FINAL_MIX
+  STEMS
+  TRACK_OUTS
+  INSTRUMENTAL
+  ACAPELLA
+  REFERENCE
+  OTHER
+}
+
+enum AudioFormat {
+  WAV
+  MP3
+  AIFF
+  FLAC
+  ZIP
+  OTHER
+}
+
+enum SampleRate {
+  SR_44_1_KHZ
+  SR_48_KHZ
+  SR_88_2_KHZ
+  SR_96_KHZ
+  NOT_APPLICABLE
+}
+
+enum BitDepth {
+  BIT_16
+  BIT_24
+  BIT_32_FLOAT
+  NOT_APPLICABLE
+}
+
+enum FeedbackAuthorRole {
+  ARTIST
+  ENGINEER
+}
+
+enum PaymentMethod {
+  STRIPE
+  APPLE_PAY
+  PAYPAL
+  VENMO
+  CHIME
+  CASH_APP
+  WIRE
+  OTHER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  VOID
+}
+
 model Artist {
   id                       String    @id @default(cuid())
   name                     String
@@ -109,10 +175,12 @@ model Lead {
   createdAt                  DateTime            @default(now())
   updatedAt                  DateTime            @updatedAt
 
-  artist           Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  messages         MessageDraft[]
-  activities       Activity[]
-  outreachAttempts OutreachAttempt[]
+  artist              Artist                   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  messages            MessageDraft[]
+  activities          Activity[]
+  outreachAttempts    OutreachAttempt[]
+  replyTriages        ReplyTriage[]
+  sequenceEnrollments LeadSequenceEnrollment[]
 }
 
 model Release {
@@ -182,24 +250,43 @@ model Activity {
   occurredAt DateTime     @default(now())
   createdAt  DateTime     @default(now())
 
-  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  replyTriage ReplyTriage?
 }
 
 model Project {
-  id          String        @id @default(cuid())
-  artistId    String
-  title       String? // Optional explicit title, otherwise defaults to something like "Project for [Artist Name]"
-  portalToken String        @unique @default(cuid()) // Unique random token for client to access without auth
-  status      ProjectStatus @default(ACTIVE)
-  rating      Int? // 1-5 star rating
-  review      String? // Post-project feedback
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id            String               @id @default(cuid())
+  artistId      String
+  title         String? // Optional explicit title, otherwise defaults to something like "Project for [Artist Name]"
+  portalToken   String               @unique @default(cuid()) // Unique random token for client to access without auth
+  status        ProjectStatus        @default(ACTIVE)
+  workflowStage ProjectWorkflowStage @default(IN_MIXING)
 
-  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  files     ProjectFile[]
-  feedbacks ProjectFeedback[]
-  invoice   ProjectInvoice?
+  // Deliverable Gating
+  paywallDeliverables Boolean @default(true)
+
+  // Mix Approval Sign-off
+  mixApprovedForMastering Boolean   @default(false)
+  mixApprovedAt           DateTime?
+  mixApprovedBy           String?
+  mixApprovalNotes        String?
+
+  // Mandatory Feedback & Rating Gate
+  rating            Int? // 0-5 star rating
+  review            String? // Post-project feedback
+  ratingSubmittedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  artist       Artist               @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  files        ProjectFile[]
+  feedbacks    ProjectFeedback[]
+  invoice      ProjectInvoice?
+  activityLogs ProjectActivityLog[]
+
+  @@index([artistId])
+  @@index([portalToken])
 }
 
 model ProjectFile {
@@ -211,45 +298,114 @@ model ProjectFile {
   size      Int // Size in bytes
   mimeType  String // E.g., 'audio/wav', 'application/pdf'
   type      FileType @default(WORKING)
+
+  // Multi-Format Classification
+  category   FileCategory @default(OTHER)
+  format     AudioFormat  @default(WAV)
+  sampleRate SampleRate   @default(SR_44_1_KHZ)
+  bitDepth   BitDepth     @default(BIT_24)
+
+  // Audio Waveform Engine
+  duration      Float?
+  waveformPeaks Json? // 100-point normalized peaks array
+  downloadCount Int    @default(0)
+
   isPublic  Boolean  @default(true)
   createdAt DateTime @default(now())
 
   project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   feedbacks ProjectFeedback[]
+
+  @@index([projectId, type])
+  @@index([category, format, sampleRate])
 }
 
 model ProjectFeedback {
+  id         String    @id @default(cuid())
+  projectId  String
+  content    String // Text content of the notes/feedback
+  resolved   Boolean   @default(false)
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  fileId           String?
+  timestamp        Float? // Time in seconds
+  authorRole       FeedbackAuthorRole @default(ARTIST)
+  authorName       String?
+  parentFeedbackId String?
+
+  project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  file           ProjectFile?      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  parentFeedback ProjectFeedback?  @relation("FeedbackReplies", fields: [parentFeedbackId], references: [id], onDelete: Cascade)
+  replies        ProjectFeedback[] @relation("FeedbackReplies")
+
+  @@index([projectId, fileId])
+}
+
+model ProjectInvoice {
+  id            String        @id @default(cuid())
+  projectId     String        @unique
+  templateId    String?
+  invoiceNumber String        @unique
+  status        InvoiceStatus @default(ISSUED)
+  issuedAt      DateTime      @default(now())
+  dueAt         DateTime?
+  paidAt        DateTime?
+  currency      String        @default("USD")
+  lineItems     Json
+  subtotalCents Int
+  taxCents      Int           @default(0)
+  totalCents    Int
+  notes         String?
+
+  selectedPaymentMethod PaymentMethod?
+  paymentReference      String?
+  stripePaymentUrl      String?
+  venmoHandle           String?
+  paypalUrl             String?
+  chimeTag              String?
+  receiptUrl            String?
+  paymentNotes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project  Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  template InvoiceTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([paidAt])
+}
+
+model InvoiceTemplate {
+  id                  String   @id @default(cuid())
+  name                String
+  code                String   @unique
+  description         String
+  category            String
+  lineItems           Json
+  suggestedPriceCents Int
+  isPreset            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  invoices ProjectInvoice[]
+
+  @@index([code])
+}
+
+model ProjectActivityLog {
   id        String   @id @default(cuid())
   projectId String
-  content   String // Text content of the notes/feedback
-  resolved  Boolean  @default(false)
+  actorRole String
+  actorName String?
+  action    String
+  metadata  Json?
   createdAt DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  fileId    String?
-  timestamp Float? // Time in seconds
-  file      ProjectFile? @relation(fields: [fileId], references: [id], onDelete: Cascade)
-}
-
-model ProjectInvoice {
-  id               String    @id @default(cuid())
-  projectId        String    @unique
-  invoiceNumber    String
-  issuedAt         DateTime  @default(now())
-  dueAt            DateTime?
-  currency         String    @default("USD")
-  lineItems        Json
-  subtotalCents    Int
-  taxCents         Int       @default(0)
-  totalCents       Int
-  notes            String?
-  stripePaymentUrl String?
-  paidAt           DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  @@index([projectId, createdAt])
 }
 
 model AgentRun {
@@ -309,6 +465,7 @@ enum CampaignType {
   COLLABORATION
   REENGAGEMENT
   RECRUITMENT
+  PORTFOLIO_BUILDING
 }
 
 model OutreachCampaign {
@@ -346,4 +503,65 @@ enum ResponseType {
   NO
   FOLLOW_UP
   NO_RESPONSE
+}
+
+// ─────────────────────────────────────────────────────────────
+// Reply Triage & Follow-Up Sequence Models
+// ─────────────────────────────────────────────────────────────
+
+enum ReplyIntent {
+  INTERESTED
+  NOT_NOW
+  PRICING_REQUEST
+  WRONG_CONTACT
+  UNSUBSCRIBED
+  BOOKED
+  UNCLEAR
+}
+
+model ReplyTriage {
+  id         String      @id @default(cuid())
+  activityId String      @unique
+  leadId     String
+  intent     ReplyIntent
+  note       String?
+  triaged    Boolean     @default(false)
+  triagedAt  DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model FollowUpSequence {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  steps       Json // Array of { dayOffset: number; tone: string; promptHint: string }
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  enrollments LeadSequenceEnrollment[]
+}
+
+model LeadSequenceEnrollment {
+  id          String    @id @default(cuid())
+  leadId      String
+  sequenceId  String
+  currentStep Int       @default(0)
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  pausedAt    DateTime?
+  status      String    @default("ACTIVE") // ACTIVE, COMPLETED, PAUSED, CANCELLED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lead     Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  sequence FollowUpSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, sequenceId])
+  @@index([leadId])
+  @@index([sequenceId])
 }

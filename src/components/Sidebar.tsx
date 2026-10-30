@@ -30,8 +30,10 @@ export function Sidebar({ className = "" }: { className?: string }) {
       { href: '/KPIs', label: 'KPIs', description: 'Outreach success and campaign analytics' },
       { href: '/leads/discover', label: 'Artist Search', description: 'Venue and Instagram discovery' },
       { href: '/leads', label: 'Leads', description: 'Central view of all leads and contacts' },
+      { href: '/replies', label: 'Replies', description: 'Triage incoming artist replies' },
       { href: '/projects', label: 'Projects', description: 'Manage active client work' },
       { href: '/calendar', label: 'Calendar', description: 'Upcoming sessions and bookings' },
+      { href: '/operations', label: 'Operations', description: 'Follow-up queue and action items' },
     ];
 
     const query = searchQuery.trim().toLowerCase();
@@ -77,6 +79,11 @@ export function Sidebar({ className = "" }: { className?: string }) {
         <Link href="/calendar">
           <NavIcon active={pathname?.startsWith('/calendar') || false}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </NavIcon>
+        </Link>
+        <Link href="/replies">
+          <NavIcon active={pathname?.startsWith('/replies') || false}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </NavIcon>
         </Link>
 

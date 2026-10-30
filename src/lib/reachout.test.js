@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildPayload, isAustinLocal, detectGenreStyle } = require("./reachout-core");
+const { buildPayload, isAustinLocal, detectGenreStyle, hasExplicitPortfolioOffer } = require("./reachout-core");
 
 test("Reachout: Austin local detection", () => {
   assert.equal(isAustinLocal("Austin, TX"), true);
@@ -168,6 +168,55 @@ test("Reachout: Production Need signals are integrated into user prompt", () => 
   assert.ok(userText.includes("Detected Production Need: POSSIBLE"));
   assert.ok(userText.includes("anyone know a good mixing engineer in ATX?"));
   assert.ok(userText.includes("Address the detected production need as a natural reason to connect"));
+});
+
+test("Reachout: Portfolio mode makes the any-genre free first-song offer explicit", () => {
+  const payload = buildPayload({
+    artist: "Any Genre Artist",
+    genreText: "experimental pop",
+    location: "Austin, TX",
+    isRecentRelease: false,
+    hasEmail: true,
+    portfolioOffer: true,
+  });
+
+  const systemText = payload.input[0].content[0].text;
+  const userText = payload.input[1].content[0].text;
+  assert.ok(systemText.includes("accepting artists of any genre"));
+  assert.ok(systemText.includes("recording, mixing, and mastering the artist's first song at no cost"));
+  assert.ok(systemText.includes("primary hook, not a vague aside"));
+  assert.ok(systemText.includes("Do not replace the offer with 'collab'"));
+  assert.ok(systemText.includes("first or second sentence"));
+  assert.ok(systemText.includes("Do not imply a limited number of spots"));
+  assert.ok(userText.includes("PORTFOLIO COLLABORATION OFFER (MANDATORY)"));
+});
+
+test("Reachout: explicit portfolio offer validator rejects vague collaboration language", () => {
+  assert.equal(
+    hasExplicitPortfolioOffer(
+      "I can record, mix, and master your first song for free with unlimited revisions."
+    ),
+    true
+  );
+  assert.equal(
+    hasExplicitPortfolioOffer("I'd love to help with recording or mixing as part of a portfolio collab."),
+    false
+  );
+});
+
+test("Reachout: explicit portfolio offer accepts natural past-participle wording", () => {
+  assert.equal(
+    hasExplicitPortfolioOffer(
+      "I can record, mix, and master your first song for free, with unlimited revisions."
+    ),
+    true
+  );
+  assert.equal(
+    hasExplicitPortfolioOffer(
+      "Your first song can be recorded, mixed, and mastered at no cost with unlimited revisions."
+    ),
+    true
+  );
 });
 
 test("Reachout: Channel formatting rules for IG vs Email in system prompt", () => {

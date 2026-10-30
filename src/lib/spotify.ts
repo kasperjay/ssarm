@@ -10,6 +10,33 @@ type SpotifyArtistProfile = {
   genres?: string[];
 };
 
+type SpotifyWebArtist = {
+  profile?: {
+    name?: string;
+  };
+  discography?: {
+    albums?: { items?: SpotifyWebReleaseGroup[] };
+    singles?: { items?: SpotifyWebReleaseGroup[] };
+  };
+  visuals?: {
+    avatarImage?: { sources?: Array<{ url?: string }> };
+  };
+};
+
+type SpotifyWebReleaseGroup = {
+  releases?: {
+    items?: SpotifyWebRelease[];
+  };
+};
+
+type SpotifyWebRelease = {
+  name?: string;
+  type?: string;
+  date?: { year?: number; month?: number; day?: number };
+  uri?: string;
+  coverArt?: { sources?: Array<{ url?: string }> };
+};
+
 export type SpotifyRelease = {
   spotifyReleaseId: string;
   title: string;
@@ -67,6 +94,34 @@ const spotifyFetch = async (path: string) => {
   return response.json() as Promise<Record<string, unknown>>;
 };
 
+const fetchSpotifyWebArtist = async (spotifyArtistId: string): Promise<SpotifyWebArtist | null> => {
+  const url = `https://open.spotify.com/artist/${spotifyArtistId}`;
+  try {
+    const response = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+    if (!response.ok) return null;
+    const html = await response.text();
+    const match = html.match(/<script[^>]*id="initialState"[^>]*>([\s\S]*?)<\/script>/);
+    if (!match?.[1]) return null;
+    return JSON.parse(Buffer.from(match[1], "base64").toString("utf8"))
+      ?.entities?.items?.[`spotify:artist:${spotifyArtistId}`] ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const fetchSpotifyOEmbed = async (spotifyArtistId: string) => {
+  try {
+    const target = `https://open.spotify.com/artist/${spotifyArtistId}`;
+    const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(target)}`);
+    if (!response.ok) return null;
+    return (await response.json()) as { title?: string; thumbnail_url?: string };
+  } catch {
+    return null;
+  }
+};
+
 const parseReleaseDate = (value?: string, precision?: string) => {
   if (!value) return null;
   if (precision === "day") return new Date(value).toISOString();
@@ -80,7 +135,19 @@ export const fetchSpotifyArtistProfile = async (
   spotifyArtistId: string
 ): Promise<SpotifyArtistProfile | null> => {
   const data = await spotifyFetch(`artists/${spotifyArtistId}`);
-  if (!data) return null;
+  if (!data) {
+    const [webArtist, oembed] = await Promise.all([
+      fetchSpotifyWebArtist(spotifyArtistId),
+      fetchSpotifyOEmbed(spotifyArtistId),
+    ]);
+    if (!webArtist && !oembed) return null;
+    return {
+      name: webArtist?.profile?.name ?? oembed?.title,
+      url: `https://open.spotify.com/artist/${spotifyArtistId}`,
+      imageUrl:
+        webArtist?.visuals?.avatarImage?.sources?.[0]?.url ?? oembed?.thumbnail_url,
+    };
+  }
 
   const images = Array.isArray(data.images) ? data.images : [];
   const imageUrl =
@@ -157,5 +224,35 @@ export const fetchSpotifyReleases = async (
     path = releases.length < target ? nextUrl : null;
   }
 
-  return releases;
+  if (releases.length > 0) return releases;
+
+  const artist = await fetchSpotifyWebArtist(spotifyArtistId);
+  const groups = [
+    ...(artist?.discography?.albums?.items ?? []),
+    ...(artist?.discography?.singles?.items ?? []),
+  ];
+  const fallbackReleases: SpotifyRelease[] = [];
+  const seenFallback = new Set<string>();
+
+  for (const group of groups) {
+    const release = group.releases?.items?.[0];
+    const id = release?.uri?.match(/^spotify:album:(.+)$/)?.[1];
+    if (!release || !id || seenFallback.has(id)) continue;
+    seenFallback.add(id);
+    const date = release.date;
+    const releaseDate = date?.year
+      ? new Date(Date.UTC(date.year, (date.month ?? 1) - 1, date.day ?? 1)).toISOString()
+      : null;
+    fallbackReleases.push({
+      spotifyReleaseId: id,
+      title: release.name ?? "Untitled",
+      releaseDate,
+      imageUrl: release.coverArt?.sources?.[0]?.url ?? null,
+      url: `https://open.spotify.com/album/${id}`,
+      releaseType: release.type?.toLowerCase() ?? null,
+    });
+    if (fallbackReleases.length >= target) break;
+  }
+
+  return fallbackReleases;
 };

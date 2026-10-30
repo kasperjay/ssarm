@@ -221,6 +221,15 @@ const buildPayload = (ctx) => {
       "NOTE: For Variant A (Craft & Sound), prioritize speaking directly to this need (e.g. finishing mixes, tracking drums/vocals, recording new material) in a casual, peer-to-peer way.\n\n";
   }
 
+  const portfolioOfferBlock = ctx.portfolioOffer
+    ? "PORTFOLIO COLLABORATION OFFER (MANDATORY):\n" +
+      "- Kasper is currently accepting artists of any genre for a first-song portfolio collaboration.\n" +
+      "- The offer is recording, mixing, and mastering the artist's first song at no cost, with unlimited revisions within the agreed song scope.\n" +
+      "- This offer is the primary hook, not a vague aside. State the actual deliverables and value directly in every generated message: first song recording, mixing, and mastering at no cost, with unlimited revisions within the agreed song scope.\n" +
+      "- Use definitive words such as 'free', 'at no cost', or 'complimentary'. Do not replace the offer with 'collab', 'portfolio collab', 'help with recording or mixing', 'accepting artists', or 'would love to connect'.\n" +
+      "- Put the direct offer in the first or second sentence whenever the channel length allows. Do not imply a limited number of spots or use scarcity language.\n\n"
+    : "";
+
   const systemText =
     "You write outreach for Kasper Pickett, audio engineer and producer at Spectral Soundworks in Austin, Texas.\n" +
     "Your objective: Initiate a genuine connection between fellow music creators. Sound like a real Austin engineer—conversational, understated, peer-to-peer, confident, and chill. Zero marketing fluff or sales desperation.\n\n" +
@@ -275,7 +284,10 @@ const buildPayload = (ctx) => {
     "  Focus on their upcoming gig in Austin, recent show, local scene ties, or live performance.\n\n" +
     "Hard constraints:\n" +
     `- Write ${messagesToGenerate}.\n` +
-    "- Every message must establish Kasper as an Austin audio engineer / Spectral Soundworks with an organic, subtle offer of mixing/mastering/production (not salesy, not pushy).\n" +
+    portfolioOfferBlock +
+    (ctx.portfolioOffer
+      ? "- Every message must present the free first-song offer directly and prominently; personalization should lead into the offer, not bury or soften it.\n"
+      : "- Every message must establish Kasper as an Austin audio engineer / Spectral Soundworks with an organic, subtle offer of mixing/mastering/production (not salesy, not pushy).\n") +
     "- MANDATORY RESTRICTION: Do NOT use the phrases 'I run a studio', 'run a studio', 'mixing and tracking room', 'tracking room', 'in East Austin', 'East Austin', or 'on the east side'. If referencing location, simply say 'in Austin' or 'here in Austin'.\n" +
     "- Do NOT mention AI, automation, scraping, spreadsheets, algorithms, or data.\n" +
     "- If referencing posts, paraphrase meaning like you actually understood it.\n" +
@@ -306,6 +318,7 @@ const buildPayload = (ctx) => {
     (pastShowText ? `Recent Past Show (Already happened): ${pastShowText}\n` : "") +
     "\n" +
     productionNeedBlock +
+    portfolioOfferBlock +
     genreInstructions +
     "DRAFT-SPECIFIC RULES:\n" +
     "1. VARIANT A (IG_A and EMAIL_A) — Craft & Sound Focus:\n" +
@@ -386,6 +399,19 @@ const mentionsServices = (text) =>
   /\b(record|recording|mix|mixes|mixing|mixdown|master|mastering|studio|session|engineer|engineering|tracking|audio|room|soundworks)\b/i.test(
     text
   );
+
+const hasExplicitPortfolioOffer = (text) => {
+  if (typeof text !== "string") return false;
+  const lower = text.toLowerCase();
+  return (
+    /\bfirst\s+(?:song|track)\b/.test(lower) &&
+    /\b(?:record|recorded|recording|track|tracked|tracking)\b/.test(lower) &&
+    /\b(?:mix|mixed|mixing|mixdown)\b/.test(lower) &&
+    /\b(?:master|mastered|mastering)\b/.test(lower) &&
+    /\b(?:free|no cost|at no cost|complimentary)\b/.test(lower) &&
+    /\bunlimited\s+revisions?\b/.test(lower)
+  );
+};
 
 const validateRequired = (out, fields) => {
   for (const key of fields) {
@@ -482,8 +508,11 @@ const generateReachoutDrafts = async (ctx) => {
   let output = extractJson(await callOpenAI(payload));
   validateRequired(output, fields);
 
-  // Soft verification: ensure Kasper / studio / audio engineering is referenced
-  if (!fields.every((key) => mentionsServices(output[key]))) {
+  const needsPortfolioOfferCorrection = ctx.portfolioOffer &&
+    !fields.every((key) => hasExplicitPortfolioOffer(output[key]));
+  const needsServiceCorrection = !fields.every((key) => mentionsServices(output[key]));
+
+  if (needsPortfolioOfferCorrection || needsServiceCorrection) {
     payload = {
       ...payload,
       input: [
@@ -494,7 +523,9 @@ const generateReachoutDrafts = async (ctx) => {
             {
               type: "input_text",
               text:
-                "Correction: Make sure each message naturally introduces Kasper as an Austin engineer with Spectral Soundworks or references mixing, mastering, or production in an organic, low-pressure way without saying 'I run a studio', 'tracking room', or 'in East Austin'. Return JSON only.",
+                ctx.portfolioOffer
+                  ? "Correction: Every message must state the offer explicitly: the artist's first song will receive recording, mixing, and mastering for free / at no cost, with unlimited revisions within the agreed song scope. Put that direct offer in the first or second sentence. Do not use vague substitutes such as 'collab', 'portfolio collab', 'help with recording or mixing', or 'accepting artists'. Also introduce Kasper as an Austin engineer with Spectral Soundworks without saying 'I run a studio', 'tracking room', or 'in East Austin'. Return JSON only."
+                  : "Correction: Make sure each message naturally introduces Kasper as an Austin engineer with Spectral Soundworks or references mixing, mastering, or production in an organic, low-pressure way without saying 'I run a studio', 'tracking room', or 'in East Austin'. Return JSON only.",
             },
           ],
         },
@@ -502,6 +533,10 @@ const generateReachoutDrafts = async (ctx) => {
     };
     output = extractJson(await callOpenAI(payload));
     validateRequired(output, fields);
+  }
+
+  if (ctx.portfolioOffer && !fields.every((key) => hasExplicitPortfolioOffer(output[key]))) {
+    throw new Error("Generated portfolio outreach did not state the free first-song offer explicitly");
   }
 
   // Sanitize all generated drafts to ensure banned phrases are completely eliminated
@@ -526,6 +561,7 @@ module.exports = {
   buildPayload,
   extractJson,
   mentionsServices,
+  hasExplicitPortfolioOffer,
   validateRequired,
   cleanEmail,
   sanitizeDraftText,

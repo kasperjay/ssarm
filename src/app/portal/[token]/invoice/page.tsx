@@ -2,9 +2,8 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GlassCard } from "@/components/GlassCard";
 import { prisma } from "@/lib/prisma";
-import { centsToCurrency } from "@/lib/invoice";
+import PortalInvoiceCard from "../components/PortalInvoiceCard";
 
 export default async function PortalInvoicePage({
   params,
@@ -58,67 +57,29 @@ export default async function PortalInvoicePage({
           </div>
         </header>
 
-        <GlassCard className="p-8! border-accent/20 bg-accent/2 shadow-xl space-y-8">
-          <div className="space-y-4">
-            {invoiceLineItems.map((item, i) => (
-              <div
-                key={`${item.description}-${i}`}
-                className="flex items-center justify-between gap-6 border-b border-white/5 pb-3 text-sm text-white/80"
-              >
-                <div>
-                  <div className="font-semibold text-white">{item.description}</div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-white/30">
-                    Qty {item.quantity} · {centsToCurrency(item.unitPriceCents, invoice.currency)} each
-                  </div>
-                </div>
-                <div className="font-bold text-white">
-                  {centsToCurrency(item.amountCents, invoice.currency)}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-2 border-t border-white/5 pt-6 text-sm text-white/70">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{centsToCurrency(invoice.subtotalCents, invoice.currency)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tax</span>
-              <span>{centsToCurrency(invoice.taxCents, invoice.currency)}</span>
-            </div>
-            <div className="flex justify-between text-base font-bold text-white pt-2">
-              <span>Total</span>
-              <span>{centsToCurrency(invoice.totalCents, invoice.currency)}</span>
-            </div>
-            {invoice.dueAt ? (
-              <div className="pt-3 text-xs uppercase tracking-[0.25em] text-white/35">
-                Due {new Date(invoice.dueAt).toLocaleDateString("en-US")}
-              </div>
-            ) : null}
-          </div>
-
-          {invoice.notes ? (
-            <div className="rounded-2xl border border-white/5 bg-white/3 px-4 py-4 text-sm text-white/60">
-              {invoice.notes}
-            </div>
-          ) : null}
-
-          {invoice.stripePaymentUrl ? (
-            <a
-              href={invoice.stripePaymentUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex w-full items-center justify-center rounded-2xl border border-accent/40 bg-accent/20 py-4 text-xs font-bold uppercase tracking-[0.3em] text-accent transition-all hover:bg-accent/30"
-            >
-              Pay with Stripe
-            </a>
-          ) : (
-            <div className="text-center text-xs font-bold uppercase tracking-[0.25em] text-white/30">
-              Payment link will appear here when ready.
-            </div>
-          )}
-        </GlassCard>
+        <PortalInvoiceCard
+          projectId={project.id}
+          token={token}
+          artistName={project.artist.name}
+          projectTitle={project.title || "Project Review"}
+          invoice={{
+            id: invoice.id,
+            invoiceNumber: invoice.invoiceNumber,
+            subtotalCents: invoice.subtotalCents,
+            taxCents: invoice.taxCents,
+            totalCents: invoice.totalCents,
+            currency: invoice.currency,
+            dueAt: invoice.dueAt ? invoice.dueAt.toISOString() : null,
+            paidAt: invoice.paidAt ? invoice.paidAt.toISOString() : null,
+            notes: invoice.notes,
+            stripePaymentUrl: invoice.stripePaymentUrl,
+            venmoHandle: invoice.venmoHandle,
+            paypalUrl: invoice.paypalUrl,
+            chimeTag: invoice.chimeTag,
+            selectedPaymentMethod: invoice.selectedPaymentMethod,
+            lineItems: invoiceLineItems,
+          }}
+        />
       </div>
     </div>
   );

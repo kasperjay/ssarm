@@ -96,7 +96,7 @@ Before sending, inspect selected message drafts for missing personalization, dup
 
 ### Reply Triage Agent
 
-Add an inbox or manual import workflow that classifies replies into interested, not now, pricing request, wrong contact, unsubscribed, or booked. The result should update lead status and next action.
+**Status:** ✅ Complete. Reply Inbox at `/replies` surfaces all `REPLY_RECEIVED` activities for classification. Triage UI sets intent (`INTERESTED`, `NOT_NOW`, `PRICING_REQUEST`, `WRONG_CONTACT`, `UNSUBSCRIBED`, `BOOKED`, `UNCLEAR`) and auto-transitions lead status. `ReplyTriage` model persists decisions. New `FollowUpSequence` and `LeadSequenceEnrollment` models enable structured multi-step cadences. `scripts/advance-sequences.js` advances enrolled leads on schedule. `scripts/seed-sequences.js` seeds 3 default sequences. API routes: `POST /api/replies/triage`, `GET /api/replies/inbox`, `GET|POST /api/sequences`, `POST /api/sequences/[id]/enroll`.
 
 ### Local Scene Intelligence
 
@@ -122,7 +122,7 @@ All 7 items from the original order are complete as of 2026-05-05.
 4. Implement Pipeline Health Agent (daily data-quality report).
 5. Implement Lead-to-Project Conversion Agent (auto-create project shell on WON).
 6. Add Outreach QA Agent (pre-send draft inspection).
-7. Add Reply Triage Agent (inbox classification → lead status update).
+7. Add Reply Triage Agent (inbox classification → lead status update) ✅ Complete
 8. Add metric snapshot table for follower/post history (replaces Activity note approach).
 
 ## Operating Notes

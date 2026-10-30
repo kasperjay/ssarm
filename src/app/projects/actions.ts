@@ -130,12 +130,91 @@ type InvoiceLineItemPayload = {
 };
 
 type UpsertInvoicePayload = {
+  templateId?: string;
   dueAt?: string;
   tax?: string;
   notes?: string;
   stripePaymentUrl?: string;
+  venmoHandle?: string;
+  paypalUrl?: string;
+  chimeTag?: string;
   lineItems: InvoiceLineItemPayload[];
 };
+
+export async function toggleDeliverablePaywall(projectId: string, paywallDeliverables: boolean) {
+  const project = await prisma.project.update({
+    where: { id: projectId },
+    data: { paywallDeliverables },
+  });
+
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/portal/${project.portalToken}`);
+  return project;
+}
+
+export async function markInvoicePaid(
+  projectId: string,
+  paymentMethod: "STRIPE" | "APPLE_PAY" | "PAYPAL" | "VENMO" | "CHIME" | "CASH_APP" | "WIRE" | "OTHER" = "STRIPE",
+  reference?: string
+) {
+  const now = new Date();
+
+  const [invoice, project] = await prisma.$transaction(async (tx) => {
+    const inv = await tx.projectInvoice.update({
+      where: { projectId },
+      data: {
+        paidAt: now,
+        status: "PAID",
+        selectedPaymentMethod: paymentMethod,
+        paymentReference: reference?.trim() || "Manual studio confirmation",
+      },
+    });
+
+    const proj = await tx.project.findUnique({
+      where: { id: projectId },
+      select: { portalToken: true },
+    });
+
+    await tx.projectActivityLog.create({
+      data: {
+        projectId,
+        actorRole: "ENGINEER",
+        action: "INVOICE_MARKED_PAID",
+        metadata: {
+          invoiceNumber: inv.invoiceNumber,
+          amountCents: inv.totalCents,
+          method: paymentMethod,
+          paidAt: now.toISOString(),
+        },
+      },
+    });
+
+    return [inv, proj];
+  });
+
+  revalidatePath(`/projects/${projectId}`);
+  if (project?.portalToken) {
+    revalidatePath(`/portal/${project.portalToken}`);
+    revalidatePath(`/portal/${project.portalToken}/invoice`);
+    revalidatePath(`/portal/${project.portalToken}/billing`);
+  }
+
+  return invoice;
+}
+
+export async function updateProjectWorkflowStage(
+  projectId: string,
+  workflowStage: "IN_MIXING" | "MIX_APPROVED" | "IN_MASTERING" | "MASTERED" | "COMPLETED"
+) {
+  const project = await prisma.project.update({
+    where: { id: projectId },
+    data: { workflowStage },
+  });
+
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/portal/${project.portalToken}`);
+  return project;
+}
 
 export async function upsertProjectInvoice(projectId: string, payload: UpsertInvoicePayload) {
   const project = await prisma.project.findUnique({ where: { id: projectId } });
@@ -173,11 +252,23 @@ export async function upsertProjectInvoice(projectId: string, payload: UpsertInv
 
   const existing = await prisma.projectInvoice.findUnique({ where: { projectId } });
 
+  let resolvedTemplateId: string | null = null;
+  const rawTemplate = payload.templateId?.trim();
+  if (rawTemplate) {
+    const matched = await prisma.invoiceTemplate.findFirst({
+      where: {
+        OR: [{ id: rawTemplate }, { code: rawTemplate }],
+      },
+    });
+    resolvedTemplateId = matched?.id || null;
+  }
+
   await prisma.projectInvoice.upsert({
     where: { projectId },
     create: {
       projectId,
       invoiceNumber: generateInvoiceNumber(projectId),
+      templateId: resolvedTemplateId,
       dueAt,
       currency: "USD",
       lineItems: totals.lineItems,
@@ -186,20 +277,29 @@ export async function upsertProjectInvoice(projectId: string, payload: UpsertInv
       totalCents: totals.totalCents,
       notes: payload.notes?.trim() || null,
       stripePaymentUrl,
+      venmoHandle: payload.venmoHandle?.trim() || null,
+      paypalUrl: payload.paypalUrl?.trim() || null,
+      chimeTag: payload.chimeTag?.trim() || null,
     },
     update: {
       dueAt,
+      templateId: resolvedTemplateId !== null ? resolvedTemplateId : (existing?.templateId || null),
       lineItems: totals.lineItems,
       subtotalCents: totals.subtotalCents,
       taxCents: totals.taxCents,
       totalCents: totals.totalCents,
       notes: payload.notes?.trim() || null,
       stripePaymentUrl,
+      venmoHandle: payload.venmoHandle?.trim() || null,
+      paypalUrl: payload.paypalUrl?.trim() || null,
+      chimeTag: payload.chimeTag?.trim() || null,
       invoiceNumber: existing?.invoiceNumber || generateInvoiceNumber(projectId),
     },
   });
 
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/portal/${project.portalToken}`);
+  revalidatePath(`/portal/${project.portalToken}/invoice`);
+  revalidatePath(`/portal/${project.portalToken}/billing`);
 }
 

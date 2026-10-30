@@ -116,7 +116,7 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
   const postPageSize = 10;
   const draftPageSize = 2;
 
-  let lead = await prisma.lead.findUnique({
+  const leadRecord = await prisma.lead.findUnique({
     where: { id },
     include: {
       artist: true,
@@ -125,21 +125,29 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
     },
   });
 
-  if (!lead) notFound();
+  if (!leadRecord) notFound();
+  let lead = leadRecord;
 
   const hasReachoutDraft = lead.messages.some((message) => message.source === "reachout");
   const canGenerateDrafts = lead.status === "NEW" || lead.status === "QUALIFIED";
+  let draftGenerationError: string | null = null;
   if (!hasReachoutDraft && canGenerateDrafts) {
-    await generateDraftsForLead(lead.id, { shouldRevalidate: false });
-    lead = await prisma.lead.findUnique({
-      where: { id },
-      include: {
-        artist: true,
-        messages: { orderBy: { createdAt: "desc" } },
-        activities: { orderBy: { occurredAt: "desc" } },
-      },
-    });
-    if (!lead) notFound();
+    try {
+      await generateDraftsForLead(lead.id, { shouldRevalidate: false });
+      const refreshedLead = await prisma.lead.findUnique({
+        where: { id },
+        include: {
+          artist: true,
+          messages: { orderBy: { createdAt: "desc" } },
+          activities: { orderBy: { occurredAt: "desc" } },
+        },
+      });
+      if (!refreshedLead) notFound();
+      lead = refreshedLead;
+    } catch (error) {
+      console.error("Automatic draft generation failed", { leadId: lead.id, error });
+      draftGenerationError = "Draft generation did not complete. The lead page is still available; use Regenerate All to retry.";
+    }
   }
 
   const bannerRawUrl = lead.artist.spotifyImageUrl ?? lead.artist.instagramProfileImageUrl ?? null;
@@ -581,6 +589,12 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
                   </button>
                 </form>
               </div>
+
+              {draftGenerationError && (
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                  {draftGenerationError}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <GlassCard className="p-5! bg-white/2 border-white/5">

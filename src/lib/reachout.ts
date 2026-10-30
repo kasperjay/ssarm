@@ -41,6 +41,7 @@ export type ReachoutContext = {
   bio?: string | null;
   hasEmail: boolean;
   styleHint?: string | null;
+  portfolioOffer?: boolean;
   currentDate?: string;
   productionNeedLevel?: string | null;
   productionNeedEvidence?: string[] | string | null;

@@ -223,6 +223,7 @@ async function main() {
           hasEmail: (lead.artist.emails?.length ?? 0) > 0,
           productionNeedLevel: lead.productionNeedLevel,
           productionNeedEvidence: evidenceList,
+          portfolioOffer: true,
         };
 
         if (DRY_RUN) {

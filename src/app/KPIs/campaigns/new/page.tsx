@@ -10,7 +10,8 @@ const campaignTypes = [
   { value: "VENUE_BOOKING", label: "Venue Booking" },
   { value: "COLLABORATION", label: "Collaboration" },
   { value: "REENGAGEMENT", label: "Re-engagement" },
-  { value: "RECRUITMENT", label: "Recruitment" }
+  { value: "RECRUITMENT", label: "Recruitment" },
+  { value: "PORTFOLIO_BUILDING", label: "Portfolio Building" }
 ];
 
 const channels = [
@@ -113,7 +114,7 @@ export default function NewCampaignPage() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="e.g., Summer Tour Outreach 2026"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 py-4 px-6 text-lg font-bold text-white placeholder:text-white/25 focus:border-accent focus:outline-none"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 py-4 px-6 text-lg font-bold text-white placeholder:text-white/25 focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                 required
               />
             </div>
@@ -176,7 +177,7 @@ export default function NewCampaignPage() {
                 value={formData.targetCount}
                 onChange={handleChange}
                 min="1"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 py-4 px-6 text-lg font-bold text-white focus:border-accent focus:outline-none"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 py-4 px-6 text-lg font-bold text-white focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
               />
             </div>
 
@@ -191,7 +192,7 @@ export default function NewCampaignPage() {
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-4 px-6 text-lg font-bold text-white focus:border-accent focus:outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-4 px-6 text-lg font-bold text-white focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                   required
                 />
               </div>
@@ -205,7 +206,7 @@ export default function NewCampaignPage() {
                   value={formData.endDate ? new Date(formData.endDate).toISOString().split("T")[0] : ""}
                   onChange={handleChange}
                   min={formData.startDate}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-4 px-6 text-lg font-bold text-white focus:border-accent focus:outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-4 px-6 text-lg font-bold text-white focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                 />
               </div>
             </div>

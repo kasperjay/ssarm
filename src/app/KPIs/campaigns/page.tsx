@@ -31,7 +31,8 @@ export default async function CampaignsPage() {
     VENUE_BOOKING: "Venue Booking",
     COLLABORATION: "Collaboration",
     REENGAGEMENT: "Re-engagement",
-    RECRUITMENT: "Recruitment"
+    RECRUITMENT: "Recruitment",
+    PORTFOLIO_BUILDING: "Portfolio Building"
   };
 
   const channelLabels: Record<string, string> = {

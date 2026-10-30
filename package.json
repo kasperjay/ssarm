@@ -26,7 +26,7 @@
     "launch": "bash scripts/launch.sh",
     "db:backup": "docker exec spectral-postgres pg_dump -U postgres spectral > backup_$(date +%Y%m%d_%H%M%S).sql",
     "db:migrate": "prisma migrate dev",
-    "test": "node --test src/**/*.test.js",
+    "test": "node --test 'src/**/*.test.js'",
     "test:scrapers": "vitest run src/lib/scrapers/shared.test.ts src/lib/lead-enrichment-service.test.ts",
     "screen-production-needs": "node scripts/screen-production-needs.js"
   },
